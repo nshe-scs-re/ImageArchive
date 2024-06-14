@@ -1,0 +1,63 @@
+﻿@page "/table"
+
+<PageTitle>Table</PageTitle>
+
+@rendermode InteractiveServer
+
+@inject HttpClient Http
+
+@using Microsoft.AspNetCore.Components.QuickGrid
+
+<div class="d-flex justify-content-center m-3">
+    <EditForm Model="@imageQuery" OnValidSubmit="OnFormSubmit" FormName="MyFormName" class="m-3">
+        <div class="row mb-3">
+            <label for="StartDate" class="col col-form-label">Query start date:</label>
+            <div class="col">
+                <InputDate id="StartDate" @bind-Value="imageQuery.StartDate" class="form-control"/>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label for="EndDate" class="col col-form-label">Query end date:</label>
+            <div class="col">
+                <InputDate id="EndDate" @bind-Value="imageQuery.EndDate" class="form-control" />
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Search</button>
+    </EditForm>
+</div>
+
+<div class="grid">
+    <QuickGrid Items="@images.AsQueryable()" Pagination="@pagination"  Class="table table-bordered table-striped table-hover">
+        <PropertyColumn Property="@(i => i.Id)" Sortable="true" Align="Align.Right" Title="Id"></PropertyColumn>
+        <PropertyColumn Property="@(i => i.Name)" Sortable="true" Align="Align.Right" Title="Name"></PropertyColumn>
+        <PropertyColumn Property="@(i => i.FilePath)" Sortable="true" Align="Align.Right" Title="FilePath"></PropertyColumn>
+        <PropertyColumn Property="@(i => i.DateTime)" Sortable="true" Align="Align.Right" Title="DateTime"></PropertyColumn>
+        <PropertyColumn Property="@(i => i.UnixTime)" Sortable="true" Align="Align.Right" Title="UnixTime"></PropertyColumn>
+    </QuickGrid>
+</div>
+
+<Paginator State="@pagination" />
+
+<div class="page-size-chooser">
+    Items per page:
+    <select @bind="@pagination.ItemsPerPage">
+        <option>10</option>
+        <option>20</option>
+        <option>50</option>
+    </select>
+</div>
+
+@code {
+    ImageQuery imageQuery = new ImageQuery();
+
+    PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+
+    private List<Image> images = new List<Image>();
+
+    private async Task OnFormSubmit()
+    {
+        var uri = $"https://localhost:7013/api/images/filter?startDate={imageQuery.StartDate}&endDate={imageQuery.EndDate}";
+
+        images = await Http.GetFromJsonAsync<List<Image>>(uri) ?? new List<Image>();
+    }
+}
