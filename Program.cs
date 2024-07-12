@@ -17,17 +17,13 @@ namespace ExtractImagePaths
                 .AddSqlServer<ImageDbContext>(configuration.GetConnectionString("ImageDatabase"))
                 .BuildServiceProvider();
 
-            string rootPath = @"H:\Sheep Images Test";
+            string rootPath = @"C:\Sheep Images Test";
 
             var imagePaths = GetImagePaths(rootPath);
 
-            foreach (var imagePath in imagePaths)
-            {
-                Console.WriteLine(imagePath);
-            }
-
             InsertImagePathsIntoDatabase(imagePaths, serviceProvider);
         }
+
         static List<string> GetImagePaths(string rootPath)
         {
             var imagePaths = new List<string>();
