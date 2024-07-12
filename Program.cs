@@ -46,6 +46,17 @@ namespace ExtractImagePaths
 
         static void InsertImagePathsIntoDatabase(List<string> imagePaths, ServiceProvider serviceProvider)
         {
+            List<string> siteNames = new List<string>
+            {
+                "Sheep",
+                "Snake",
+                "Sagehen",
+                "Spring",
+                "Conness",
+                "Rockland",
+                "Lassen"
+            };
+
             Console.WriteLine("Images to be inserted into the database:");
 
             foreach (var imagePath in imagePaths)
@@ -56,13 +67,13 @@ namespace ExtractImagePaths
                 DateTime dateTime = DateTimeOffset.FromUnixTimeSeconds(unixTime).DateTime;
                 string siteName = string.Empty;
 
-                if (imagePath.Contains("Sheep"))
+                foreach (var s in siteNames)
                 {
-                    siteName = "Sheep";
-                }
-                else if(imagePath.Contains("Snake"))
-                {
-                    siteName = "Snake";
+                    if (imagePath.Contains(s))
+                    {
+                        siteName = s;
+                        break;
+                    }
                 }
 
                 Console.WriteLine($"File Name: {name}");
@@ -99,13 +110,31 @@ namespace ExtractImagePaths
                     string nameWithoutExtension = Path.GetFileNameWithoutExtension(name);
                     long unixTime = long.Parse(nameWithoutExtension.Substring(0, nameWithoutExtension.Length - 2));
                     DateTime dateTime = DateTimeOffset.FromUnixTimeSeconds(unixTime).DateTime;
+                    string? siteName = null;
+                    int camera = 1;
+
+                    foreach (var s in siteNames)
+                    {
+                        if (imagePath.Contains(s))
+                        {
+                            siteName = s;
+                            break;
+                        }
+                    }
+
+                    if(imagePath.Contains("Camera2"))
+                    {
+                        camera = 2;
+                    }
 
                     return new Image
                     {
                         Name = name,
                         FilePath = imagePath,
                         DateTime = dateTime,
-                        UnixTime = unixTime
+                        UnixTime = unixTime,
+                        Site = siteName,
+                        Camera = camera
                     };
                 });
 
