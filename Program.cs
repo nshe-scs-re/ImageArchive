@@ -17,7 +17,7 @@ namespace ExtractImagePaths
                 .AddSqlServer<ImageDbContext>(configuration.GetConnectionString("ImageDatabase"))
                 .BuildServiceProvider();
 
-            string rootPath = @"C:\Sheep Images Test";
+            string rootPath = @"C:\ImagesTest";
 
             var imagePaths = GetImagePaths(rootPath);
 
@@ -26,13 +26,18 @@ namespace ExtractImagePaths
 
         static List<string> GetImagePaths(string rootPath)
         {
-            var imagePaths = new List<string>();
+            List<string> imagePaths = [];
+
+            List<string> imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".tiff"];
 
             foreach (var directory in Directory.GetDirectories(rootPath, "*", SearchOption.AllDirectories))
             {
-                foreach (var file in Directory.GetFiles(directory, "*.jpg"))
+                foreach(var extension in  imageExtensions)
                 {
-                    imagePaths.Add(file);
+                    foreach (var file in Directory.GetFiles(directory, $"*{extension}"))
+                    {
+                        imagePaths.Add(file);
+                    }
                 }
             }
 
@@ -49,13 +54,26 @@ namespace ExtractImagePaths
                 string nameWithoutExtension = Path.GetFileNameWithoutExtension(name);
                 long unixTime = long.Parse(nameWithoutExtension.Substring(0, nameWithoutExtension.Length - 2));
                 DateTime dateTime = DateTimeOffset.FromUnixTimeSeconds(unixTime).DateTime;
+                string siteName = string.Empty;
 
-                Console.WriteLine($"Name: {name}");
-                Console.WriteLine($"FilePath: {imagePath}");
-                Console.WriteLine($"DateTime: {dateTime}");
-                Console.WriteLine($"UnixTime: {unixTime}");
+                if (imagePath.Contains("Sheep"))
+                {
+                    siteName = "Sheep";
+                }
+                else if(imagePath.Contains("Snake"))
+                {
+                    siteName = "Snake";
+                }
+
+                Console.WriteLine($"File Name: {name}");
+                Console.WriteLine($"File Path: {imagePath}");
+                Console.WriteLine($"Date Time:  {dateTime}");
+                Console.WriteLine($"Unix Time: {unixTime}");
+                Console.WriteLine($"Site Name: {siteName}");
                 Console.WriteLine();
             }
+
+            Console.WriteLine($"DEBUG: Total count: {imagePaths.Count}");
 
             Console.WriteLine("Continue with insertion? Y/N ");
             string choice = Console.ReadLine()!.Trim().ToUpper();
