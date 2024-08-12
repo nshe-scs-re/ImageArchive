@@ -29,11 +29,11 @@
 </ul>
 
 @code {
-    private Guid staleJobId = new("7bd0e068-0fdf-45bd-b988-107789288811");
-    private DateTime startDate = new DateTime(2019,6,1);
+    private Guid staleJobId = new("7bd0e068-0fdf-45bd-b988-107789288811"); //TODO: Remove testing variable
+    private DateTime startDate = new DateTime(2010,1,1);
     private DateTime endDate = DateTime.Now;
     private ArchiveStatusResponse? archiveStatusResponse = new();
-    private string apihost = "https://localhost:7013";
+    private string apihost = "https://localhost:443";
 
     private async Task ArchiveStartRequest()
     {
