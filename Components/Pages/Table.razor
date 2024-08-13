@@ -1,25 +1,22 @@
 ﻿@page "/table"
+@rendermode InteractiveServer
+@inject HttpClient Http
+@using Microsoft.AspNetCore.Components.QuickGrid
 
 <PageTitle>Table</PageTitle>
 
-@rendermode InteractiveServer
-
-@inject HttpClient Http
-
-@using Microsoft.AspNetCore.Components.QuickGrid
-
 <div class="d-flex justify-content-center m-3">
-    <EditForm Model="@imageQuery" OnValidSubmit="OnFormSubmit" FormName="MyFormName" class="m-3">
+    <EditForm Model="@imageQuery" OnValidSubmit="@SubmitForm" FormName="MyFormName" class="m-3">
         <div class="row mb-3">
             <label for="StartDate" class="col col-form-label">Query start date:</label>
             <div class="col">
-                <InputDate id="StartDate" @bind-Value="imageQuery.StartDate" class="form-control"/>
+                <InputDate id="StartDate" @bind-Value="imageQuery.StartDateTime" class="form-control"/>
             </div>
         </div>
         <div class="row mb-3">
             <label for="EndDate" class="col col-form-label">Query end date:</label>
             <div class="col">
-                <InputDate id="EndDate" @bind-Value="imageQuery.EndDate" class="form-control" />
+                <InputDate id="EndDate" @bind-Value="imageQuery.EndDateTime" class="form-control" />
             </div>
         </div>
         <button type="submit" class="btn btn-primary">Search</button>
@@ -30,9 +27,9 @@
     <QuickGrid Items="@images.AsQueryable()" Pagination="@pagination"  Class="table table-bordered table-striped table-hover">
         <PropertyColumn Property="@(i => i.Id)" Sortable="true" Align="Align.Right" Title="Id"></PropertyColumn>
         <PropertyColumn Property="@(i => i.Name)" Sortable="true" Align="Align.Right" Title="Name"></PropertyColumn>
-        <PropertyColumn Property="@(i => i.FilePath)" Sortable="true" Align="Align.Right" Title="FilePath"></PropertyColumn>
-        <PropertyColumn Property="@(i => i.DateTime)" Sortable="true" Align="Align.Right" Title="DateTime"></PropertyColumn>
-        <PropertyColumn Property="@(i => i.UnixTime)" Sortable="true" Align="Align.Right" Title="UnixTime"></PropertyColumn>
+        <PropertyColumn Property="@(i => i.FilePath)" Sortable="true" Align="Align.Right" Title="File Path"></PropertyColumn>
+        <PropertyColumn Property="@(i => i.DateTime)" Sortable="true" Align="Align.Right" Title="Date Time"></PropertyColumn>
+        <PropertyColumn Property="@(i => i.UnixTime)" Sortable="true" Align="Align.Right" Title="Unix Time"></PropertyColumn>
     </QuickGrid>
 </div>
 
@@ -48,15 +45,19 @@
 </div>
 
 @code {
-    ImageQuery imageQuery = new ImageQuery();
+    ImageQuery imageQuery = new ImageQuery()
+    {
+        StartDateTime = new DateTime(2010, 1, 1),
+        EndDateTime = DateTime.Now
+    };
 
     PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
 
     private List<Image> images = new List<Image>();
 
-    private async Task OnFormSubmit()
+    private async Task SubmitForm()
     {
-        var uri = $"https://localhost:7013/api/images/filter?startDate={imageQuery.StartDate}&endDate={imageQuery.EndDate}";
+        var uri = $"https://localhost:7013/api/images/filter?startDate={imageQuery.StartDateTime}&endDate={imageQuery.EndDateTime}";
 
         images = await Http.GetFromJsonAsync<List<Image>>(uri) ?? new List<Image>();
     }

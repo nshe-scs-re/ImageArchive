@@ -1,4 +1,5 @@
 using ImageProjectFrontend.Components;
+using ImageProjectFrontend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,9 +8,11 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddHttpClient();
 
+builder.Services.AddScoped<ImageService>();
+
 var app = builder.Build();
 
-if (!app.Environment.IsDevelopment())
+if(!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
     // See https://aka.ms/aspnetcore-hsts.
