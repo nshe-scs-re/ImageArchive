@@ -1,12 +1,12 @@
 services:
   imageprojectbackend:
-    image: ${DOCKER_REGISTRY-}imageprojectbackend
+    image: ${DOCKER_REGISTRY-}image-archive-api
     build:
-      context: src/ImageProjectBackend
+      context: src/api
       dockerfile: Dockerfile
 
   imageprojectfrontend:
-    image: ${DOCKER_REGISTRY-}imageprojectfrontend
+    image: ${DOCKER_REGISTRY-}image-archive
     build:
-      context: src/ImageProjectFrontend
+      context: src/frontend
       dockerfile: Dockerfile
