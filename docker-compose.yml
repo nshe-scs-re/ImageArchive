@@ -1,0 +1,12 @@
+services:
+  imageprojectbackend:
+    image: ${DOCKER_REGISTRY-}imageprojectbackend
+    build:
+      context: src/ImageProjectBackend
+      dockerfile: Dockerfile
+
+  imageprojectfrontend:
+    image: ${DOCKER_REGISTRY-}imageprojectfrontend
+    build:
+      context: src/ImageProjectFrontend
+      dockerfile: Dockerfile
