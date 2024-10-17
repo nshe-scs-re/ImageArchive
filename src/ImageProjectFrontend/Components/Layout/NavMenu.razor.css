@@ -1,0 +1,8 @@
+﻿.nav-item ::deep a.active {
+    background-color: rgba(255,255,255,0.37);
+    font-weight: bold;
+}
+
+.nav-item ::deep .nav-link:hover {
+    background-color: rgba(var(--bs-secondary-bg-rgb));
+}

@@ -1,0 +1,159 @@
+﻿@page "/"
+@attribute [StreamRendering]
+@rendermode InteractiveServer
+@inject ImageService ImageService
+
+<PageTitle>Home</PageTitle>
+
+<div class="my-3 py-3 text-center bg-body-tertiary rounded">
+    <div class="row">
+        <div class="col-lg-6 col-md-8 mx-auto">
+            <h1 class="fw-light py-2">Image Repository Search</h1>
+            <p class="lead text-body-secondary">Execute a query against the image repository by using the tool below.</p>
+        </div>
+    </div>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3">
+        <div class="col mx-auto border">
+            <EditForm Model="@imageQuery" OnValidSubmit="FormSubmit" FormName="MyFormName" class="form">
+                <div class="row py-2">
+                    <label for="StartDate" class="col col-form-label">Query start date:</label>
+                    <div class="col">
+                        <InputDate id="StartDate" @bind-Value="imageQuery.StartDateTime" Type="InputDateType.Date" class="form-control" />
+                    </div>
+                </div>
+                <div class="row py-2">
+                    <label for="EndDate" class="col col-form-label">Query end date:</label>
+                    <div class="col">
+                        <InputDate id="EndDate" @bind-Value="imageQuery.EndDateTime" Type="InputDateType.Date" class="form-control" />
+                    </div>
+                </div>
+                <div class="row py-2">
+                    <label for="StartTime" class="col col-form-label">Query start time:</label>
+                    <div class="col">
+                        <InputDate id="StartTime" @bind-Value="imageQuery.StartTimeOnly" Type="InputDateType.Time" class="form-control" />
+                    </div>
+                </div>
+                <div class="row py-2">
+                    <label for="EndTime" class="col col-form-label">Query end time:</label>
+                    <div class="col">
+                        <InputDate id="EndTime" @bind-Value="imageQuery.EndTimeOnly" Type="InputDateType.Time" class="form-control" />
+                    </div>
+                </div>
+                <div class="row py-2">
+                    <label for="Site" class="col col-form-label">Site Name:</label>
+                    <div class="col">
+                        <InputSelect @bind-Value="imageQuery.Site" id="Site" class="form-select">
+                            <option value="">Sheep</option>
+                            <option value="">Site 2</option>
+                            <option value="">Site 3</option>
+                            <option value="">Site 4</option>
+                        </InputSelect>
+                    </div>
+                </div>
+                <div class="row py-2">
+                    <label for="CameraNumber" class="col col-form-label">Camera Number:</label>
+                    <div class="col">
+                        <InputSelect @bind-Value="imageQuery.CameraNumber" id="CameraNumber" class="form-select">
+                            <option value="1">Camera 1</option>
+                            <option value="2">Camera 2</option>
+                            <option value="3">Camera 3</option>
+                        </InputSelect>
+                    </div>
+                </div>
+                <div class="row py-2">
+                    <label for="CameraPosition" class="col col-form-label">Camera Position:</label>
+                    <div class="col">
+                        <InputSelect @bind-Value="imageQuery.CameraPosition" id="CameraPosition" class="form-select">
+                            <option value="1">Position 1</option>
+                            <option value="2">Position 2</option>
+                            <option value="3">Position 3</option>
+                        </InputSelect>
+                    </div>
+                </div>
+                <div class="text-end py-2">
+                    <button type="submit" class="btn btn-outline-secondary">Search</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+
+
+@if (loading is true)
+{
+    <div class="my-3 py-3 album bg-body-tertiary rounded">
+        <div class="container">
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
+                @for (int i = 0; i < pageSize; i++)
+                {
+                    <div class="col">
+                        <div class="card shadow-sm">
+                            <img src="/placeholder.jpg" class="card-img-top" />
+                            <div class="card-body">
+                                <p class="card-text">Information about image</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary">View</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="my-3 py-3 album bg-body-tertiary rounded">
+        <div class="container">
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
+                @foreach (var image in images)
+                {
+                    <div class="col">
+                        <div class="card shadow-sm">
+                            <img src="@ImageService.GetImageUri(image.Id)" class="card-img-top"/>
+                            <div class="card-body">
+                                <p class="card-text">Information about image</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary">View</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code
+{
+    ImageQuery imageQuery = new ImageQuery()
+    {
+        StartDateTime = new DateTime(2019, 6, 1),
+        EndDateTime = DateTime.Now.Date
+    };
+
+    public bool loading = false;
+    private List<Image> images = new();
+    private int pageIndex = 0;
+    private int pageSize = 9;
+
+    private async Task FormSubmit()
+
+    {
+        imageQuery.StartDateTime = new DateTime(DateOnly.FromDateTime(imageQuery.StartDateTime), imageQuery.StartTimeOnly);
+        imageQuery.EndDateTime = new DateTime(DateOnly.FromDateTime(imageQuery.EndDateTime), imageQuery.EndTimeOnly);
+
+        loading = true;
+
+        images = await ImageService.GetImages(imageQuery.StartDateTime, imageQuery.EndDateTime, pageIndex, pageSize);
+
+        loading = false;
+    }
+}
