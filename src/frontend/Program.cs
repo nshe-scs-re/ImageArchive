@@ -1,5 +1,5 @@
-using ImageProjectFrontend.Components;
-using ImageProjectFrontend.Services;
+using frontend.Components;
+using frontend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

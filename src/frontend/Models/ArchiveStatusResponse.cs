@@ -1,4 +1,4 @@
-﻿namespace ImageProjectFrontend.Models;
+﻿namespace frontend.Models;
 
 public class ArchiveStatusResponse
 {
