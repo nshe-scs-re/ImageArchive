@@ -6,6 +6,9 @@ secrets:
   image_archive_api_cert_pw:
     file: ${USERPROFILE}/source/secrets/image-archive-api-cert-pw.txt
 
+volumes:
+  sqlvolume:
+
 services:
   api:
     profiles: [prod]
@@ -86,3 +89,13 @@ services:
     volumes:
       - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
       - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+
+  dev_db:
+    profiles: [dev]
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    env_file: ${USERPROFILE}/source/secrets/dev_db.env
+    volumes:
+      - sqlvolume:/var/opt/mssql
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:1433:1433"
