@@ -1,6 +1,6 @@
-﻿using ImageProjectFrontend.Models;
+﻿using frontend.Models;
 
-namespace ImageProjectFrontend.Services;
+namespace frontend.Services;
 
 public class ImageService(HttpClient httpClient)
 {
