@@ -4,13 +4,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-string? environment = Environment.GetEnvironmentVariable("RUNTIME_ENVIRONMENT") ?? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+string? environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
 var configuration = new ConfigurationBuilder()
-            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-            .AddJsonFile($"appsettings.{environment}.json", optional: false, reloadOnChange: true)
-            .AddUserSecrets<Program>(optional: true, reloadOnChange: true)
-            .Build();
+    .AddUserSecrets<Program>(optional: true, reloadOnChange: true)
+    .Build();
 
 var serviceProvider = new ServiceCollection()
     .AddSqlServer<ImageDbContext>(configuration.GetConnectionString("ImageDb"))
@@ -43,7 +41,7 @@ try
 }
 catch(Exception ex)
 {
-    logger.LogError("An error occurred: {ex.Message}", ex.Message);
+    logger.LogError("{ex.Message}", ex.Message);
     return;
 }
 
@@ -75,7 +73,7 @@ List<string> GetImagePaths(string rootPath)
     return imagePaths;
 }
 
-void InsertImagePathsIntoDatabase(List<string> imagePaths, ServiceProvider serviceProvider)
+void InsertImagePathsIntoDatabase(List<string> filePaths, ServiceProvider serviceProvider)
 {
     List<string> siteNames = new List<string>
     {
@@ -92,15 +90,15 @@ void InsertImagePathsIntoDatabase(List<string> imagePaths, ServiceProvider servi
     {
         var context = scope.ServiceProvider.GetRequiredService<ImageDbContext>();
 
-        var images = imagePaths.Select(imagePath =>
+        var images = filePaths.Select(filePath =>
         {
-            string name = Path.GetFileName(imagePath);
+            string name = Path.GetFileName(filePath);
 
             string nameWithoutExtension = Path.GetFileNameWithoutExtension(name);
 
             if(nameWithoutExtension.Length <= 2)
             {
-                logger.LogWarning("Skipping file with short name: {imagePath}", imagePath);
+                logger.LogWarning("Skipping file with short name: {imagePath}", filePath);
                 return (IsValid: false, Image: null as Image);
             }
 
@@ -108,20 +106,20 @@ void InsertImagePathsIntoDatabase(List<string> imagePaths, ServiceProvider servi
 
             if(!long.TryParse(unixTimeString, out long unixTime))
             {
-                logger.LogWarning("Skipping file with invalid Unix time: {imagePath}", imagePath);
+                logger.LogWarning("Skipping file with invalid Unix time: {imagePath}", filePath);
                 return (IsValid: false, Image: null as Image);
             }
 
             DateTime dateTime = DateTimeOffset.FromUnixTimeSeconds(unixTime).DateTime;
 
-            string siteName = siteNames.FirstOrDefault(s => imagePath.Contains(s)) ?? string.Empty;
+            string siteName = siteNames.FirstOrDefault(s => filePath.Contains(s)) ?? string.Empty;
 
-            int camera = imagePath.Contains("Camera2") ? 2 : 1;
+            int camera = filePath.Contains("Camera2") ? 2 : 1;
 
             var image = new Image
             {
                 Name = name,
-                FilePath = imagePath,
+                FilePath = filePath,
                 DateTime = dateTime,
                 UnixTime = unixTime,
                 Site = siteName,
@@ -181,8 +179,8 @@ void InsertImagePathsIntoDatabase(List<string> imagePaths, ServiceProvider servi
 
         context.Images.AddRange(images!);
 
-        int addedCount = context.SaveChanges();
+        int count = context.SaveChanges();
 
-        logger.LogInformation("Insertion complete. {addedCount} insertions.", addedCount);
+        logger.LogInformation("Insertion complete. {addedCount} insertions.", count);
     }
 }
