@@ -16,6 +16,7 @@ builder.Services.AddHttpClient<ImageService>(client =>
     {
         client.BaseAddress = new Uri("https://10.176.244.112");
     }
+    Console.WriteLine($"client.BaseAddress {client.BaseAddress} ");
 });
 
 builder.Services.AddScoped<ImageService>();
