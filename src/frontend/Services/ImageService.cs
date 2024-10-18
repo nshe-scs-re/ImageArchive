@@ -4,6 +4,10 @@ namespace frontend.Services;
 
 public class ImageService(HttpClient httpClient)
 {
+    public async Task<HttpResponseMessage> GetImageByIdAsync(long id)
+    {
+        return await httpClient.GetAsync($"/api/images/{id}");
+    }
 
     public async Task<List<Image>> GetImages(DateTime startDate, DateTime endDate, int pageIndex, int pageSize)
     {
