@@ -1,11 +1,12 @@
 {
   "profiles": {
-    "Docker Compose": {
+    "Docker Compose (Development)": {
       "commandName": "DockerCompose",
       "commandVersion": "1.0",
-      "serviceActions": {
-        "imageprojectbackend": "StartDebugging",
-        "imageprojectfrontend": "StartDebugging"
+      "composeProfile": {
+        "includes": [
+          "dev"
+        ]
       }
     }
   }
