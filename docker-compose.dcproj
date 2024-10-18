@@ -7,6 +7,7 @@
     <ProjectGuid>cbec8347-1728-48bb-bca3-8313368b881e</ProjectGuid>
   </PropertyGroup>
   <ItemGroup>
+    <None Include=".env" />
     <None Include="docker-compose.yml" />
     <None Include=".dockerignore" />
   </ItemGroup>

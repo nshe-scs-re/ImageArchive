@@ -3,6 +3,9 @@
     "Docker Compose (Development)": {
       "commandName": "DockerCompose",
       "commandVersion": "1.0",
+      "composeLaunchAction": "LaunchBrowser",
+      "composeLaunchServiceName": "dev_frontend",
+      "composeLaunchUrl": "localhost",
       "composeProfile": {
         "includes": [
           "dev"

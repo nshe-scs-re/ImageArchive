@@ -1,24 +1,24 @@
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-USER app
+USER root
 WORKDIR /app
-EXPOSE 8080
-EXPOSE 8081
 
+RUN update-ca-certificates
 
+USER app
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["ImageProjectFrontend.csproj", "."]
-RUN dotnet restore "./ImageProjectFrontend.csproj"
+COPY ["frontend.csproj", "."]
+RUN dotnet restore "./frontend.csproj"
 COPY . .
 WORKDIR "/src/."
-RUN dotnet build "./ImageProjectFrontend.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "./frontend.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./ImageProjectFrontend.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./frontend.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "ImageProjectFrontend.dll"]
+ENTRYPOINT ["dotnet", "frontend.dll"]
