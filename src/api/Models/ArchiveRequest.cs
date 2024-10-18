@@ -1,4 +1,4 @@
-﻿namespace ImageProjectBackend.Models;
+﻿namespace api.Models;
 
 public class ArchiveRequest
 {
