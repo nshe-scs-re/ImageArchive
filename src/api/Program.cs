@@ -1,16 +1,13 @@
-using ImageProjectBackend.Data;
-using ImageProjectBackend.Models;
-using ImageProjectBackend.Services;
+using api.Data;
+using api.Models;
+using api.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//TODO: remove appsettings dependency and move secrets to GitHub secrets or env variables
-builder.Configuration.AddJsonFile("Properties/appsettings.json", optional: false, reloadOnChange: true)
-    .AddJsonFile($"Properties/appsettings.{builder.Environment.EnvironmentName}.json", optional: false, reloadOnChange: true)
-    .AddEnvironmentVariables();
+builder.Configuration.AddEnvironmentVariables();
 
-//Console.WriteLine($"DEBUG [Program.cs]: Connection string is: {builder.Configuration.GetConnectionString("ImageDb")}"); //TODO: Use GitHub secrets and/or environment variable
+//Console.WriteLine($"DEBUG [Program.cs]: Connection string is: {builder.Configuration.GetConnectionString("ImageDb")}");
 
 builder.Services.AddSqlServer<ImageDbContext>(builder.Configuration.GetConnectionString("ImageDb"));
 
