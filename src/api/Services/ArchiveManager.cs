@@ -1,11 +1,11 @@
-﻿using ImageProjectBackend.Data;
-using ImageProjectBackend.Models;
+﻿using api.Data;
+using api.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO.Compression;
 
-namespace ImageProjectBackend.Services;
+namespace api.Services;
 
 public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
 {
