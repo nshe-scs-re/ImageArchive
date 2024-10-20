@@ -80,6 +80,12 @@ try
 
     logger.LogInformation("Found {imagePaths.Count} image paths.", imagePaths.Count);
 
+    if(imagePaths.Count is 0)
+    {
+        logger.LogError("No image paths found. Exiting application.");
+        return;
+    }
+
     InsertImagePathsIntoDatabase(imagePaths, serviceProvider);
 
     List<string> GetImagePaths(string directoryRootPath)
@@ -149,7 +155,7 @@ try
                 {
                     filePath = filePath.Replace('\\', '/');
 
-                    string windowsUserName = "whaley";
+                    string windowsUserName = "Wyatt";
 
                     filePath = filePath.Replace($"C:/Users/{windowsUserName}/source/", "/app/");
                 }
