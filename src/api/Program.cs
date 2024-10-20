@@ -9,6 +9,10 @@ builder.Configuration.AddEnvironmentVariables();
 
 //Console.WriteLine($"DEBUG [Program.cs]: Connection string is: {builder.Configuration.GetConnectionString("ImageDb")}");
 
+builder.Services.AddEndpointsApiExplorer();
+
+builder.Services.AddSwaggerGen();
+
 builder.Services.AddSqlServer<ImageDbContext>(builder.Configuration.GetConnectionString("ImageDb"));
 
 builder.Services.AddScoped<ArchiveManager>();
@@ -32,12 +36,21 @@ var app = builder.Build();
 
 app.UseCors();
 
-if(!app.Environment.IsDevelopment())
+if(app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
+        options.RoutePrefix = "swagger";
+    });
+}
+else
 {
     app.UseHttpsRedirection();
 }
 
-app.UseAntiforgery();
+app.UseAntiforgery(); // Investigate ways to disable for development environment
 
 app.MapGet("/api/db-verify", async(ImageDbContext dbContext) =>
 {
