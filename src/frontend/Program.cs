@@ -3,21 +3,22 @@ using frontend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddRazorComponents().AddInteractiveServerComponents();
+var environment = builder.Environment;
 
-builder.Services.AddHttpClient<ImageService>(client =>
+builder.Services.AddHttpClient<ImageService>(httpClient =>
 {
-    var environment = builder.Environment;
+    //TODO: Investigate why base address isn't assigned here
     if(environment.IsDevelopment())
     {
-        client.BaseAddress = new Uri("https://localhost:8001");
+        httpClient.BaseAddress = new Uri("http://dev_api:8080");
     }
     else
     {
-        client.BaseAddress = new Uri("https://10.176.244.112");
+        httpClient.BaseAddress = new Uri("https://10.176.244.112");
     }
-    Console.WriteLine($"client.BaseAddress {client.BaseAddress} ");
 });
+
+builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
 builder.Services.AddScoped<ImageService>();
 
@@ -26,10 +27,10 @@ var app = builder.Build();
 //if(!app.Environment.IsDevelopment())
 //{
 //    app.UseExceptionHandler("/Error", createScopeForErrors: true);
-//    // app.UseHsts(); // TODO: Maybe implement later
+//    // app.UseHsts(); // TODO: Investigate HSTS
 //}
 
-// app.UseHttpsRedirection(); // HTTPS redirection handled by Nginx in production, unneccessary in dev
+//app.UseHttpsRedirection(); // HTTPS redirection handled by Nginx in production, unneccessary in dev
 
 app.UseStaticFiles();
 
@@ -39,6 +40,8 @@ app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 
 app.MapGet("/api/images/{id}", async (ImageService imageService, long id) =>
 {
+    //Console.WriteLine($"DEBUG: [Program.cs] [endpoint /api/images/{id}] endpoint hit.");
+
     try
     {
 
