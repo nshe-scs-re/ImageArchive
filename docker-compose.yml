@@ -33,12 +33,15 @@ services:
     build:
       context: src/frontend
       dockerfile: Dockerfile
+    depends_on:
+      - api
     environment:
       ASPNETCORE_ENVIRONMENT: Production
     #volumes:
     restart: on-failure:3
 
   dev_api:
+    container_name: dev_api
     profiles: [dev]
     # platform: windows
     image: ${DOCKER_REGISTRY-}image-archive-api
@@ -48,6 +51,8 @@ services:
       dockerfile: Dockerfile
       # args:
       #   - --no-cache
+    depends_on:
+      - dev_db
     secrets:
       - source: image_archive_ca_cert
         target: /usr/local/share/ca-certificates/image-archive-ca.crt
@@ -60,12 +65,14 @@ services:
       ASPNETCORE_HTTPS_PORTS: 8081
     ports:
       - "127.0.0.1:8080:8080"
-      - "127.0.0.1:8081:8081"
+      # - "127.0.0.1:8081:8081"
     volumes:
+      - ${USERPROFILE}/source/Images:/app/Images
       - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
       - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
 
   dev_frontend:
+    container_name: dev_frontend
     profiles: [dev]
     # platform: windows
     image: ${DOCKER_REGISTRY-}image-archive
@@ -75,6 +82,8 @@ services:
       dockerfile: Dockerfile
       # args:
       #   - --no-cache
+    depends_on:
+      - dev_api
     secrets:
       - source: image_archive_ca_cert
         target: /usr/local/share/ca-certificates/image-archive-ca.crt
@@ -91,6 +100,7 @@ services:
       - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
 
   dev_db:
+    container_name: dev_db
     profiles: [dev]
     image: mcr.microsoft.com/mssql/server:2022-latest
     env_file: ${USERPROFILE}/source/secrets/dev_db.env
