@@ -5,7 +5,7 @@
       "commandVersion": "1.0",
       "composeLaunchAction": "LaunchBrowser",
       "composeLaunchServiceName": "dev_frontend",
-      "composeLaunchUrl": "localhost",
+      "composeLaunchUrl": "http://localhost",
       "composeProfile": {
         "includes": [
           "dev"
