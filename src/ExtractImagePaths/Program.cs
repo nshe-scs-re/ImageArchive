@@ -145,6 +145,15 @@ try
 
                 int camera = filePath.Contains("Camera2") ? 2 : 1;
 
+                if(filePath.Contains("C:"))
+                {
+                    filePath = filePath.Replace('\\', '/');
+
+                    string windowsUserName = "whaley";
+
+                    filePath = filePath.Replace($"C:/Users/{windowsUserName}/source/", "/app/");
+                }
+
                 var image = new Image
                 {
                     Name = name,
