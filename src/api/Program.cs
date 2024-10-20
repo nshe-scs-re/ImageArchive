@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddEnvironmentVariables();
 
-Console.WriteLine($"DEBUG [Program.cs]: Connection string is: {builder.Configuration.GetConnectionString("ImageDb")}");
+//Console.WriteLine($"DEBUG [Program.cs]: Connection string is: {builder.Configuration.GetConnectionString("ImageDb")}");
 
 builder.Services.AddSqlServer<ImageDbContext>(builder.Configuration.GetConnectionString("ImageDb"));
 
@@ -19,7 +19,7 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(builder =>
     {
-        //TODO: Look into further configuration options for added security
+        //TODO: Investigate further configuration options for added security
         builder.AllowAnyOrigin()
         //builder.WithOrigins("10.176.244.111")
             .AllowAnyHeader()
@@ -32,7 +32,10 @@ var app = builder.Build();
 
 app.UseCors();
 
-app.UseHttpsRedirection();
+if(!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseAntiforgery();
 
