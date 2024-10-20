@@ -1,7 +1,7 @@
 ﻿@page "/"
 @attribute [StreamRendering]
 @rendermode InteractiveServer
-@inject ImageService ImageService
+@inject HttpService HttpService
 
 <PageTitle>Home</PageTitle>
 
@@ -152,7 +152,7 @@ else
 
         loading = true;
 
-        images = await ImageService.GetImages(imageQuery.StartDateTime, imageQuery.EndDateTime, pageIndex, pageSize);
+        images = await HttpService.GetImages(imageQuery.StartDateTime, imageQuery.EndDateTime, pageIndex, pageSize);
 
         loading = false;
     }
