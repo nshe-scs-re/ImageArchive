@@ -152,7 +152,12 @@ else
 
         loading = true;
 
-        images = await HttpService.GetImages(imageQuery.StartDateTime, imageQuery.EndDateTime, pageIndex, pageSize);
+        var response = await HttpService.GetImages(imageQuery.StartDateTime, imageQuery.EndDateTime, pageIndex, pageSize);
+
+        if (response.IsSuccessStatusCode)
+        {
+            images = await response.Content.ReadFromJsonAsync<List<Image>>();
+        }
 
         loading = false;
     }
