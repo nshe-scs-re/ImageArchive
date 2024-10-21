@@ -16,12 +16,10 @@ public class HttpService(IHttpClientFactory httpClientFactory)
         return await httpClient.GetAsync($"api/images/{id}");
     }
 
-    public async Task<List<Image>> GetImages(DateTime startDate, DateTime endDate, int pageIndex, int pageSize)
+    public async Task<HttpResponseMessage> GetImages(DateTime startDate, DateTime endDate, int pageIndex, int pageSize)
     {
         var httpClient = this.CreateClient();
 
-        var response = await httpClient.GetFromJsonAsync<List<Image>>($"api/images/paginated?startDate={startDate}&endDate={endDate}&pageIndex={pageIndex}&pageSize={pageSize}");
-
-        return response ?? new List<Image>();
+        return await httpClient.GetAsync($"api/images/paginated?startDate={startDate}&endDate={endDate}&pageIndex={pageIndex}&pageSize={pageSize}");
     }
 }
