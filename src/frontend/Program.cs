@@ -8,7 +8,7 @@ var environment = builder.Environment;
 
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
-builder.Services.AddHttpClient("httpClient", httpClient =>
+builder.Services.AddHttpClient("_httpClient_", httpClient =>
 {
     if(environment.IsDevelopment())
     {
