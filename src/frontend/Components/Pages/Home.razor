@@ -78,8 +78,6 @@
     </div>
 </div>
 
-
-
 @if (loading is true)
 {
     <div class="my-3 py-3 album bg-body-tertiary rounded">
@@ -154,9 +152,12 @@ else
 
         var response = await HttpService.GetImages(imageQuery.StartDateTime, imageQuery.EndDateTime, pageIndex, pageSize);
 
-        if (response.IsSuccessStatusCode)
+        if(response is not null)
         {
-            images = await response.Content.ReadFromJsonAsync<List<Image>>();
+            if (response.IsSuccessStatusCode)
+            {
+                images = await response.Content.ReadFromJsonAsync<List<Image>>();
+            }
         }
 
         loading = false;
