@@ -1,7 +1,7 @@
 ﻿@page "/"
 @attribute [StreamRendering]
 @rendermode InteractiveServer
-@inject ImageService ImageService
+@inject HttpService HttpService
 
 <PageTitle>Home</PageTitle>
 
@@ -78,8 +78,6 @@
     </div>
 </div>
 
-
-
 @if (loading is true)
 {
     <div class="my-3 py-3 album bg-body-tertiary rounded">
@@ -145,14 +143,21 @@ else
     private int pageSize = 9;
 
     private async Task FormSubmit()
-
     {
         imageQuery.StartDateTime = new DateTime(DateOnly.FromDateTime(imageQuery.StartDateTime), imageQuery.StartTimeOnly);
         imageQuery.EndDateTime = new DateTime(DateOnly.FromDateTime(imageQuery.EndDateTime), imageQuery.EndTimeOnly);
 
         loading = true;
 
-        images = await ImageService.GetImages(imageQuery.StartDateTime, imageQuery.EndDateTime, pageIndex, pageSize);
+        var response = await HttpService.GetImages(imageQuery.StartDateTime, imageQuery.EndDateTime, pageIndex, pageSize);
+
+        if(response is not null)
+        {
+            if (response.IsSuccessStatusCode)
+            {
+                images = await response.Content.ReadFromJsonAsync<List<Image>>();
+            }
+        }
 
         loading = false;
     }

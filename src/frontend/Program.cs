@@ -1,36 +1,39 @@
 using frontend.Components;
 using frontend.Services;
+using System.Net.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var environment = builder.Environment;
 
-builder.Services.AddHttpClient<ImageService>(httpClient =>
+builder.Services.AddRazorComponents().AddInteractiveServerComponents();
+
+builder.Services.AddHttpClient("_httpClient_", httpClient =>
 {
-    //TODO: Investigate why base address isn't assigned here
     if(environment.IsDevelopment())
     {
-        httpClient.BaseAddress = new Uri("http://dev_api:8080");
+        httpClient.BaseAddress = new Uri("http://dev_api:8080/");
     }
     else
     {
-        httpClient.BaseAddress = new Uri("https://10.176.244.112");
+        httpClient.BaseAddress = new Uri("https://10.176.244.112/");
     }
 });
 
-builder.Services.AddRazorComponents().AddInteractiveServerComponents();
-
-builder.Services.AddScoped<ImageService>();
+builder.Services.AddScoped<HttpService>();
 
 var app = builder.Build();
 
-//if(!app.Environment.IsDevelopment())
-//{
-//    app.UseExceptionHandler("/Error", createScopeForErrors: true);
-//    // app.UseHsts(); // TODO: Investigate HSTS
-//}
-
-//app.UseHttpsRedirection(); // HTTPS redirection handled by Nginx in production, unneccessary in dev
+if(app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+else
+{
+    app.UseExceptionHandler("/Error", createScopeForErrors: true);
+    app.UseHsts(); // TODO: Investigate HSTS
+    //app.UseHttpsRedirection(); // HTTPS redirection handled by Nginx
+}
 
 app.UseStaticFiles();
 
@@ -38,14 +41,13 @@ app.UseAntiforgery();
 
 app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 
-app.MapGet("/api/images/{id}", async (ImageService imageService, long id) =>
+app.MapGet("/api/images/{id}", async (HttpService HttpService, long id) =>
 {
     //Console.WriteLine($"DEBUG: [Program.cs] [endpoint /api/images/{id}] endpoint hit.");
 
     try
     {
-
-        var response = await imageService.GetImageByIdAsync(id);
+        var response = await HttpService.GetImageByIdAsync(id);
 
         if(!response.IsSuccessStatusCode)
         {
