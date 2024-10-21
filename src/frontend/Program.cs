@@ -8,7 +8,7 @@ var environment = builder.Environment;
 
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
-builder.Services.AddHttpClient("httpClient", httpClient =>
+builder.Services.AddHttpClient("_httpClient_", httpClient =>
 {
     if(environment.IsDevelopment())
     {
@@ -41,13 +41,13 @@ app.UseAntiforgery();
 
 app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 
-app.MapGet("/api/images/{id}", async (HttpService imageService, long id) =>
+app.MapGet("/api/images/{id}", async (HttpService HttpService, long id) =>
 {
     //Console.WriteLine($"DEBUG: [Program.cs] [endpoint /api/images/{id}] endpoint hit.");
 
     try
     {
-        var response = await imageService.GetImageByIdAsync(id);
+        var response = await HttpService.GetImageByIdAsync(id);
 
         if(!response.IsSuccessStatusCode)
         {
