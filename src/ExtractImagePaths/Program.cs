@@ -3,24 +3,37 @@ using ExtractImagePaths.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using DotNetEnv;
 
-var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+var envFilePath = "C:\\Users\\whaley\\source\\secrets\\ExtractImagePaths.env";
 
-var directoryRootPath = Environment.GetEnvironmentVariable("NEVCAN_DIRECTORY_ROOT_PATH");
+DotNetEnv.Env.Load(envFilePath);
+
+var configuration = new ConfigurationBuilder()
+    .AddUserSecrets<Program>()
+    .AddEnvironmentVariables()
+    .Build();
+
+var directoryRootPath = configuration["NEVCAN_DIRECTORY_ROOT_PATH"];
 
 if(string.IsNullOrEmpty(directoryRootPath))
 {
+    Console.WriteLine("ERROR: Variable directoryRootPath not set. Exiting.");
     return;
 }
 
 directoryRootPath = Environment.ExpandEnvironmentVariables(directoryRootPath);
 
-var configuration = new ConfigurationBuilder()
-    .AddUserSecrets<Program>()
-    .Build();
+var dbConnectionString = configuration["ConnectionStrings:ImageDb"] ?? configuration["DB_CONNECTION_STRING"];
+
+if(string.IsNullOrEmpty(dbConnectionString))
+{
+    Console.WriteLine("ERROR: Variable dbConnectionString not set. Exiting.");
+    return;
+}
 
 var serviceProvider = new ServiceCollection()
-    .AddSqlServer<ImageDbContext>(configuration.GetConnectionString("ImageDb"))
+    .AddSqlServer<ImageDbContext>(dbConnectionString)
     .AddLogging(configure =>
     {
         configure.AddConsole();
@@ -30,6 +43,9 @@ var serviceProvider = new ServiceCollection()
     .BuildServiceProvider();
 
 var logger = serviceProvider.GetService<ILogger<Program>>();
+
+logger.LogInformation("Environment is set to: {environment}.", configuration["ASPNETCORE_ENVIRONMENT"]);
+logger.LogInformation("Directory root path is set to: {directoryRootPath}.", directoryRootPath);
 
 using(var scope = serviceProvider.CreateScope())
 {
@@ -45,8 +61,6 @@ using(var scope = serviceProvider.CreateScope())
         return;
     }
 }
-
-logger.LogInformation("Environment is set to: {environment}.", environment);
 
 try
 {
