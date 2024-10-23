@@ -18,7 +18,7 @@ var directoryRootPath = configuration["NEVCAN_DIRECTORY_ROOT_PATH"];
 
 if(string.IsNullOrEmpty(directoryRootPath))
 {
-    Console.WriteLine("ERROR: Variable directoryRootPath not set. Exiting.");
+    Console.WriteLine("ERROR: Variable 'directoryRootPath' not set. Exiting.");
     return;
 }
 
@@ -28,9 +28,12 @@ var dbConnectionString = configuration["ConnectionStrings:ImageDb"] ?? configura
 
 if(string.IsNullOrEmpty(dbConnectionString))
 {
-    Console.WriteLine("ERROR: Variable dbConnectionString not set. Exiting.");
+    Console.WriteLine("ERROR: Variable 'dbConnectionString' not set. Exiting.");
     return;
 }
+
+var windowsUserName = configuration["WindowsUser:Name"] ?? configuration["WINDOWS_USER_NAME"];
+var windowsBasePath = configuration["WindowsUser:BasePath"] ?? configuration["WINDOWS_USER_BASE_PATH"];
 
 var serviceProvider = new ServiceCollection()
     .AddSqlServer<ImageDbContext>(dbConnectionString)
@@ -163,13 +166,15 @@ void InsertImagePathsIntoDatabase(List<string> filePaths, ServiceProvider servic
 
             int camera = filePath.Contains("Camera2") ? 2 : 1;
 
-            if(filePath.Contains("C:"))
+            if(filePath.Contains('\\'))
             {
-                filePath = filePath.Replace('\\', '/');
-
-                string windowsUserName = "Wyatt";
-
-                filePath = filePath.Replace($"C:/Users/{windowsUserName}/source/", "/app/");
+                if(!string.IsNullOrEmpty(windowsBasePath))
+                {
+                    logger.LogInformation("Windows file path found. Converting Windows file path to Linux file path.");
+                    filePath = filePath.Replace('\\', '/');
+                    filePath = filePath.Replace(windowsBasePath, "/app/");
+                }
+                logger.LogWarning("Windows file path found. Variable 'windowsBasePath' is not set. Cannot convert the file path to Linux format.");
             }
 
             var image = new Image
