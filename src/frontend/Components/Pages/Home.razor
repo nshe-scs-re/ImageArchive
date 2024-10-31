@@ -127,21 +127,6 @@ else
             </div>
         </div>
     </div>
-
-    <nav aria-label="Pagination">
-        <ul class="pagination justify-content-center">
-            <li class="page-item @(pageIndex == 0 ? "disabled" : "")">
-                <button class="page-link" @onclick="PreviousPage">Previous</button>
-            </li>
-            <li class="page-item">
-                <span class="page-link">@(pageIndex + 1)</span>
-            </li>
-            <li class="page-item">
-                <button class="page-link" @onclick="NextPage">Next</button>
-            </li>
-        </ul>
-    </nav>
-
 }
 
 @code
@@ -175,20 +160,5 @@ else
         }
 
         loading = false;
-    }
-
-    private async Task NextPage()
-    {
-        pageIndex++;
-        await FormSubmit();
-    }
-
-    private async Task PreviousPage()
-    {
-        if (pageIndex > 0)
-        {
-            pageIndex--;
-            await FormSubmit();
-        }
     }
 }

@@ -155,7 +155,7 @@ try
                 {
                     filePath = filePath.Replace('\\', '/');
 
-                    string windowsUserName = "plehr";
+                    string windowsUserName = "Wyatt";
 
                     filePath = filePath.Replace($"C:/Users/{windowsUserName}/source/", "/app/");
                 }
