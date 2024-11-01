@@ -1,10 +1,17 @@
+using Auth0.AspNetCore.Authentication;
 using frontend.Components;
+using frontend.Models;
 using frontend.Services;
-using System.Net.Http;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var environment = builder.Environment;
+builder.Services.AddAuth0WebAppAuthentication(options =>
+{
+    options.Domain = builder.Configuration["Auth0:Domain"];
+    options.ClientId = builder.Configuration["Auth0:ClientId"];
+});
 
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
@@ -21,6 +28,7 @@ builder.Services.AddHttpClient("_httpClient_", httpClient =>
 });
 
 builder.Services.AddScoped<HttpService>();
+builder.Services.AddScoped<TokenProvider>();
 
 var app = builder.Build();
 
@@ -40,6 +48,10 @@ app.UseStaticFiles();
 app.UseAntiforgery();
 
 app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
+
+app.UseAuthentication();
+
+app.UseAuthorization();
 
 app.MapGet("/api/images/{id}", async (HttpService HttpService, long id) =>
 {
