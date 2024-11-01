@@ -27,7 +27,10 @@ builder.Services.AddHttpClient("_httpClient_", httpClient =>
     }
 });
 
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddScoped<HttpService>();
+
 builder.Services.AddScoped<TokenProvider>();
 
 var app = builder.Build();
