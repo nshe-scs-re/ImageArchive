@@ -2,19 +2,76 @@
 @attribute [StreamRendering]
 @rendermode InteractiveServer
 @inject HttpService HttpService
+@inject IJSRuntime JS
 
 <PageTitle>Home</PageTitle>
 
-<div class="my-3 py-3 text-center bg-body-tertiary rounded">
+<style>
+    /* Remove the green outline on focus */
+    .form-control:focus, .form-select:focus, .btn-outline-secondary:focus {
+        outline: none; /* Remove default browser outline */
+        box-shadow: 0 0 5px 1px #888888; /* Optional: Add a custom shadow */
+        border-color: #666666; /* Optional: Match border color for consistency */
+    }
+
+    /* Light mode default styles */
+    body {
+        background-color: #ffffff;
+        color: #000000;
+    }
+
+    .container, .bg-body-tertiary, .form {
+        background-color: #f8f9fa; /* Light grey for containers */
+    }
+
+    /* Dark mode styles */
+    .dark-mode {
+        background-color: #333333; /* Dark grey background */
+        color: #ffffff; /* White text color */
+    }
+
+        .dark-mode .container,
+        .dark-mode .bg-body-tertiary,
+        .dark-mode .form {
+            background-color: #444444; /* Darker grey for containers */
+        }
+
+        .dark-mode .form-control,
+        .dark-mode .form-select,
+        .dark-mode .btn-outline-secondary,
+        .dark-mode .pagination .page-link,
+        .dark-mode .card,
+        .dark-mode .border {
+            background-color: #555555; /* Grey for form controls */
+            color: #ffffff;
+            border-color: #666666;
+        }
+
+        .dark-mode h1, .dark-mode p, .dark-mode label {
+            color: #ffffff;
+        }
+
+        .dark-mode .lead {
+            color: #cccccc;
+        }
+</style>
+
+
+<!-- Dark mode toggle button at the top -->
+<div class="text-center py-2">
+    <button type="button" class="btn btn-outline-secondary" @onclick="ToggleDarkMode">Toggle Dark Mode</button>
+</div>
+
+<div class="my-3 py-3 text-center rounded">
     <div class="row">
         <div class="col-lg-6 col-md-8 mx-auto">
             <h1 class="fw-light py-2">Image Repository Search</h1>
-            <p class="lead text-body-secondary">Execute a query against the image repository by using the tool below.</p>
+            <p class="lead">Execute a query against the image repository by using the tool below.</p>
         </div>
     </div>
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3">
-        <div class="col mx-auto border">
-            <EditForm Model="@imageQuery" OnValidSubmit="FormSubmit" FormName="MyFormName" class="form">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10 p-3">
+            <EditForm Model="@imageQuery" OnValidSubmit="FormSubmit" FormName="MyFormName" class="form border rounded p-3">
                 <div class="row py-2">
                     <label for="StartDate" class="col col-form-label">Query start date:</label>
                     <div class="col">
@@ -78,9 +135,9 @@
     </div>
 </div>
 
-@if (loading is true)
+@if (loading)
 {
-    <div class="my-3 py-3 album bg-body-tertiary rounded">
+    <div class="my-3 py-3 album rounded">
         <div class="container">
             <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
                 @for (int i = 0; i < pageSize; i++)
@@ -105,14 +162,14 @@
 }
 else
 {
-    <div class="my-3 py-3 album bg-body-tertiary rounded">
+    <div class="my-3 py-3 album rounded">
         <div class="container">
             <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
                 @foreach (var image in images)
                 {
                     <div class="col">
                         <div class="card shadow-sm">
-                            <img src="/api/images/@image.Id" class="card-img-top"/>
+                            <img src="/api/images/@image.Id" class="card-img-top" />
                             <div class="card-body">
                                 <p class="card-text">Information about image</p>
                                 <div class="d-flex justify-content-between align-items-center">
@@ -141,16 +198,21 @@ else
             </li>
         </ul>
     </nav>
-
 }
+
+<script>
+    function toggleDarkMode() {
+        document.body.classList.toggle('dark-mode'); // Toggle the dark mode class on the body
+    }
+</script>
 
 @code
 {
     ImageQuery imageQuery = new ImageQuery()
-    {
-        StartDateTime = new DateTime(2019, 6, 1),
-        EndDateTime = DateTime.Now.Date
-    };
+        {
+            StartDateTime = new DateTime(2019, 6, 1),
+            EndDateTime = DateTime.Now.Date
+        };
 
     public bool loading = false;
     private List<Image> images = new();
@@ -166,7 +228,7 @@ else
 
         var response = await HttpService.GetImages(imageQuery.StartDateTime, imageQuery.EndDateTime, pageIndex, pageSize);
 
-        if(response is not null)
+        if (response is not null)
         {
             if (response.IsSuccessStatusCode)
             {
@@ -190,5 +252,10 @@ else
             pageIndex--;
             await FormSubmit();
         }
+    }
+
+    private async Task ToggleDarkMode()
+    {
+        await JS.InvokeVoidAsync("toggleDarkMode");
     }
 }
