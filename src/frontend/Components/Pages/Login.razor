@@ -1,0 +1,10 @@
+﻿@page "/login"
+@inject NavigationManager Navigation
+
+
+@code {
+    protected override void OnInitialized()
+    {
+        Navigation.NavigateTo("/Account/Login", forceLoad: true);
+    }
+}
