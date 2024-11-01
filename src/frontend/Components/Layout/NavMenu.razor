@@ -1,26 +1,57 @@
-﻿<nav class="navbar navbar-expand-md bg-body-tertiary rounded">
-    <div class="container-fluid">
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavBar">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse justify-content-md-center" id="mainNavBar">
-            <ul class="navbar-nav">
-                <li class="nav-item">
-                    <NavLink class="nav-link rounded" href="/" Match="NavLinkMatch.All">
-                        Home
-                    </NavLink>
-                </li>
-                <li class="nav-item">
-                    <NavLink class="nav-link rounded" href="table">
-                        Table (test point)
-                    </NavLink>
-                </li>
-                <li class="nav-item">
-                    <NavLink class="nav-link rounded" href="archive">
-                        Archive (test point)
-                    </NavLink>
-                </li>
-            </ul>
-        </div>
+﻿@inject NavigationManager Navigation
+
+<nav class="navbar navbar-expand-md bg-body-tertiary rounded">
+  <div class="container-fluid">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavBar">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="mainNavBar">
+      <ul class="navbar-nav mx-auto justify-content-md-center">
+        <AuthorizeView>
+          <Authorized>
+            <li class="nav-item"><NavLink class="nav-link rounded" href="/" Match="NavLinkMatch.All">Home</NavLink></li>
+            <li class="nav-item"><NavLink class="nav-link rounded" href="http://localhost:8080/swagger">Swagger</NavLink></li>
+          </Authorized>
+          <NotAuthorized>
+            <li class="nav-item"><NavLink class="nav-link rounded" href="/" Match="NavLinkMatch.All">Home</NavLink></li>
+          </NotAuthorized>
+        </AuthorizeView>
+      </ul>
+      <ul class="navbar-nav ml-auto justify-content-md-end">
+        <AuthorizeView>
+          <Authorized>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle rounded" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">@userName</a>
+              <ul class="dropdown-menu">
+                <li><NavLink class="dropdown-item nav-link" href="/profile" Match="NavLinkMatch.All">View Profile</NavLink></li>
+                <li><NavLink class="dropdown-item nav-link" href="/logout">Logout</NavLink></li>
+              </ul>
+            </li>
+          </Authorized>
+          <NotAuthorized>
+            <li class="nav-item"><NavLink class="nav-link rounded" href="/login">Login</NavLink></li>
+          </NotAuthorized>
+        </AuthorizeView>
+      </ul>
     </div>
+  </div>
 </nav>
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationState { get; set; }
+
+    public string userName = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (authenticationState is not null)
+        {
+            var state = await authenticationState;
+
+            userName = state?.User?.Identity?.Name ?? string.Empty;
+        }
+
+        await base.OnInitializedAsync();
+    }
+}
