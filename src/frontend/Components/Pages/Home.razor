@@ -78,7 +78,7 @@
     </div>
 </div>
 
-@if (loading is true)
+@if (querySubmitted && loading is true)
 {
     <div class="my-3 py-3 album bg-body-tertiary rounded">
         <div class="container">
@@ -103,7 +103,7 @@
         </div>
     </div>
 }
-else
+else if (querySubmitted && loading is false)
 {
     <div class="my-3 py-3 album bg-body-tertiary rounded">
         <div class="container">
@@ -141,7 +141,6 @@ else
             </li>
         </ul>
     </nav>
-
 }
 
 @code
@@ -153,6 +152,7 @@ else
     };
 
     public bool loading = false;
+    public bool querySubmitted = false;
     private List<Image> images = new();
     private int pageIndex = 0;
     private int pageSize = 9;
@@ -168,13 +168,14 @@ else
 
         if(response is not null)
         {
+            querySubmitted = true;
             if (response.IsSuccessStatusCode)
             {
                 images = await response.Content.ReadFromJsonAsync<List<Image>>();
+                loading = false;
             }
         }
 
-        loading = false;
     }
 
     private async Task NextPage()
