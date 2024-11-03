@@ -1,0 +1,158 @@
+﻿@page "/about"
+@attribute [StreamRendering]
+@rendermode InteractiveServer
+
+<PageTitle>About Us</PageTitle>
+
+<style>
+    .about-container {
+        background-color: #f8f9fa;
+        color: #333333;
+        padding: 2rem;
+        border-radius: 10px;
+        max-width: 1000px;
+        margin: 2rem auto;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .section {
+        margin-bottom: 3rem;
+    }
+
+    .section h2 {
+        color: #0056b3;
+        margin-bottom: 1rem;
+    }
+
+    .team-member {
+        margin-top: 2rem;
+        border-top: 1px solid #ddd;
+        padding-top: 1.5rem;
+    }
+
+    .team-member h3 {
+        color: #0056b3;
+        margin-bottom: 0.5rem;
+    }
+
+    .team-member p {
+        margin-bottom: 0.5rem;
+        line-height: 1.8;
+    }
+
+    .feature-list {
+        margin-left: 1.5rem;
+        list-style-type: disc;
+    }
+
+    .values-list {
+        margin-left: 1.5rem;
+        list-style-type: circle;
+    }
+
+    .dark-mode .about-container {
+        background-color: #444444;
+        color: #ffffff;
+    }
+
+    .dark-mode .section h2,
+    .dark-mode .team-member h3 {
+        color: #aad4ff;
+    }
+
+    .dark-mode .feature-list li,
+    .dark-mode .values-list li {
+        color: #cccccc;
+    }
+</style>
+
+<div class="about-container">
+    <h1>About Our Image Repository Search Platform</h1>
+    <p>
+        Welcome to our Image Repository Search platform! We are proud to provide a tool that seamlessly connects users with millions of images captured from observation points across diverse locations. This platform is more than a simple search tool – it’s a gateway to powerful data exploration, built with precision, passion, and user needs at its core.
+    </p>
+
+    <div class="section">
+        <h2>Our Mission</h2>
+        <p>
+            Our mission is simple yet profound: to make image data accessible, navigable, and actionable. In a world where data volume is increasing at an unprecedented rate, it’s crucial to offer solutions that help researchers, environmentalists, and educators quickly find relevant information. Our platform aims to enhance productivity and foster insights by removing barriers to data discovery.
+        </p>
+        <p>
+            We are committed to building tools that inspire confidence, save time, and expand the scope of what users can achieve. This mission drives everything we do, from the technologies we choose to the way we design our user interfaces.
+        </p>
+    </div>
+
+    <div class="section">
+        <h2>Our Vision</h2>
+        <p>
+            Our vision is to lead the way in revolutionizing how image data is managed and accessed. We aim to be recognized globally as a leader in user-centric, data-driven platforms. Through continuous innovation, we seek to empower our users to leverage the full potential of their data. This vision fuels our passion to introduce cutting-edge features that push the boundaries of what’s possible, ensuring our platform evolves with the needs of the community.
+        </p>
+    </div>
+
+    <div class="section">
+        <h2>Core Features and Capabilities</h2>
+        <p>
+            Our Image Repository Search platform is built to cater to diverse user requirements, ranging from simple searches to complex queries. Below are some of the standout features that make our platform exceptional:
+        </p>
+        <ul class="feature-list">
+            <li><strong>Comprehensive Search Filters:</strong> Narrow down searches using date, time, camera number, and position to find the most relevant images.</li>
+            <li><strong>High Performance:</strong> Built on a robust backend architecture that ensures quick response times, even when handling millions of images.</li>
+            <li><strong>Secure Environment:</strong> Enhanced security measures to protect user data and ensure safe usage.</li>
+            <li><strong>Responsive and Accessible Design:</strong> A fully responsive platform that works seamlessly across devices and is designed to be accessible to users with varying needs.</li>
+            <li><strong>Dark Mode Support:</strong> Our integrated dark mode feature provides a comfortable viewing experience, particularly useful for users who work in low-light conditions.</li>
+            <li><strong>Customizable User Interface:</strong> Personalized settings to allow users to adjust the layout, display preferences, and other visual options.</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>Our Values</h2>
+        <p>
+            Our work is driven by a set of values that define who we are and how we operate:
+        </p>
+        <ul class="values-list">
+            <li><strong>Innovation:</strong> We constantly strive to develop new ideas and solutions that set our platform apart from others in the market.</li>
+            <li><strong>User-Focused Design:</strong> We place a high value on user feedback, using it to guide our design and development choices.</li>
+            <li><strong>Transparency:</strong> We maintain open communication with our users, ensuring that they know what to expect from us and from our platform.</li>
+            <li><strong>Integrity:</strong> We operate ethically, ensuring our users’ data is handled with care and respect.</li>
+            <li><strong>Collaboration:</strong> Our team collaborates at every step to deliver the best possible product. We also value working closely with our users to make continual improvements.</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>Meet the Team Behind the Platform</h2>
+        <p>
+            Behind every great platform is a team of dedicated professionals who bring it to life. Here’s a closer look at the members of our team:
+        </p>
+
+        <div class="team-member">
+            <h3>AJ - Chief Architect and Visionary</h3>
+            <p>
+                AJ is the mastermind behind our platform’s architecture and development strategy. With over a decade of experience in software engineering, AJ has a deep understanding of how to scale complex systems while ensuring they are maintainable and secure. AJ’s responsibilities include overseeing system design, guiding best practices in coding, and leading strategic development initiatives. AJ is known for staying at the forefront of technology and motivating the team to push beyond their limits.
+            </p>
+        </div>
+
+        <div class="team-member">
+            <h3>Wyatt - Lead Designer and UX Specialist</h3>
+            <p>
+                Wyatt is the creative force behind the platform’s visual design and user experience. His passion for creating user-friendly and visually appealing interfaces ensures that every aspect of our platform is intuitive and easy to navigate. With a background in graphic design and user experience, Wyatt works closely with AJ and Nate to align the platform's functionality with user-centric design principles. Wyatt’s dedication to detail ensures that our platform doesn’t just work well – it feels seamless and enjoyable to use.
+            </p>
+        </div>
+
+        <div class="team-member">
+            <h3>Nate - Backend Developer and Data Expert</h3>
+            <p>
+                Nate is the wizard who ensures our data processing and backend operations run smoothly. Specializing in database management, API development, and system performance, Nate’s work allows users to retrieve and analyze data efficiently. He is responsible for optimizing queries, maintaining data integrity, and ensuring high performance even with significant user demand. Nate’s analytical mindset and expertise in backend technologies contribute greatly to the platform’s reliability and robustness.
+            </p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Our Commitment to Users</h2>
+        <p>
+            At the heart of everything we do is our commitment to our users. We understand that a tool is only as valuable as the trust it earns and the results it delivers. That’s why we actively seek feedback, iterate based on user needs, and focus on continuous improvement. Whether you’re using our platform for research, teaching, or personal interest, we aim to provide you with an unmatched experience.
+        </p>
+        <p>
+            Thank you for taking the time to learn more about us. We look forward to being your trusted partner in image data exploration.
+        </p>
+    </div>
+</div>
