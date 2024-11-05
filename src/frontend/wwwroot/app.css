@@ -1,3 +1,16 @@
+:root {
+    --custom-color-primary: #051537;
+    --custom-color-secondary: #04247C;
+    --custom-color-tertiary: #003D7A;
+    --custom-color-quaternary: #0458AB;
+
+
+    --custom-color-dm-primary: #1B1734;
+    --custom-color-dm-secondary: #420264;
+    --custom-color-dm-tertiary: #5C038C;
+    --custom-color-dm-quaternary: #896FBC;
+}
+
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
@@ -59,3 +72,4 @@ h1:focus {
     border-color: antiquewhite;
     background-color: var(--custom-color-secondary);
 }
+
