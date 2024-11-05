@@ -36,13 +36,26 @@ h1:focus {
     border-color: #929292;
 }
 
-.page-size-chooser {
-    display: flex !important;
-    align-items: center !important;
-    margin-bottom: 1rem !important;
+.custom-color-bg-dm-primary {
+    color: antiquewhite;
+    border-color: antiquewhite;
+    background-color: var(--custom-color-dm-primary);
 }
 
-    .page-size-chooser select {
-        margin: 0 1rem !important;
-        padding: 0.25rem 0.5rem !important;
-    }
+.custom-color-bg-dm-secondary {
+    color: antiquewhite;
+    border-color: antiquewhite;
+    background-color: var(--custom-color-dm-secondary);
+}
+
+.custom-color-bg-primary {
+    color: antiquewhite;
+    border-color: antiquewhite;
+    background-color: var(--custom-color-primary);
+}
+
+.custom-color-bg-secondary {
+    color: antiquewhite;
+    border-color: antiquewhite;
+    background-color: var(--custom-color-secondary);
+}
