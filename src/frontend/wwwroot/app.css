@@ -1,3 +1,16 @@
+:root {
+    --custom-color-primary: #051537;
+    --custom-color-secondary: #04247C;
+    --custom-color-tertiary: #003D7A;
+    --custom-color-quaternary: #0458AB;
+
+
+    --custom-color-dm-primary: #1B1734;
+    --custom-color-dm-secondary: #420264;
+    --custom-color-dm-tertiary: #5C038C;
+    --custom-color-dm-quaternary: #896FBC;
+}
+
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
@@ -36,13 +49,19 @@ h1:focus {
     border-color: #929292;
 }
 
-.page-size-chooser {
-    display: flex !important;
-    align-items: center !important;
-    margin-bottom: 1rem !important;
+/* Dark mode styles */
+.custom-color-bg-dm-primary {
+    color: #ffffff; /* White text color */
+    background-color: var(--custom-color-dm-primary); /* Dark grey background */
 }
 
-    .page-size-chooser select {
-        margin: 0 1rem !important;
-        padding: 0.25rem 0.5rem !important;
-    }
+.custom-color-bg-dm-secondary {
+    color: #ffffff; /* White text color */
+    background-color: var(--custom-color-dm-secondary);
+}
+
+
+.custom-color-bg-primary {
+    background-color: var(--custom-color-primary);
+}
+
