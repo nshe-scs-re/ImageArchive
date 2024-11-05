@@ -33,6 +33,8 @@ builder.Services.AddScoped<HttpService>();
 
 builder.Services.AddScoped<TokenProvider>();
 
+builder.Services.AddScoped<ThemeService>();
+
 var app = builder.Build();
 
 if(app.Environment.IsDevelopment())
@@ -58,8 +60,6 @@ app.UseAuthorization();
 
 app.MapGet("/api/images/{id}", async (HttpService HttpService, long id) =>
 {
-    //Console.WriteLine($"DEBUG: [Program.cs] [endpoint /api/images/{id}] endpoint hit.");
-
     try
     {
         var response = await HttpService.GetImageByIdAsync(id);
