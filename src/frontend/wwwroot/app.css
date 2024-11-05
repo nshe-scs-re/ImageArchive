@@ -49,19 +49,27 @@ h1:focus {
     border-color: #929292;
 }
 
-/* Dark mode styles */
 .custom-color-bg-dm-primary {
-    color: #ffffff; /* White text color */
-    background-color: var(--custom-color-dm-primary); /* Dark grey background */
+    color: antiquewhite;
+    border-color: antiquewhite;
+    background-color: var(--custom-color-dm-primary);
 }
 
 .custom-color-bg-dm-secondary {
-    color: #ffffff; /* White text color */
+    color: antiquewhite;
+    border-color: antiquewhite;
     background-color: var(--custom-color-dm-secondary);
 }
 
-
 .custom-color-bg-primary {
+    color: antiquewhite;
+    border-color: antiquewhite;
     background-color: var(--custom-color-primary);
+}
+
+.custom-color-bg-secondary {
+    color: antiquewhite;
+    border-color: antiquewhite;
+    background-color: var(--custom-color-secondary);
 }
 
