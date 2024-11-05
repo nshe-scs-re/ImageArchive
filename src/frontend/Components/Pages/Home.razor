@@ -1,15 +1,15 @@
 ﻿@page "/"
 @attribute [StreamRendering]
 @inject HttpService HttpService
-
+@inject ThemeService ThemeService
 
 <PageTitle>Home</PageTitle>
 
-<div class="my-3 py-3 text-center bg-body-tertiary rounded">
+<div class="my-3 py-3 text-center rounded @GetTheme()">
     <div class="row">
         <div class="col-lg-6 col-md-8 mx-auto">
             <h1 class="fw-light py-2">Image Repository Search</h1>
-            <p class="lead text-body-secondary">Execute a query against the image repository by using the tool below.</p>
+            <p class="lead">Execute a query against the image repository by using the tool below.</p>
         </div>
     </div>
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3">
@@ -146,21 +146,16 @@ else if (querySubmitted && loading is false)
 @code
 {
     private ImageQuery imageQuery = new();
-
-
-
-
-
     private bool loading = false;
     private bool querySubmitted = false;
     private List<Image>? images = new();
     private int pageIndex = 0;
     private int pageSize = 9;
 
-
-
-
-
+    protected override void OnInitialized()
+    {
+        ThemeService.StateChanged += StateHasChanged;
+    }
 
     private async Task GetPaginatedImagesAsync()
     {
@@ -195,5 +190,15 @@ else if (querySubmitted && loading is false)
             pageIndex--;
             await GetPaginatedImagesAsync();
         }
+    }
+
+    private string GetTheme()
+    {
+        return ThemeService.State? "custom-color-bg-secondary" : "custom-color-bg-dm-secondary";
+    }
+
+    public void Dispose()
+    {
+        ThemeService.StateChanged -= StateHasChanged;
     }
 }
