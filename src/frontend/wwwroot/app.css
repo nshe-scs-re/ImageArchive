@@ -67,9 +67,28 @@ h1:focus {
     background-color: var(--custom-color-primary);
 }
 
-.custom-color-bg-secondary {
-    color: antiquewhite;
-    border-color: antiquewhite;
-    background-color: var(--custom-color-secondary);
+/* Styling for the toggle buttons */
+.toggle-light-mode,
+.toggle-dark-mode {
+    background: none;
+    border: none;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    display: flex;
+    align-items: center;
 }
+/* add hover effect for visual feedback */
+    .toggle-light-mode:hover, .toggle-dark-mode:hover {
+        color: #896FBC;
+        background-color: rgba(0, 0, 0, 0.1); /* Light grey background on hover */
+        border-radius: 0.25rem;
+    }
 
+/* Center the buttons in the navbar */
+.navbar-nav.mx-auto {
+    display: flex;
+    justify-content: center;
+    gap: 1rem; /* Space between the buttons */
+}
