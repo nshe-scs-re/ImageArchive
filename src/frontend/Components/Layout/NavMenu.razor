@@ -1,6 +1,7 @@
 ﻿@inject NavigationManager Navigation
+@inject ThemeService ThemeService
 
-<nav class="navbar navbar-expand-md bg-body-tertiary rounded">
+<nav class="navbar navbar-expand-md rounded bg-body-tertiary">
   <div class="container-fluid">
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavBar">
       <span class="navbar-toggler-icon"></span>
@@ -14,6 +15,7 @@
           </Authorized>
           <NotAuthorized>
             <li class="nav-item"><NavLink class="nav-link rounded" href="/" Match="NavLinkMatch.All">Home</NavLink></li>
+            <li class="nav-item"><NavLink class="nav-link rounded" href="http://localhost:8080/swagger">Swagger</NavLink></li>
           </NotAuthorized>
         </AuthorizeView>
       </ul>
@@ -53,5 +55,25 @@
         }
 
         await base.OnInitializedAsync();
+    }
+
+    public void ToggleTheme()
+    {
+        ThemeService.ToggleTheme();
+    }
+
+    protected override void OnInitialized()
+    {
+        ThemeService.StateChanged += StateHasChanged;
+    }
+
+    private string GetTheme()
+    {
+        return ThemeService.State ? "custom-color-bg-secondary" : "custom-color-bg-dm-secondary";
+    }
+
+    public void Dispose()
+    {
+        ThemeService.StateChanged -= StateHasChanged;
     }
 }
