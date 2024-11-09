@@ -164,7 +164,7 @@ else if (querySubmitted && loading is false)
 
         loading = true;
 
-        var response = await HttpService.GetPaginatedImagesAsync(imageQuery.StartDateTime, imageQuery.EndDateTime, pageIndex, pageSize);
+        var response = await HttpService.GetPaginatedImagesAsync(imageQuery.StartDateTime, imageQuery.EndDateTime, pageIndex, pageSize, imageQuery.Site);
 
         if(response is not null)
         {

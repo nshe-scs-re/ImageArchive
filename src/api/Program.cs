@@ -165,8 +165,10 @@ app.MapGet("/api/images/paginated", async (ImageDbContext dbContext, string filt
             !int.TryParse(parameters[3], out int pageSize)
         ) return Results.BadRequest();
 
+        string site = parameters[4];
+
         var images = await dbContext.Images
-            .Where(i => i.DateTime >= startDate && i.DateTime <= endDate)
+            .Where(i => i.DateTime >= startDate && i.DateTime <= endDate && i.Site == site)
             .OrderBy(i => i.Id)
             .Skip(pageIndex * pageSize)
             .Take(pageSize)
