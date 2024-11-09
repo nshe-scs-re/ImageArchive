@@ -1,20 +1,20 @@
 ﻿@page "/"
 @attribute [StreamRendering]
-@rendermode InteractiveServer
 @inject HttpService HttpService
+@inject ThemeService ThemeService
 
 <PageTitle>Home</PageTitle>
 
-<div class="my-3 py-3 text-center bg-body-tertiary rounded">
+<div class="my-3 py-3 text-center rounded bg-body-tertiary">
     <div class="row">
         <div class="col-lg-6 col-md-8 mx-auto">
             <h1 class="fw-light py-2">Image Repository Search</h1>
-            <p class="lead text-body-secondary">Execute a query against the image repository by using the tool below.</p>
+            <p class="lead">Execute a query against the image repository by using the tool below.</p>
         </div>
     </div>
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3">
         <div class="col mx-auto border">
-            <EditForm Model="@imageQuery" OnValidSubmit="FormSubmit" FormName="MyFormName" class="form">
+            <EditForm Model="@imageQuery" OnValidSubmit="GetPaginatedImagesAsync" FormName="ImageQueryForm" class="form">
                 <div class="row py-2">
                     <label for="StartDate" class="col col-form-label">Query start date:</label>
                     <div class="col">
@@ -43,10 +43,10 @@
                     <label for="Site" class="col col-form-label">Site Name:</label>
                     <div class="col">
                         <InputSelect @bind-Value="imageQuery.Site" id="Site" class="form-select">
-                            <option value="">Sheep</option>
-                            <option value="">Site 2</option>
-                            <option value="">Site 3</option>
-                            <option value="">Site 4</option>
+                            <option value="Rockland">Rockland</option>
+                            <option value="Sheep">Sheep</option>
+                            <option value="Snake">Snake</option>
+                            <option value="Spring">Spring</option>
                         </InputSelect>
                     </div>
                 </div>
@@ -87,7 +87,7 @@
                 {
                     <div class="col">
                         <div class="card shadow-sm">
-                            <img src="/placeholder.jpg" class="card-img-top" />
+                            <img src="/placeholder.jpg" class="card-img-top" width="320" height="240" />
                             <div class="card-body">
                                 <p class="card-text">Information about image</p>
                                 <div class="d-flex justify-content-between align-items-center">
@@ -108,11 +108,11 @@ else if (querySubmitted && loading is false)
     <div class="my-3 py-3 album bg-body-tertiary rounded">
         <div class="container">
             <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
-                @foreach (var image in images)
+                @foreach (var image in images!)
                 {
                     <div class="col">
                         <div class="card shadow-sm">
-                            <img src="/api/images/@image.Id" class="card-img-top"/>
+                            <img src="/api/images/@image.Id" class="card-img-top" width="320" height="240" />
                             <div class="card-body">
                                 <p class="card-text">Information about image</p>
                                 <div class="d-flex justify-content-between align-items-center">
@@ -131,13 +131,13 @@ else if (querySubmitted && loading is false)
     <nav aria-label="Pagination">
         <ul class="pagination justify-content-center">
             <li class="page-item @(pageIndex == 0 ? "disabled" : "")">
-                <button class="page-link" @onclick="PreviousPage">Previous</button>
+                <button type="button" class="page-link" @onclick="PreviousPage">Previous</button>
             </li>
             <li class="page-item">
                 <span class="page-link">@(pageIndex + 1)</span>
             </li>
             <li class="page-item">
-                <button class="page-link" @onclick="NextPage">Next</button>
+                <button type="button" class="page-link" @onclick="NextPage">Next</button>
             </li>
         </ul>
     </nav>
@@ -145,26 +145,26 @@ else if (querySubmitted && loading is false)
 
 @code
 {
-    ImageQuery imageQuery = new ImageQuery()
-    {
-        StartDateTime = new DateTime(2019, 6, 1),
-        EndDateTime = DateTime.Now.Date
-    };
-
-    public bool loading = false;
-    public bool querySubmitted = false;
-    private List<Image> images = new();
+    private ImageQuery imageQuery = new();
+    private bool loading = false;
+    private bool querySubmitted = false;
+    private List<Image>? images = new();
     private int pageIndex = 0;
     private int pageSize = 9;
 
-    private async Task FormSubmit()
+    protected override void OnInitialized()
+    {
+        ThemeService.StateChanged += StateHasChanged;
+    }
+
+    private async Task GetPaginatedImagesAsync()
     {
         imageQuery.StartDateTime = new DateTime(DateOnly.FromDateTime(imageQuery.StartDateTime), imageQuery.StartTimeOnly);
         imageQuery.EndDateTime = new DateTime(DateOnly.FromDateTime(imageQuery.EndDateTime), imageQuery.EndTimeOnly);
 
         loading = true;
 
-        var response = await HttpService.GetImages(imageQuery.StartDateTime, imageQuery.EndDateTime, pageIndex, pageSize);
+        var response = await HttpService.GetPaginatedImagesAsync(imageQuery.StartDateTime, imageQuery.EndDateTime, pageIndex, pageSize, imageQuery.Site);
 
         if(response is not null)
         {
@@ -175,13 +175,12 @@ else if (querySubmitted && loading is false)
                 loading = false;
             }
         }
-
     }
 
     private async Task NextPage()
     {
         pageIndex++;
-        await FormSubmit();
+        await GetPaginatedImagesAsync();
     }
 
     private async Task PreviousPage()
@@ -189,7 +188,17 @@ else if (querySubmitted && loading is false)
         if (pageIndex > 0)
         {
             pageIndex--;
-            await FormSubmit();
+            await GetPaginatedImagesAsync();
         }
+    }
+
+    private string GetTheme()
+    {
+        return ThemeService.State? "custom-color-bg-secondary" : "custom-color-bg-dm-secondary";
+    }
+
+    public void Dispose()
+    {
+        ThemeService.StateChanged -= StateHasChanged;
     }
 }
