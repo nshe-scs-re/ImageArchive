@@ -1,7 +1,7 @@
 ﻿@inject NavigationManager Navigation
 @inject ThemeService ThemeService
 
-<nav class="navbar navbar-expand-md rounded @GetTheme()">
+<nav class="navbar navbar-expand-md rounded bg-body-tertiary">
   <div class="container-fluid">
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavBar">
       <span class="navbar-toggler-icon"></span>
@@ -12,12 +12,10 @@
           <Authorized>
             <li class="nav-item"><NavLink class="nav-link rounded" href="/" Match="NavLinkMatch.All">Home</NavLink></li>
             <li class="nav-item"><NavLink class="nav-link rounded" href="http://localhost:8080/swagger">Swagger</NavLink></li>
-            <li class="nav-item"><button class="rounded" @onclick=ToggleTheme>Toggle Theme</button></li>
           </Authorized>
           <NotAuthorized>
             <li class="nav-item"><NavLink class="nav-link rounded" href="/" Match="NavLinkMatch.All">Home</NavLink></li>
             <li class="nav-item"><NavLink class="nav-link rounded" href="http://localhost:8080/swagger">Swagger</NavLink></li>
-            <li class="nav-item"><button class="nav-link rounded" @onclick=ToggleTheme>Toggle Theme</button></li>
           </NotAuthorized>
         </AuthorizeView>
       </ul>
