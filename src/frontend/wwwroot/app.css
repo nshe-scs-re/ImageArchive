@@ -67,6 +67,13 @@ h1:focus {
     background-color: var(--custom-color-primary);
 }
 
+.custom-color-bg-secondary {
+    color: antiquewhite;
+    border-color: antiquewhite;
+    background-color: var(--custom-color-secondary);
+}
+
+
 /* Styling for the toggle buttons */
 .toggle-light-mode,
 .toggle-dark-mode {
