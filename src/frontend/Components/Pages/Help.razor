@@ -6,7 +6,7 @@
 <style>
     .help-container {
         background-color: #f8f9fa;
-        color: #333333;
+        color: #333;
         padding: 2rem;
         border-radius: 10px;
         max-width: 1200px;
@@ -129,6 +129,24 @@
     }
 </style>
 
+<!-- JavaScript functions for interactivity -->
+<script>
+    window.helpFunctions = {
+        toggleAnswer: function (answerId) {
+            const answerElement = document.getElementById(answerId);
+            if (answerElement) {
+                answerElement.style.display = answerElement.style.display === 'none' ? 'block' : 'none';
+            }
+        },
+        scrollToSection: function (sectionId) {
+            const sectionElement = document.getElementById(sectionId);
+            if (sectionElement) {
+                sectionElement.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+    };
+</script>
+
 <div class="help-container">
     <h1>Help & Documentation</h1>
     <p>Welcome to the Help and Documentation page! Here, you will find comprehensive guides and answers to frequently asked questions to make your experience with our platform smooth and efficient.</p>
@@ -136,13 +154,15 @@
     <div class="toc">
         <h3>Table of Contents</h3>
         <ul>
-            <li><a href="#getting-started" @onclick="() => ScrollToSection('getting-started')">Getting Started</a></li>
-            <li><a href="#advanced-filters" @onclick="() => ScrollToSection('advanced-filters')">Using Advanced Filters</a></li>
-            <li><a href="#account-management" @onclick="() => ScrollToSection('account-management')">Account Management</a></li>
-            <li><a href="#faq" @onclick="() => ScrollToSection('faq')">Frequently Asked Questions</a></li>
-            <li><a href="#contact-support" @onclick="() => ScrollToSection('contact-support')">Contact Support</a></li>
+            <li><a href="#getting-started" @onclick="@(() => ScrollToSection("getting-started"))">Getting Started</a></li>
+            <li><a href="#advanced-filters" @onclick="@(() => ScrollToSection("advanced-filters"))">Using Advanced Filters</a></li>
+            <li><a href="#account-management" @onclick="@(() => ScrollToSection("account-management"))">Account Management</a></li>
+            <li><a href="#faq" @onclick="@(() => ScrollToSection("faq"))">Frequently Asked Questions</a></li>
+            <li><a href="#contact-support" @onclick="@(() => ScrollToSection("contact-support"))">Contact Support</a></li>
         </ul>
     </div>
+
+
 
     <div id="getting-started" class="section">
         <h2>Getting Started</h2>
@@ -168,18 +188,19 @@
     <div id="faq" class="faq-section">
         <h2>Frequently Asked Questions</h2>
         <div class="faq-item">
-            <p class="faq-question" @onclick="() => ToggleAnswer('faq-answer-0')">How can I reset my password?</p>
+            <p class="faq-question" @onclick="@(() => ToggleAnswer("faq-answer-0"))">How can I reset my password?</p>
             <p class="faq-answer" id="faq-answer-0">To reset your password, go to the Profile page and click on 'Reset Password.' Follow the on-screen instructions to complete the process.</p>
         </div>
         <div class="faq-item">
-            <p class="faq-question" @onclick="() => ToggleAnswer('faq-answer-1')">Can I save my search queries for future use?</p>
+            <p class="faq-question" @onclick="@(() => ToggleAnswer("faq-answer-1"))">Can I save my search queries for future use?</p>
             <p class="faq-answer" id="faq-answer-1">Yes, you can save search queries under the 'Saved Searches' section in your profile. This allows you to quickly access commonly used queries.</p>
         </div>
         <div class="faq-item">
-            <p class="faq-question" @onclick="() => ToggleAnswer('faq-answer-2')">What file formats are supported for uploads?</p>
+            <p class="faq-question" @onclick="@(() => ToggleAnswer("faq-answer-2"))">What file formats are supported for uploads?</p>
             <p class="faq-answer" id="faq-answer-2">Currently, we support .jpg, .png, and .tiff formats. Ensure that images are high-resolution and accurately tagged for optimal performance.</p>
         </div>
     </div>
+
 
     <div id="contact-support" class="contact-support">
         <h2>Contact Support</h2>
