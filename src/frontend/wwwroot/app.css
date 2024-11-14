@@ -73,7 +73,6 @@ h1:focus {
     background-color: var(--custom-color-secondary);
 }
 
-
 /* Styling for the toggle buttons */
 .toggle-light-mode,
 .toggle-dark-mode {
