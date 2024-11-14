@@ -10,12 +10,12 @@
       <ul class="navbar-nav mx-auto justify-content-md-center">
         <AuthorizeView>
           <Authorized>
-            <li class="nav-item"><NavLink class="nav-link rounded" href="/" Match="NavLinkMatch.All">Home</NavLink></li>
-            <li class="nav-item"><NavLink class="nav-link rounded" href="http://localhost:8080/swagger">Swagger</NavLink></li>
+            <li class="nav-item"><a class="btn btn-light rounded @GetButtonTheme()" href="/" Match="NavLinkMatch.All">Home</a></li>
+            <li class="nav-item"><a class="btn btn-light rounded @GetButtonTheme()" href="http://localhost:8080/swagger">Swagger</a></li>
           </Authorized>
           <NotAuthorized>
-            <li class="nav-item"><NavLink class="nav-link rounded" href="/" Match="NavLinkMatch.All">Home</NavLink></li>
-            <li class="nav-item"><NavLink class="nav-link rounded" href="http://localhost:8080/swagger">Swagger</NavLink></li>
+            <li class="nav-item"><a class="btn btn-light rounded @GetButtonTheme()" href="/" Match="NavLinkMatch.All">Home</a></li>
+            <li class="nav-item"><a class="btn btn-light rounded @GetButtonTheme()" href="http://localhost:8080/swagger">Swagger</a></li>
           </NotAuthorized>
         </AuthorizeView>
       </ul>
@@ -26,7 +26,7 @@
               @if (ThemeService.State)
               {
                 <div class="nav-item">
-                  <button type="button" class="toggle-dark-mode"@onclick=ToggleTheme>
+                  <button type="button" class="btn btn-light rounded custom-color-btn-dm"@onclick=ToggleTheme>
                     <i class="bi bi-moon-stars-fill"></i>
                     <span class="ms-1">Dark Mode</span>
                   </button>
@@ -35,8 +35,8 @@
               else
               {
                 <div class="nav-item">
-                  <button type="button" class="toggle-dark-mode" @onclick=ToggleTheme>
-                    <i class="bi bi-moon-stars"></i>
+                  <button type="button" class="btn btn-light rounded custom-color-btn-dm" @onclick=ToggleTheme>
+                    <i class="bi bi-brightness-high-fill"></i>
                     <span class="ms-1">Light Mode</span>
                   </button>
                 </div> 
@@ -45,8 +45,8 @@
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle rounded" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">@userName</a>
               <ul class="dropdown-menu">
-                <li><NavLink class="dropdown-item nav-link" href="/profile" Match="NavLinkMatch.All">View Profile</NavLink></li>
-                <li><NavLink class="dropdown-item nav-link" href="/logout">Logout</NavLink></li>
+                <li><a class="dropdown-item @GetButtonTheme()" href="/profile" Match="NavLinkMatch.All">View Profile</a></li>
+                <li><a class="dropdown-item @GetButtonTheme()" href="/logout">Logout</a></li>
               </ul>
             </li>
           </Authorized>
@@ -55,7 +55,7 @@
               @if (ThemeService.State)
               {
                 <div class="nav-item">
-                  <button type="button" class="toggle-dark-mode"@onclick=ToggleTheme>
+                  <button type="button" class="btn btn-light rounded @GetButtonTheme()"@onclick=ToggleTheme>
                     <i class="bi bi-moon-stars-fill"></i>
                     <span class="ms-1">Dark Mode</span>
                   </button>
@@ -64,14 +64,14 @@
               else
               {
                 <div class="nav-item">
-                  <button type="button" class="toggle-dark-mode" @onclick=ToggleTheme>
-                    <i class="bi bi-moon-stars"></i>
+                  <button type="button" class="btn btn-light rounded @GetButtonTheme()" @onclick=ToggleTheme>
+                    <i class="bi bi-brightness-high-fill"></i>
                     <span class="ms-1">Light Mode</span>
                   </button>
                 </div> 
               }
             </li>
-            <li class="nav-item"><NavLink class="nav-link rounded" href="/login">Login</NavLink></li>
+            <li class="nav-item"><a class="btn btn-light rounded @GetButtonTheme()" href="/login">Login</a></li>
           </NotAuthorized>
         </AuthorizeView>
       </ul>
@@ -110,6 +110,11 @@
     private string GetTheme()
     {
         return ThemeService.State ? "bg-body-tertiary" : "custom-color-bg-dm-secondary";
+    }
+
+    private string GetButtonTheme()
+    {
+        return ThemeService.State ? "nav-link" : "custom-color-btn-dm";
     }
 
     public void Dispose()
