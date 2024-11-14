@@ -18,7 +18,7 @@ public class HttpService
 
     public HttpClient CreateClient()
     {
-        var client = _httpClientFactory.CreateClient("_httpClient_");
+        var client = _httpClientFactory.CreateClient("HttpClient");
         AddAntiForgeryToken(client);
         return client;
     }
@@ -36,15 +36,39 @@ public class HttpService
         }
     }
 
-    public async Task<HttpResponseMessage> GetImageByIdAsync(long id)
+    public async Task<HttpResponseMessage> GetImagesByIdAsync(long id)
     {
-        var httpClient = this.CreateClient();
+        var httpClient = CreateClient();
         return await httpClient.GetAsync($"api/images/{id}");
     }
 
-    public async Task<HttpResponseMessage> GetImages(DateTime startDate, DateTime endDate, int pageIndex, int pageSize)
+    public async Task<HttpResponseMessage> GetImagesByPageAsync(DateTime startDate, DateTime endDate, int pageIndex, int pageSize, string site)
     {
-        var httpClient = this.CreateClient();
-        return await httpClient.GetAsync($"api/images/paginated?startDate={startDate}&endDate={endDate}&pageIndex={pageIndex}&pageSize={pageSize}");
+        var httpClient = CreateClient();
+        return await httpClient.GetAsync($"api/images/paginated?filter={startDate},{endDate},{pageIndex},{pageSize},{site}");
+    }
+
+    public async Task<HttpResponseMessage> GetImagesAllAsync()
+    {
+        var httpClient = CreateClient();
+        return await httpClient.GetAsync("api/images/all");
+    }
+
+    public async Task<HttpResponseMessage> GetArchiveStatusAsync(Guid jobId)
+    {
+        var httpClient = CreateClient();
+        return await httpClient.GetAsync($"api/archive/status/{jobId}");
+    }
+
+    public async Task<HttpResponseMessage> GetArchiveDownloadAsync(Guid jobId)
+    {
+        var httpClient = CreateClient();
+        return await httpClient.GetAsync($"api/archive/download/{jobId}");
+    }
+
+    public async Task<HttpResponseMessage> PostArchiveRequestAsync(ArchiveRequest request)
+    {
+        var httpClient = CreateClient();
+        return await httpClient.PostAsJsonAsync("api/archive/request", request);
     }
 }
