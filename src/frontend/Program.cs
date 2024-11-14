@@ -52,13 +52,13 @@ else
 
 app.UseStaticFiles();
 
-app.UseAntiforgery();
-
 app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 
 app.UseAuthentication();
 
 app.UseAuthorization();
+
+app.UseAntiforgery();
 
 app.MapGet("/api/images/{id}", async (HttpService HttpService, long id) =>
 {
