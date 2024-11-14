@@ -1,93 +1,85 @@
 ﻿@page "/archive"
-@rendermode InteractiveServer
-@inject HttpClient Http
+@inject HttpService HttpService
 @inject IJSRuntime JSRuntime
 
 <ul class="list-unstyled">
-    <li class="m-2">
-        <button type="button" class="btn btn-primary" @onclick="ArchiveStartRequest">Start</button>
-    </li>
-
-    @if (archiveStatusResponse.JobId != Guid.Empty)
-    {
-        <li class="m-2">
-            <button type="button" class="btn btn-secondary" @onclick="() => ArchiveStatusRequest(archiveStatusResponse.JobId)">Status</button>
-        </li>
-        <li class="m-2">
-            <button type="button" class="btn btn-primary" @onclick="() => DownloadArchive(archiveStatusResponse.JobId)">Download</button>
-        </li>
-    }
-    else
-    {
-        <li class="m-2">
-            <button type="button" class="btn btn-secondary" @onclick="() => ArchiveStatusRequest(archiveStatusResponse.JobId)" disabled>Status</button>
-        </li>
-        <li class="m-2">
-            <button type="button" class="btn btn-primary" @onclick="() => DownloadArchive(archiveStatusResponse.JobId)" disabled>Download</button>
-        </li>
-    }
+    <li class="m-2"><button type="button" class="btn btn-primary" @onclick="PostArchiveRequest">Start</button></li>
+    <li class="m-2"><button type="button" class="btn btn-primary" @onclick="() => GetArchiveStatus(request.Id)" disabled="@(request.Id == Guid.Empty)">Status</button></li>
+    <li class="m-2"><button type="button" class="btn btn-primary" @onclick="() => DownloadArchive(request.Id)" disabled="@(request.Status != ArchiveStatus.Completed)">Download</button></li>
 </ul>
 
 @code {
-    private Guid staleJobId = new("7bd0e068-0fdf-45bd-b988-107789288811"); //TODO: Remove testing variable
-    private DateTime startDate = new DateTime(2010,1,1);
-    private DateTime endDate = DateTime.Now;
-    private ArchiveStatusResponse? archiveStatusResponse = new();
-    private string apihost = "https://localhost:443";
-
-    private async Task ArchiveStartRequest()
+    ArchiveRequest request = new ArchiveRequest
     {
-        Console.WriteLine("Archive request started");
+        StartDate = new DateTime(2019, 1, 1),
+        EndDate = DateTime.Now
+    };
 
-        var request = new
+    private async Task PostArchiveRequest()
+    {
+        try
         {
-            StartDate = startDate,
-            EndDate = endDate
-        };
+            var response = await HttpService.PostArchiveRequestAsync(request);
 
-        var response = await Http.PostAsJsonAsync($"{apihost}/api/archive/start", request);
-
-        if(response.IsSuccessStatusCode)
-        {
-            archiveStatusResponse = await response.Content.ReadFromJsonAsync<ArchiveStatusResponse>();
-
-            if (archiveStatusResponse is not null)
+            if (response.IsSuccessStatusCode)
             {
+                request = await response.Content.ReadFromJsonAsync<ArchiveRequest>();
 
-                Console.WriteLine($"CLIENT: Archive request success. Details below:");
-                Console.WriteLine(response);
-                Console.WriteLine(await response.Content.ReadAsStringAsync());
+                if (request is not null)
+                {
+                    Console.WriteLine(request.Status);
+                    Console.WriteLine(request.Id);
+                }
+            }
+            else
+            {
+                Console.WriteLine("DEBUG [Archive.razor] [ArchiveStartRequest]: Archive request failed");
             }
         }
-        else
+        catch (Exception exception)
         {
-            Console.WriteLine("Archive request failed");
+            Console.WriteLine($"ERROR [Archive.razor] [ArchiveStartRequest]: Exception message: {exception.Message}");
+            throw;
         }
     }
 
-    private async Task ArchiveStatusRequest(Guid jobId)
+    private async Task GetArchiveStatus(Guid id)
     {
-        var response = await Http.GetAsync($"{apihost}/api/archive/status/{jobId}");
-
-        if(response.IsSuccessStatusCode)
+        try
         {
-            archiveStatusResponse = await response.Content.ReadFromJsonAsync<ArchiveStatusResponse>();
+            var response = await HttpService.GetArchiveStatusAsync(id);
 
-            Console.WriteLine($"JOB ID: {jobId} STATUS: {archiveStatusResponse!.Status}");
+            if(response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadFromJsonAsync<ArchiveRequest>();
+                if(content is not null)
+                {
+                    request.Status = content.Status;
+                    Console.WriteLine($"DEBUG [Archive.razor] [GetArchiveStatus()] archive status: {request.Status}");
+                }
+            }
+            else
+            {
+                var responseCode = response.StatusCode;
+                var message = await response.Content.ReadAsStringAsync();
+
+                Console.WriteLine(responseCode);
+                Console.WriteLine(message);
+            }
         }
-        else
+        catch (Exception exception)
         {
-            var responseCode = response.StatusCode;
-            var message = await response.Content.ReadAsStringAsync();
-
-            Console.WriteLine($"Response code {responseCode} Response message: {message}");
+            Console.WriteLine($"ERROR [Archive.razor] [GetArchiveStatus]: Exception message: {exception.Message}");
+            throw;
         }
     }
 
     private async Task DownloadArchive(Guid jobId)
     {
-        var url = $"{apihost}/api/archive/download/{jobId}";
+        var url = $"/api/archive/download/{jobId}";
 
-        await JSRuntime.InvokeVoidAsync("blazorDownloadFile", url, $"{jobId}.zip");
+        //Console.WriteLine($"DEBUG [Archive.razor] [DownloadArchive()] url: {url}");
+
+        await JSRuntime.InvokeVoidAsync("download", url, $"{jobId}.zip");
     }
 }
