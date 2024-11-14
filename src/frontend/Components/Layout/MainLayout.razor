@@ -3,7 +3,7 @@
 
 
 <main class="@GetTheme()">
-    <div class="container-xxl my-3">
+    <div class="container-xxl">
         <NavMenu />
     </div>
 
@@ -11,7 +11,7 @@
         @Body
     </div>
 
-    <div class="container-xxl my-3">
+    <div class="container-xxl">
         <Footer />
     </div>
 </main>
@@ -31,7 +31,7 @@
 
     private string GetTheme()
     {
-        return ThemeService.State ? "custom-color-bg-primary" : "custom-color-bg-dm-primary";
+        return ThemeService.State ? "" : "custom-color-bg-dm-primary";
     }
 
     public void Dispose()
