@@ -14,7 +14,7 @@
     </div>
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3">
         <div class="col mx-auto border">
-            <EditForm Model="@imageQuery" OnValidSubmit="GetPaginatedImagesAsync" FormName="ImageQueryForm" class="form">
+            <EditForm Model="@imageQuery" OnValidSubmit="GetImagesByPageAsync" FormName="ImageQueryForm" class="form">
                 <div class="row py-2">
                     <label for="StartDate" class="col col-form-label">Query start date:</label>
                     <div class="col">
@@ -128,19 +128,33 @@ else if (querySubmitted && loading is false)
         </div>
     </div>
 
-    <nav aria-label="Pagination">
-        <ul class="pagination justify-content-center">
-            <li class="page-item @(pageIndex == 0 ? "disabled" : "")">
-                <button type="button" class="page-link @GetButtonTheme()" @onclick="PreviousPage">Previous</button>
-            </li>
-            <li class="page-item">
-                <span class="page-link @GetButtonTheme()">@(pageIndex + 1)</span>
-            </li>
-            <li class="page-item">
-                <button type="button" class="page-link @GetButtonTheme()" @onclick="NextPage">Next</button>
-            </li>
-        </ul>
-    </nav>
+  <div>
+    <ul class="pagination justify-content-center">
+      <li class="page-item @(pageIndex==0 ? "disabled" : "")">
+        <button type="button" class="page-link @GetButtonTheme()" @onclick="FirstPage">
+          <i class="bi bi-chevron-bar-left"></i>
+        </button>
+      </li>
+      <li class="page-item">
+        <button type="button" class="page-link @GetButtonTheme()" @onclick="PreviousPage">
+          <i class="bi bi-chevron-left"></i>
+        </button>
+      </li>
+      <li class="page-item">
+        <span class="page-link @GetButtonTheme()">@(pageIndex + 1)</span>
+      </li>
+      <li class="page-item">
+        <button type="button" class="page-link @GetButtonTheme()" @onclick="NextPage">
+          <i class="bi bi-chevron-right"></i>
+        </button>
+      </li>
+      <li class="page-item disabled">
+        <button type="button" class="page-link @GetButtonTheme()" @onclick="LastPage">
+          <i class="bi bi-chevron-bar-right"></i>
+        </button>
+      </li>
+    </ul>
+  </div>
 }
 
 @code
@@ -157,14 +171,14 @@ else if (querySubmitted && loading is false)
         ThemeService.StateChanged += StateHasChanged;
     }
 
-    private async Task GetPaginatedImagesAsync()
+    private async Task GetImagesByPageAsync()
     {
         imageQuery.StartDateTime = new DateTime(DateOnly.FromDateTime(imageQuery.StartDateTime), imageQuery.StartTimeOnly);
         imageQuery.EndDateTime = new DateTime(DateOnly.FromDateTime(imageQuery.EndDateTime), imageQuery.EndTimeOnly);
 
         loading = true;
 
-        var response = await HttpService.GetPaginatedImagesAsync(imageQuery.StartDateTime, imageQuery.EndDateTime, pageIndex, pageSize, imageQuery.Site);
+        var response = await HttpService.GetImagesByPageAsync(imageQuery.StartDateTime, imageQuery.EndDateTime, pageIndex, pageSize, imageQuery.Site);
 
         if(response is not null)
         {
@@ -177,10 +191,16 @@ else if (querySubmitted && loading is false)
         }
     }
 
+    private async Task FirstPage()
+    {
+        pageIndex = 0;
+        await GetImagesByPageAsync();
+    }
+
     private async Task NextPage()
     {
         pageIndex++;
-        await GetPaginatedImagesAsync();
+        await GetImagesByPageAsync();
     }
 
     private async Task PreviousPage()
@@ -188,8 +208,13 @@ else if (querySubmitted && loading is false)
         if (pageIndex > 0)
         {
             pageIndex--;
-            await GetPaginatedImagesAsync();
+            await GetImagesByPageAsync();
         }
+    }
+
+    private async Task LastPage()
+    {
+        //TODO
     }
 
     private string GetTheme()
