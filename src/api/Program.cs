@@ -1,7 +1,10 @@
 using api.Data;
 using api.Models;
 using api.Services;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,7 +14,15 @@ builder.Configuration.AddEnvironmentVariables();
 
 builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Image Archive API",
+        Version = "v1",
+        Description = "An ASP.NET Core 8 minimal Web API for managing an image archive."
+    });
+});
 
 builder.Services.AddSqlServer<ImageDbContext>(builder.Configuration.GetConnectionString("ImageDb"));
 
@@ -73,9 +84,11 @@ app.MapGet("/api/db-verify", async(ImageDbContext dbContext) =>
         Console.WriteLine($"DEBUG [Program.cs] [/api/db-verify]: Database connection failed - {exception.Message}");
         return Results.Problem(exception.Message);
     }
-});
+})
+.WithSummary("Tests the ability for the API host to connect to the image database.")
+.Produces<IResult>(200, "application/json");
 
-app.MapPost("/api/archive/start", async (ArchiveManager manager, HttpContext context) =>
+app.MapPost("/api/archive/request", async (ArchiveManager manager, HttpContext context) =>
 {
     try
     {
@@ -97,14 +110,17 @@ app.MapPost("/api/archive/start", async (ArchiveManager manager, HttpContext con
 
         ArchiveRequest job = manager.GetJob(jobId);
 
-        return Results.Ok(job); //TODO: 'Created' response?
+        return Results.Accepted($"/api/archive/request/{jobId}", job); //TODO: 'Created' response?
     }
     catch(Exception exception)
     {
         Console.WriteLine($"ERROR [Program.cs] [/api/archive/start]: Exception message: {exception.Message}");
-        throw;
+        return Results.Problem();
     }
-});
+})
+.WithSummary("Starts an archive process.")
+.Produces<ArchiveRequest>(200, "application/json")
+.Accepts<ArchiveRequest>("application/json");
 
 app.MapGet("/api/archive/status/{jobId}", (ArchiveManager manager, Guid jobId) =>
 {
@@ -119,7 +135,9 @@ app.MapGet("/api/archive/status/{jobId}", (ArchiveManager manager, Guid jobId) =
         Console.WriteLine($"ERROR [Program.cs] [/api/archive/status/{jobId}]: Exception message: {exception.Message}");
         return Results.Problem(exception.Message);
     }
-});
+})
+.WithSummary("Retrieves an archive job status.")
+.Produces<ArchiveRequest>(200, "application/json");
 
 app.MapGet("/api/archive/download/{jobId}", (ArchiveManager manager, Guid jobId) =>
 {
@@ -136,7 +154,9 @@ app.MapGet("/api/archive/download/{jobId}", (ArchiveManager manager, Guid jobId)
         Console.WriteLine($"ERROR [Program.cs] [/api/archive/download]: Exception message: {exception.Message}");
         return Results.Problem(exception.Message);
     }
-});
+})
+.WithSummary("Requests an archive download.")
+.Produces<FileResult>(200, "application/zip");
 
 app.MapGet("/api/images/all", async (ImageDbContext dbContext) =>
 {
@@ -151,7 +171,9 @@ app.MapGet("/api/images/all", async (ImageDbContext dbContext) =>
         Console.WriteLine($"ERROR [Program.cs] [/api/images/all]: Exception message: {exception.Message}");
         return Results.Problem(exception.Message);
     }
-});
+})
+.WithSummary("Retrieves a list of all images stored in the database.")
+.Produces<List<Image>>(200, "application/json");
 
 app.MapGet("/api/images/paginated", async (ImageDbContext dbContext, string filter) =>
 {
@@ -181,7 +203,9 @@ app.MapGet("/api/images/paginated", async (ImageDbContext dbContext, string filt
         Console.WriteLine($"ERROR [Program.cs] [/api/images/paginated]: Exception message: {exception.Message}");
         return Results.Problem(exception.Message);
     }
-});
+})
+.WithSummary("Retrieves a small list of images to be later retrieved in paginated results.")
+.Produces<List<Image>>(200, "application/json");
 
 app.MapGet("/api/images/{id}", async (ImageDbContext dbContext, long id) =>
 {
@@ -211,6 +235,8 @@ app.MapGet("/api/images/{id}", async (ImageDbContext dbContext, long id) =>
         Console.WriteLine($"ERROR [Program.cs] [/api/images/id]: Exception message: {exception.Message}");
         return Results.Problem(exception.Message);
     }
-});
+})
+.WithSummary("Retrieves a single image based on a given id value.")
+.Produces<FileResult>(200, "image/jpeg");
 
 app.Run();
