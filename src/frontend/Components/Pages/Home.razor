@@ -5,7 +5,7 @@
 
 <PageTitle>Home</PageTitle>
 
-<div class="my-3 py-3 text-center rounded bg-body-tertiary">
+<div class="my-3 py-3 text-center rounded @GetTheme()">
     <div class="row">
         <div class="col-lg-6 col-md-8 mx-auto">
             <h1 class="fw-light py-2">Image Repository Search</h1>
@@ -71,7 +71,7 @@
                     </div>
                 </div>
                 <div class="text-end py-2">
-                    <button type="submit" class="btn btn-outline-secondary">Search</button>
+                    <button type="submit" class="btn btn-light rounded @GetButtonTheme()">Search</button>
                 </div>
             </EditForm>
         </div>
@@ -80,19 +80,19 @@
 
 @if (querySubmitted && loading is true)
 {
-    <div class="my-3 py-3 album bg-body-tertiary rounded">
+    <div class="my-3 py-3 album rounded @GetTheme()">
         <div class="container">
             <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
                 @for (int i = 0; i < pageSize; i++)
                 {
                     <div class="col">
-                        <div class="card shadow-sm">
+                        <div class="card shadow-sm @GetTheme()">
                             <img src="/placeholder.jpg" class="card-img-top" width="320" height="240" />
                             <div class="card-body">
                                 <p class="card-text">Information about image</p>
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div class="btn-group">
-                                        <button type="button" class="btn btn-sm btn-outline-secondary">View</button>
+                                        <button type="button" class="btn btn-sm btn-light @GetButtonTheme()">View</button>
                                     </div>
                                 </div>
                             </div>
@@ -105,19 +105,19 @@
 }
 else if (querySubmitted && loading is false)
 {
-    <div class="my-3 py-3 album bg-body-tertiary rounded">
+    <div class="my-3 py-3 album rounded @GetTheme()">
         <div class="container">
             <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
                 @foreach (var image in images!)
                 {
                     <div class="col">
-                        <div class="card shadow-sm">
+                        <div class="card shadow-sm @GetTheme()">
                             <img src="/api/images/@image.Id" class="card-img-top" width="320" height="240" />
                             <div class="card-body">
                                 <p class="card-text">Information about image</p>
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div class="btn-group">
-                                        <button type="button" class="btn btn-sm btn-outline-secondary">View</button>
+                                        <button type="button" class="btn btn-sm btn-light @GetButtonTheme()">View</button>
                                     </div>
                                 </div>
                             </div>
@@ -131,13 +131,13 @@ else if (querySubmitted && loading is false)
     <nav aria-label="Pagination">
         <ul class="pagination justify-content-center">
             <li class="page-item @(pageIndex == 0 ? "disabled" : "")">
-                <button type="button" class="page-link" @onclick="PreviousPage">Previous</button>
+                <button type="button" class="page-link @GetButtonTheme()" @onclick="PreviousPage">Previous</button>
             </li>
             <li class="page-item">
-                <span class="page-link">@(pageIndex + 1)</span>
+                <span class="page-link @GetButtonTheme()">@(pageIndex + 1)</span>
             </li>
             <li class="page-item">
-                <button type="button" class="page-link" @onclick="NextPage">Next</button>
+                <button type="button" class="page-link @GetButtonTheme()" @onclick="NextPage">Next</button>
             </li>
         </ul>
     </nav>
@@ -194,7 +194,12 @@ else if (querySubmitted && loading is false)
 
     private string GetTheme()
     {
-        return ThemeService.State? "custom-color-bg-secondary" : "custom-color-bg-dm-secondary";
+        return ThemeService.State? "bg-body-tertiary" : "custom-color-bg-dm-secondary";
+    }
+
+    private string GetButtonTheme()
+    {
+        return ThemeService.State ? "btn-outline-secondary" : "custom-color-btn-dm-border";
     }
 
     public void Dispose()
