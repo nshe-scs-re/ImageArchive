@@ -5,8 +5,8 @@
     --custom-color-quaternary: #0458AB;
 
 
-    --custom-color-dm-primary: #1B1734;
-    --custom-color-dm-secondary: #420264;
+    --custom-color-dm-primary: #171717 ;
+    --custom-color-dm-secondary: #091f2c;
     --custom-color-dm-tertiary: #5C038C;
     --custom-color-dm-quaternary: #896FBC;
 }
@@ -61,6 +61,18 @@ h1:focus {
     background-color: var(--custom-color-dm-secondary);
 }
 
+.custom-color-bg-dm-tertiary {
+    color: antiquewhite;
+    border-color: antiquewhite;
+    background-color: var(--custom-color-dm-tertiary);
+}
+
+.custom-color-bg-dm-quaternary {
+    color: antiquewhite;
+    border-color: antiquewhite;
+    background-color: var(--custom-color-dm-quaternary);
+}
+
 .custom-color-bg-primary {
     color: antiquewhite;
     border-color: antiquewhite;
@@ -73,28 +85,56 @@ h1:focus {
     background-color: var(--custom-color-secondary);
 }
 
-/* Styling for the toggle buttons */
-.toggle-light-mode,
-.toggle-dark-mode {
+.custom-color-bg-tertiary {
+    color: antiquewhite;
+    border-color: antiquewhite;
+    background-color: var(--custom-color-tertiary);
+}
+
+.custom-color-bg-quaternary {
+    color: antiquewhite;
+    border-color: antiquewhite;
+    background-color: var(--custom-color-quaternary);
+}
+
+.custom-color-btn-dm {
     background: none;
     border: none;
     color: inherit;
     font: inherit;
     cursor: pointer;
     padding: 0.5rem 1rem;
-    display: flex;
     align-items: center;
 }
-/* add hover effect for visual feedback */
+
+.custom-color-btn-dm-border {
+    background: none;
+    border: 1px;
+    border-style: solid;
+    border-color: antiquewhite;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    align-items: center;
+}
+
+.custom-color-footer-link {
+    color: #75b6e7;
+    text-decoration: none;
+}
+    .custom-color-footer-link:hover{
+        text-decoration: underline;
+    }
+
     .toggle-light-mode:hover, .toggle-dark-mode:hover {
         color: #896FBC;
-        background-color: rgba(0, 0, 0, 0.1); /* Light grey background on hover */
+        background-color: rgba(0, 0, 0, 0.1);
         border-radius: 0.25rem;
     }
 
-/* Center the buttons in the navbar */
 .navbar-nav.mx-auto {
     display: flex;
     justify-content: center;
-    gap: 1rem; /* Space between the buttons */
+    gap: 1rem;
 }

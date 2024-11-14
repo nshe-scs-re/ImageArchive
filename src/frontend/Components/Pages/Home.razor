@@ -71,7 +71,7 @@
                     </div>
                 </div>
                 <div class="text-end py-2">
-                    <button type="submit" class="btn btn-outline-secondary">Search</button>
+                    <button type="submit" class="btn btn-light rounded @GetButtonTheme()">Search</button>
                 </div>
             </EditForm>
         </div>
@@ -195,6 +195,11 @@ else if (querySubmitted && loading is false)
     private string GetTheme()
     {
         return ThemeService.State? "bg-body-tertiary" : "custom-color-bg-dm-secondary";
+    }
+
+    private string GetButtonTheme()
+    {
+        return ThemeService.State ? "btn-outline-secondary" : "custom-color-btn-dm-border";
     }
 
     public void Dispose()
