@@ -102,3 +102,47 @@ h1:focus {
         text-decoration: underline;
     }
 
+.custom-btn-fixed-size {
+    width: 80px;
+    height: 36px;
+    align-items: center;
+    justify-content: center;
+}
+    .custom-btn-fixed-size .spinner-border {
+        width: 1rem;
+        height: 1rem;
+    }
+
+.accordion-button.custom-theme-light {
+    color: inherit;
+    background-color: inherit;
+    box-shadow: none;
+}
+    .accordion-button.custom-theme-light:hover {
+        background-color: #d3d4d5;
+    }
+    .accordion-button.custom-theme-light::after {
+        background-image: none;
+    }
+    .accordion-button.custom-theme-light:hover::after {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='black' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+    }
+
+.accordion-button.custom-theme-dark {
+    color: inherit;
+    background-color: inherit;
+    box-shadow: none;
+}
+
+    .accordion-button.custom-theme-dark:hover {
+        color: var(--custom-color-dm-secondary);
+        background-color: antiquewhite;
+    }
+
+    .accordion-button.custom-theme-dark::after {
+        background-image: none;
+    }
+
+    .accordion-button.custom-theme-dark:hover::after {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23091f2c' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+    }

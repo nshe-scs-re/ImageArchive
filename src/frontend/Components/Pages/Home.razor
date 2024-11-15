@@ -5,75 +5,90 @@
 
 <PageTitle>Home</PageTitle>
 
-<div class="my-3 py-3 text-center rounded @GetTheme()">
-  <div class="row">
-    <div class="col-lg-6 col-md-8 mx-auto">
-      <h1 class="fw-light py-2">Image Repository Search</h1>
-      <p class="lead">Execute a query against the image repository by using the tool below.</p>
+<div class="accordion accordion-flush">
+  <div class="accordion-item my-3 py-3 text-center rounded @GetTheme()">
+    <div class="row">
+      <div class="col-lg-6 col-md-8 mx-auto">
+        <h1 class="accordion-header py-2">
+          <button class="accordion-button rounded @GetAccordionTheme()" type="button" data-bs-toggle="collapse" data-bs-target="#QueryFormContainer">
+            <h1 class="w-100 text-center">Image Repository Search</h1>
+          </button>
+        </h1>
+      </div>
     </div>
-  </div>
-  <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3">
-    <div class="col mx-auto border">
-      <EditForm Model="@imageQuery" OnValidSubmit="GetImagesByPageAsync" FormName="ImageQueryForm" class="form">
-        <div class="row py-2">
-          <label for="StartDate" class="col col-form-label">Query start date:</label>
-          <div class="col">
-            <InputDate id="StartDate" @bind-Value="imageQuery.StartDateTime" Type="InputDateType.Date" class="form-control" />
+      <div id="QueryFormContainer" class="accordion-collapse collapse show row row-cols-1 row-cols-md-2 row-cols-lg-3">
+      <div class="accordion-body col mx-auto border">
+        <p class="lead">Execute a query against the image repository by using the tool below.</p>
+        <EditForm Model="@imageQuery" OnValidSubmit="GetImagesByPageAsync" FormName="ImageQueryForm" class="form">
+          <div class="row py-2">
+            <label for="StartDate" class="col col-form-label">Query start date:</label>
+            <div class="col">
+              <InputDate id="StartDate" @bind-Value="imageQuery.StartDateTime" Type="InputDateType.Date" class="form-control" />
+            </div>
           </div>
-        </div>
-        <div class="row py-2">
-          <label for="EndDate" class="col col-form-label">Query end date:</label>
-          <div class="col">
-            <InputDate id="EndDate" @bind-Value="imageQuery.EndDateTime" Type="InputDateType.Date" class="form-control" />
+          <div class="row py-2">
+            <label for="EndDate" class="col col-form-label">Query end date:</label>
+            <div class="col">
+              <InputDate id="EndDate" @bind-Value="imageQuery.EndDateTime" Type="InputDateType.Date" class="form-control" />
+            </div>
           </div>
-        </div>
-        <div class="row py-2">
-          <label for="StartTime" class="col col-form-label">Query start time:</label>
-          <div class="col">
-            <InputDate id="StartTime" @bind-Value="imageQuery.StartTimeOnly" Type="InputDateType.Time" class="form-control" />
+          <div class="row py-2">
+            <label for="StartTime" class="col col-form-label">Query start time:</label>
+            <div class="col">
+              <InputDate id="StartTime" @bind-Value="imageQuery.StartTimeOnly" Type="InputDateType.Time" class="form-control" />
+            </div>
           </div>
-        </div>
-        <div class="row py-2">
-          <label for="EndTime" class="col col-form-label">Query end time:</label>
-          <div class="col">
-            <InputDate id="EndTime" @bind-Value="imageQuery.EndTimeOnly" Type="InputDateType.Time" class="form-control" />
+          <div class="row py-2">
+            <label for="EndTime" class="col col-form-label">Query end time:</label>
+            <div class="col">
+              <InputDate id="EndTime" @bind-Value="imageQuery.EndTimeOnly" Type="InputDateType.Time" class="form-control" />
+            </div>
           </div>
-        </div>
-        <div class="row py-2">
-          <label for="Site" class="col col-form-label">Site Name:</label>
-          <div class="col">
-            <InputSelect @bind-Value="imageQuery.Site" id="Site" class="form-select">
-              <option value="Rockland">Rockland</option>
-              <option value="Sheep">Sheep</option>
-              <option value="Snake">Snake</option>
-              <option value="Spring">Spring</option>
-            </InputSelect>
+          <div class="row py-2">
+            <label for="Site" class="col col-form-label">Site Name:</label>
+            <div class="col">
+              <InputSelect @bind-Value="imageQuery.Site" id="Site" class="form-select">
+                <option value="Rockland">Rockland</option>
+                <option value="Sheep">Sheep</option>
+                <option value="Snake">Snake</option>
+                <option value="Spring">Spring</option>
+              </InputSelect>
+            </div>
           </div>
-        </div>
-        <div class="row py-2">
-          <label for="CameraNumber" class="col col-form-label">Camera Number:</label>
-          <div class="col">
-            <InputSelect @bind-Value="imageQuery.CameraNumber" id="CameraNumber" class="form-select">
-              <option value="1">Camera 1</option>
-              <option value="2">Camera 2</option>
-              <option value="3">Camera 3</option>
-            </InputSelect>
+          <div class="row py-2">
+            <label for="CameraNumber" class="col col-form-label">Camera Number:</label>
+            <div class="col">
+              <InputSelect @bind-Value="imageQuery.CameraNumber" id="CameraNumber" class="form-select">
+                <option value="1">Camera 1</option>
+                <option value="2">Camera 2</option>
+                <option value="3">Camera 3</option>
+              </InputSelect>
+            </div>
           </div>
-        </div>
-        <div class="row py-2">
-          <label for="CameraPosition" class="col col-form-label">Camera Position:</label>
-          <div class="col">
-            <InputSelect @bind-Value="imageQuery.CameraPosition" id="CameraPosition" class="form-select">
-              <option value="1">Position 1</option>
-              <option value="2">Position 2</option>
-              <option value="3">Position 3</option>
-            </InputSelect>
+          <div class="row py-2">
+            <label for="CameraPosition" class="col col-form-label">Camera Position:</label>
+            <div class="col">
+              <InputSelect @bind-Value="imageQuery.CameraPosition" id="CameraPosition" class="form-select">
+                <option value="1">Position 1</option>
+                <option value="2">Position 2</option>
+                <option value="3">Position 3</option>
+              </InputSelect>
+            </div>
           </div>
-        </div>
-        <div class="text-end py-2">
-            <button type="submit" class="btn btn-light rounded @GetButtonTheme()">Search</button>
-        </div>
-      </EditForm>
+          @if(loading)
+          {
+            <div class="text-end py-2">
+              <button type="button" class="btn btn-light rounded custom-btn-fixed-size @GetButtonTheme()" disabled><span class="spinner-border"></span></button>
+            </div>
+          }
+          else
+          {
+            <div class="text-end py-2">
+                <button type="submit" class="btn btn-light rounded custom-btn-fixed-size @GetButtonTheme()" data-bs-toggle="collapse" data-bs-target="#QueryFormContainer">Search</button>
+            </div>
+          }
+        </EditForm>
+      </div>
     </div>
   </div>
 </div>
@@ -225,6 +240,11 @@ else if (querySubmitted && loading is false)
     private string GetButtonTheme()
     {
         return ThemeService.State ? "btn-outline-secondary" : "custom-color-btn-dm-border";
+    }
+
+    private string GetAccordionTheme()
+    {
+        return ThemeService.State ? "custom-theme-light" : "custom-theme-dark";
     }
 
     public void Dispose()
