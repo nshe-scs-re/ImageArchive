@@ -102,16 +102,25 @@ h1:focus {
         text-decoration: underline;
     }
 
-.custom-btn-fixed-size {
-    width: 80px;
-    height: 36px;
-    align-items: center;
+.custom-btn-fixed-size-sm,
+.custom-btn-fixed-size-md {
+    align-content: center;
     justify-content: center;
 }
-    .custom-btn-fixed-size .spinner-border {
-        width: 1rem;
-        height: 1rem;
+    .custom-btn-fixed-size-sm {
+        width: 80px;
+        height: 40px;
     }
+
+    .custom-btn-fixed-size-md {
+        width: 130px;
+        height: 40px;
+    }
+        .custom-btn-fixed-size-sm .spinner-border,
+        .custom-btn-fixed-size-md .spinner-border {
+            width: 1rem;
+            height: 1rem;
+        }
 
 .accordion-button.custom-theme-light {
     color: inherit;
