@@ -16,7 +16,7 @@
         </h1>
       </div>
     </div>
-      <div id="QueryFormContainer" class="accordion-collapse collapse show row row-cols-1 row-cols-md-2 row-cols-lg-3">
+    <div id="QueryFormContainer" class="accordion-collapse collapse show row row-cols-1 row-cols-md-2 row-cols-lg-3">
       <div class="accordion-body col mx-auto border">
         <p class="lead">Execute a query against the image repository by using the tool below.</p>
         <EditForm Model="@imageQuery" OnValidSubmit="GetImagesByPageAsync" FormName="ImageQueryForm" class="form">
@@ -78,13 +78,13 @@
           @if(loading)
           {
             <div class="text-end py-2">
-              <button type="button" class="btn btn-light rounded custom-btn-fixed-size @GetButtonTheme()" disabled><span class="spinner-border"></span></button>
+              <button type="button" class="btn btn-light rounded custom-btn-fixed-size-sm @GetButtonTheme()" disabled><span class="spinner-border"></span></button>
             </div>
           }
           else
           {
             <div class="text-end py-2">
-                <button type="submit" class="btn btn-light rounded custom-btn-fixed-size @GetButtonTheme()" data-bs-toggle="collapse" data-bs-target="#QueryFormContainer">Search</button>
+                <button type="submit" class="btn btn-light rounded custom-btn-fixed-size-sm @GetButtonTheme()" data-bs-toggle="collapse" data-bs-target="#QueryFormContainer">Search</button>
             </div>
           }
         </EditForm>
