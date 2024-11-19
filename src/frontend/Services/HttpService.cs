@@ -1,6 +1,9 @@
 ﻿using frontend.Models;
 using Microsoft.AspNetCore.Antiforgery;
-
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 namespace frontend.Services;
 
 public class HttpService
@@ -47,4 +50,38 @@ public class HttpService
         var httpClient = this.CreateClient();
         return await httpClient.GetAsync($"api/images/paginated?startDate={startDate}&endDate={endDate}&pageIndex={pageIndex}&pageSize={pageSize}");
     }
+
+    public async Task<HttpResponseMessage> UploadImageAsync(IFormFile file)
+    {
+        //most commented lines are remains from testing
+        var httpClient = this.CreateClient();
+        //var startDate = DateTime.Now.AddDays(-7);
+        //var endDate = DateTime.Now;
+
+        //This is practice with a random request object
+        //UploadPractice request = new()
+        //{
+        //    Name = "blah",
+        //    dateTime = startDate,
+        //    Description = "This is blah"
+
+        //};
+        using var content = new MultipartFormDataContent();
+
+        // Add the file to the request
+        if(file != null)
+        {
+            var fileContent = new StreamContent(file.OpenReadStream());
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+            content.Add(fileContent, "file", file.FileName);
+        }
+
+        // Send the request to the upload endpoint
+        return await httpClient.PostAsync("api/upload", content);
+        // return await httpClient.PostAsJsonAsync($"api/upload", request);
+    }
+
+
 }
+
+   
