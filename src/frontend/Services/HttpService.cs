@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Components.Forms;
 namespace frontend.Services;
 
 public class HttpService
@@ -51,7 +52,7 @@ public class HttpService
         return await httpClient.GetAsync($"api/images/paginated?startDate={startDate}&endDate={endDate}&pageIndex={pageIndex}&pageSize={pageSize}");
     }
 
-    public async Task<HttpResponseMessage> UploadImageAsync(IFormFile file)
+    public async Task<HttpResponseMessage> UploadImageAsync(List<IBrowserFile> files)
     {
         //most commented lines are remains from testing
         var httpClient = this.CreateClient();
@@ -69,11 +70,14 @@ public class HttpService
         using var content = new MultipartFormDataContent();
 
         // Add the file to the request
-        if(file != null)
+        if(files != null)
         {
-            var fileContent = new StreamContent(file.OpenReadStream());
-            fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
-            content.Add(fileContent, "file", file.FileName);
+            foreach(var file in files)
+            {
+                var fileContent = new StreamContent(file.OpenReadStream());
+                fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+                content.Add(fileContent, "file", file.Name);
+            }
         }
 
         // Send the request to the upload endpoint

@@ -2,17 +2,14 @@
 @rendermode InteractiveServer
 @inject HttpService HttpService
 @inject IConfiguration config
+@using Microsoft.JSInterop
+@inject IJSRuntime js
 
 <h3>MyTest</h3>
+<InputFile OnChange="UploadSingle" style="display: none;" id="fileInputElement" multiple accept=".gif,.png,.jpg,.jpeg" />
+<button @onclick="TriggerFileUpload">Upload a file</button>
 
-<ul class="list-unstyled">
-    <li class="m-2">
-        <button type="button" class="btn btn-primary" @onclick="@(e => UploadSingle(e))" >MyButton</button>
-        
-    </li>
-</ul>
 
-<InputFile OnChange="@UploadSingle" single />
 
 @if(errors.Count > 0)
 {
@@ -26,53 +23,50 @@
 }
 
 @code{
-    private int maxAllowedFiles = 1;
-    private int maxFileSize = 1024 * 1024 *3;
+    private int maxAllowedFiles = 5;
+    //private int maxFileSize = 1024 * 1024 *3;
     private List<string> errors = new(); 
-
+    private List<IBrowserFile> selectedFiles = new List<IBrowserFile>();
+    private ElementReference fileInputElement;
     // private
+    private async Task TriggerFileUpload()
+    {
+        var mouseEvent = new MouseEventArgs { Type = "click" };
+        await js.InvokeVoidAsync("dispatchEvent", fileInputElement, mouseEvent);
+    }
 
     private async Task UploadSingle(InputFileChangeEventArgs e)
     {
         errors.Clear();
-        var file = new FormFile(e.File.OpenReadStream(maxFileSize), 0, e.File.Size, e.File.Name, e.File.Name);
-        var response = HttpService.UploadImageAsync(file);
-        var temp = await response.Result.Content.ReadAsStringAsync();
+        var files = e.GetMultipleFiles();
+        selectedFiles.AddRange(files);
+        // var response = HttpService.UploadImageAsync(files);
+        // var temp = await response.Result.Content.ReadAsStringAsync();
 
         try
         { 
             if (e.FileCount > maxAllowedFiles)
             {
                 errors.Add($"Error: Upload exceeding max file count. {maxAllowedFiles}");
+                //selectedFiles.RemoveRange(maxAllowedFiles, selectedFiles.Count - maxAllowedFiles);
             }
-
-            foreach (var uploadedFile in e.GetMultipleFiles(maxAllowedFiles))
+            var response = await HttpService.UploadImageAsync(selectedFiles);
+            foreach (var file in files)
             {
-                string newFileName = Path.ChangeExtension(
-                  Path.GetRandomFileName(),
-                  Path.GetExtension(file.Name));
-                // string path = Path.Combine(config.GetValue<string>("FileStorage")!,"test", newFileName);
-                // Directory.CreateDirectory(Path.Combine(config.GetValue<string>("FileStorage")!,"test");
+                // Get the file name and size
+                var fileName = file.Name;
+                var fileSize = file.Size;
+
+                // Read the file contents
+                using var stream = file.OpenReadStream();
+                using var reader = new StreamReader(stream);
+                var fileContents = await reader.ReadToEndAsync();
+
+                // Do something with the file contents
+                Console.WriteLine($"File name: {fileName}");
+                Console.WriteLine($"File size: {fileSize} bytes");
+                Console.WriteLine($"File contents: {fileContents}");
             }
-
-            Console.WriteLine(temp);
-            // Print out status code
-            Console.WriteLine($"Status Code: {response.Result.StatusCode}");
-
-            // Print out headers
-            Console.WriteLine("Headers:");
-            foreach (var header in response.Result.Headers)
-            {
-                Console.WriteLine($"{header.Key}: {string.Join(", ", header.Value)}");
-            }
-
-            // Print out content headers
-            Console.WriteLine("Content Headers:");
-            foreach (var header in response.Result.Content.Headers)
-            {
-                Console.WriteLine($"{header.Key}: {string.Join(", ", header.Value)}");
-            }
-
         }
         catch (Exception ex)
         {
