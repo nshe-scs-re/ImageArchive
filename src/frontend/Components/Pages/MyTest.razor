@@ -1,10 +1,83 @@
 ﻿@page "/mytest"
+@rendermode InteractiveServer
+@inject HttpService HttpService
+@inject IConfiguration config
+
 <h3>MyTest</h3>
 
 <ul class="list-unstyled">
     <li class="m-2">
-        <button type="button" class="btn btn-primary" >MyButton</button>
+        <button type="button" class="btn btn-primary" @onclick="@(e => UploadSingle(e))" >MyButton</button>
         
     </li>
 </ul>
 
+<InputFile OnChange="@UploadSingle" single />
+
+@if(errors.Count > 0)
+{
+    <h2>Error(s)</h2>
+    <ul class="text-danger">
+        @foreach (var error in errors)
+        {
+            <li>@error</li>
+        }
+    </ul>
+}
+
+@code{
+    private int maxAllowedFiles = 1;
+    private int maxFileSize = 1024 * 1024 *3;
+    private List<string> errors = new(); 
+
+    // private
+
+    private async Task UploadSingle(InputFileChangeEventArgs e)
+    {
+        errors.Clear();
+        var file = new FormFile(e.File.OpenReadStream(maxFileSize), 0, e.File.Size, e.File.Name, e.File.Name);
+        var response = HttpService.UploadImageAsync(file);
+        var temp = await response.Result.Content.ReadAsStringAsync();
+
+        try
+        { 
+            if (e.FileCount > maxAllowedFiles)
+            {
+                errors.Add($"Error: Upload exceeding max file count. {maxAllowedFiles}");
+            }
+
+            foreach (var uploadedFile in e.GetMultipleFiles(maxAllowedFiles))
+            {
+                string newFileName = Path.ChangeExtension(
+                  Path.GetRandomFileName(),
+                  Path.GetExtension(file.Name));
+                // string path = Path.Combine(config.GetValue<string>("FileStorage")!,"test", newFileName);
+                // Directory.CreateDirectory(Path.Combine(config.GetValue<string>("FileStorage")!,"test");
+            }
+
+            Console.WriteLine(temp);
+            // Print out status code
+            Console.WriteLine($"Status Code: {response.Result.StatusCode}");
+
+            // Print out headers
+            Console.WriteLine("Headers:");
+            foreach (var header in response.Result.Headers)
+            {
+                Console.WriteLine($"{header.Key}: {string.Join(", ", header.Value)}");
+            }
+
+            // Print out content headers
+            Console.WriteLine("Content Headers:");
+            foreach (var header in response.Result.Content.Headers)
+            {
+                Console.WriteLine($"{header.Key}: {string.Join(", ", header.Value)}");
+            }
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Message: {ex.Message}");
+            throw;
+        }
+    }
+}

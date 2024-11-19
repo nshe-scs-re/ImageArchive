@@ -17,6 +17,8 @@ builder.Services.AddSqlServer<ImageDbContext>(builder.Configuration.GetConnectio
 
 builder.Services.AddScoped<ArchiveManager>();
 
+builder.Services.AddScoped<ImageUploadService>();
+
 builder.Services.AddAntiforgery(); //TODO: Configure antiforgery options
 
 builder.Services.AddCors(options =>
@@ -202,6 +204,31 @@ app.MapGet("/api/images/{id}", async (ImageDbContext dbContext, long id) =>
         Console.WriteLine($"ERROR [Program.cs] [/api/images/id]: Outer catch hit. Exception message: {exception.Message}");
         throw;
     }
+});
+
+app.MapPost("/api/upload", async (HttpRequest request, ImageUploadService imageService) =>
+{
+    try
+    {
+        var file = request.Form.Files["file"];
+        if(file == null || file.Length == 0)
+        {
+            return Results.BadRequest("No file uploaded or file is empty.");
+        }
+
+        var savedFileName = await imageService.SaveImageAsync(file);
+        var fileUrl = $"/uploads/{savedFileName}";
+        return Results.Ok(new { Message = "Upload successful!", ImageUrl = fileUrl, FileName = savedFileName });
+    }
+    catch(Exception ex)
+    {
+        // Log the exception here if needed (e.g., using a logging framework)
+        return Results.Problem("An error occurred while processing the file upload: " + ex.Message);
+    }
+    //Console.WriteLine("Upload endpoint hit.");
+    //var request = await context.Request.ReadFromJsonAsync<UploadPractice>();
+   // Console.WriteLine($"{request.Name}{request.dateTime}{request.Description}");
+   // return Results.Ok("My endpoint works");
 });
 
 app.Run();

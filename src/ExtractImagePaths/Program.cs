@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using DotNetEnv;
 
-var envFilePath = "C:\\Users\\whaley\\source\\secrets\\ExtractImagePaths.env";
+var envFilePath = "C:\\Users\\adidi\\source\\secrets\\ExtractImagePaths.env";
 
 DotNetEnv.Env.Load(envFilePath);
 
