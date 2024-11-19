@@ -84,7 +84,7 @@
           else
           {
             <div class="text-end py-2">
-                <button type="submit" class="btn btn-light rounded custom-btn-fixed-size-sm @GetButtonTheme()" data-bs-toggle="collapse" data-bs-target="#QueryFormContainer">Search</button>
+              <button type="submit" class="btn btn-light rounded custom-btn-fixed-size-sm @GetButtonTheme()" data-bs-toggle="collapse" data-bs-target="#QueryFormContainer">Search</button>
             </div>
           }
         </EditForm>
@@ -163,7 +163,7 @@ else if (querySubmitted && loading is false)
           <i class="bi bi-chevron-right"></i>
         </button>
       </li>
-      <li class="page-item disabled">
+      <li class="page-item @(pageIndex==totalPages ? "disabled" : "")">
         <button type="button" class="page-link @GetButtonTheme()" @onclick="LastPage">
           <i class="bi bi-chevron-bar-right"></i>
         </button>
@@ -180,6 +180,8 @@ else if (querySubmitted && loading is false)
     private List<Image>? images = new();
     private int pageIndex = 0;
     private int pageSize = 9;
+    private int totalImages = 0;
+    private int totalPages = 0;
 
     protected override void OnInitialized()
     {
@@ -200,10 +202,13 @@ else if (querySubmitted && loading is false)
             querySubmitted = true;
             if (response.IsSuccessStatusCode)
             {
-                images = await response.Content.ReadFromJsonAsync<List<Image>>();
-                loading = false;
+                var responseContent = await response.Content.ReadFromJsonAsync<PaginationResponse>();
+                images = responseContent.Images;
+                totalImages = responseContent.TotalCount;
+                totalPages = totalImages / pageSize;
             }
         }
+        loading = false;
     }
 
     private async Task FirstPage()
@@ -229,7 +234,8 @@ else if (querySubmitted && loading is false)
 
     private async Task LastPage()
     {
-        //TODO
+        pageIndex = totalPages;
+        await GetImagesByPageAsync();
     }
 
     private string GetTheme()
