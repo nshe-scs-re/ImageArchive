@@ -1,7 +1,8 @@
 ﻿@inherits LayoutComponentBase
+@inject ThemeService ThemeService
 
-<main>
-    <div class="container-xxl my-3">
+<main class="@GetTheme()">
+    <div class="container-xxl">
         <NavMenu />
     </div>
 
@@ -9,7 +10,7 @@
         @Body
     </div>
 
-    <div class="container-xxl my-3">
+    <div class="container-xxl">
         <Footer />
     </div>
 </main>
@@ -19,3 +20,21 @@
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
+
+@code
+{
+    protected override void OnInitialized()
+    {
+        ThemeService.StateChanged += StateHasChanged;
+    }
+
+    private string GetTheme()
+    {
+        return ThemeService.State ? "" : "custom-color-bg-dm-primary";
+    }
+
+    public void Dispose()
+    {
+        ThemeService.StateChanged -= StateHasChanged;
+    }
+}
