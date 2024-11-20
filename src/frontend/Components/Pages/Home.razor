@@ -16,7 +16,7 @@
         </h1>
       </div>
     </div>
-    <div id="QueryFormContainer" class="accordion-collapse collapse show row row-cols-1 row-cols-md-2 row-cols-lg-3">
+    <div id="QueryFormContainer" class="accordion-collapse collapse show row row-cols-1 row-cols-md-2 row-cols-lg-3 mx-auto">
       <div class="accordion-body col mx-auto border">
         <p class="lead">Execute a query against the image repository by using the tool below.</p>
         <EditForm Model="@imageQuery" OnValidSubmit="GetImagesByPageAsync" FormName="ImageQueryForm" class="form">
@@ -188,16 +188,16 @@ else if (querySubmitted && loading is false)
 
     private async Task GetImagesByPageAsync()
     {
+        querySubmitted = true;
+        loading = true;
+
         imageQuery.StartDateTime = new DateTime(DateOnly.FromDateTime(imageQuery.StartDateTime), imageQuery.StartTimeOnly);
         imageQuery.EndDateTime = new DateTime(DateOnly.FromDateTime(imageQuery.EndDateTime), imageQuery.EndTimeOnly);
-
-        loading = true;
 
         var response = await HttpService.GetImagesByPageAsync(imageQuery.StartDateTime, imageQuery.EndDateTime, pageIndex, pageSize, imageQuery.Site);
 
         if(response is not null)
         {
-            querySubmitted = true;
             if (response.IsSuccessStatusCode)
             {
                 images = await response.Content.ReadFromJsonAsync<List<Image>>();
