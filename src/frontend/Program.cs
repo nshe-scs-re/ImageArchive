@@ -4,6 +4,8 @@ using frontend.Models;
 using frontend.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Mvc;
+using System;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,7 +17,7 @@ builder.Services.AddAuth0WebAppAuthentication(options =>
 
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
-builder.Services.AddHttpClient("_httpClient_", httpClient =>
+builder.Services.AddHttpClient("HttpClient", httpClient =>
 {
     if(builder.Environment.IsDevelopment())
     {
@@ -32,6 +34,8 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<HttpService>();
 
 builder.Services.AddScoped<TokenProvider>();
+
+builder.Services.AddScoped<ThemeService>();
 
 var app = builder.Build();
 
@@ -58,11 +62,9 @@ app.UseAntiforgery();
 
 app.MapGet("/api/images/{id}", async (HttpService HttpService, long id) =>
 {
-    //Console.WriteLine($"DEBUG: [Program.cs] [endpoint /api/images/{id}] endpoint hit.");
-
     try
     {
-        var response = await HttpService.GetImageByIdAsync(id);
+        var response = await HttpService.GetImagesByIdAsync(id);
 
         if(!response.IsSuccessStatusCode)
         {
@@ -73,9 +75,32 @@ app.MapGet("/api/images/{id}", async (HttpService HttpService, long id) =>
 
         return Results.Stream(stream, "image/jpeg");
     }
-    catch(Exception ex)
+    catch(Exception exception)
     {
-        return Results.Problem($"Error fetching image: {ex.Message}");
+        Console.WriteLine($"ERROR [Program.cs] [/api/images/{id}]: Exception message: {exception.Message}");
+        return Results.Problem($"Error fetching image: {exception.Message}");
+    }
+});
+
+app.MapGet("/api/archive/download/{jobId}", async (HttpService HttpService, Guid jobId) =>
+{
+    try
+    {
+        var response = await HttpService.GetArchiveDownloadAsync(jobId);
+
+        if(!response.IsSuccessStatusCode)
+        {
+            return Results.NotFound();
+        }
+
+        var stream = await response.Content.ReadAsStreamAsync();
+
+        return Results.Stream(stream, "application/zip", $"{jobId}.zip");
+    }
+    catch(Exception exception)
+    {
+        Console.WriteLine($"ERROR [Program.cs] [/api/archive/download/{jobId}]: Exception message: {exception.Message}");
+        return Results.Problem(exception.Message);
     }
 });
 
