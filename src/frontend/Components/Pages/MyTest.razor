@@ -2,12 +2,10 @@
 @rendermode InteractiveServer
 @inject HttpService HttpService
 @inject IConfiguration config
-@using Microsoft.JSInterop
-@inject IJSRuntime js
 
 <h3>MyTest</h3>
-<InputFile OnChange="UploadSingle" style="display: none;" id="fileInputElement" multiple accept=".gif,.png,.jpg,.jpeg" />
-<button @onclick="TriggerFileUpload">Upload a file</button>
+<InputFile OnChange="UploadSingle" id="fileInputElement" multiple accept=".gif,.png,.jpg,.jpeg" />
+
 
 
 
@@ -23,18 +21,20 @@
 }
 
 @code{
+  //TODO: User clicks button and button triggers a modal for file uploading, site selection, time selection, and camera selection
+    //TODO: User can upload multiple files and their time must be converted to UNIX (potentially the file name must be changed too?)
     private int maxAllowedFiles = 5;
-    //private int maxFileSize = 1024 * 1024 *3;
+    //TODO: private int maxFileSize = 1024 * 1024 *3; learn limits of browser and image for upload limit and size limit
     private List<string> errors = new(); 
     private List<IBrowserFile> selectedFiles = new List<IBrowserFile>();
     private ElementReference fileInputElement;
     // private
-    private async Task TriggerFileUpload()
-    {
-        var mouseEvent = new MouseEventArgs { Type = "click" };
-        await js.InvokeVoidAsync("dispatchEvent", fileInputElement, mouseEvent);
-    }
-
+    // private async Task TriggerFileUpload()
+    // {
+    //     var mouseEvent = new MouseEventArgs { Type = "click" };
+    //     await js.InvokeVoidAsync("dispatchEvent", fileInputElement, mouseEvent);
+    // }
+    //TODO: Button triggers once the user clicks the upload button, but the button doesnt trigger ever again without refreshing web page. Why?
     private async Task UploadSingle(InputFileChangeEventArgs e)
     {
         errors.Clear();
@@ -42,7 +42,7 @@
         selectedFiles.AddRange(files);
         // var response = HttpService.UploadImageAsync(files);
         // var temp = await response.Result.Content.ReadAsStringAsync();
-
+        //TODO: Set it to where the user can upload image BUT only if site, time, and camera are selected
         try
         { 
             if (e.FileCount > maxAllowedFiles)
