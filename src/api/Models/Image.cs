@@ -13,4 +13,5 @@ public class Image
     public string? FilePath { get; set; }
     public DateTime DateTime { get; set; }
     public long UnixTime { get; set; }
+    public string? Site { get; set; }
 }

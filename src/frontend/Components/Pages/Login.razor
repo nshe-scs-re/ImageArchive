@@ -1,10 +1,10 @@
 ﻿@page "/login"
 @inject NavigationManager Navigation
 
-
 @code {
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         Navigation.NavigateTo("/Account/Login", forceLoad: true);
+        await base.OnInitializedAsync();
     }
 }
