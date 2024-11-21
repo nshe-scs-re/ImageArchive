@@ -1,0 +1,66 @@
+@page "/ML"
+@using System.Globalization
+
+<h1 class="text-center mt-4">Machine Learning Options</h1>
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-body">
+            <h3 class="card-title">Select Options</h3>
+
+            <!-- Site Dropdown -->
+            <div class="form-group">
+                <label for="siteSelect" class="form-label">Site:</label>
+                <select id="siteSelect" class="form-control" @bind="SelectedSite">
+                    @foreach (var site in Sites)
+                    {
+                        <option value="@site">@site</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Date Picker -->
+            <div class="form-group mt-3">
+                <label for="datePicker" class="form-label">Future Date:</label>
+                <input id="datePicker" type="date" class="form-control" @bind="SelectedDate" />
+                @if (!IsValidDate)
+                {
+                    <small class="text-danger">Please select a date in the future.</small>
+                }
+            </div>
+
+            <!-- Submit Button -->
+            <button class="btn btn-primary mt-4 w-100" @onclick="SubmitSelection"
+                disabled="@(string.IsNullOrWhiteSpace(SelectedSite) || !IsValidDate)">
+                Submit
+            </button>
+        </div>
+    </div>
+</div>
+
+
+
+@code {
+    private List<string> Sites = new() { "Rockland", "Sheep", "Snake", "Spring" };
+    private string SelectedSite = string.Empty;
+    private DateTime SelectedDate = DateTime.Now;
+    private bool IsValidDate = true;
+
+    // Validates if the selected date is in the future
+    private void ValidateFutureDate(ChangeEventArgs e)
+    {
+        if (DateTime.TryParse(e.Value.ToString(), out DateTime date))
+        {
+            IsValidDate = date > DateTime.Now;
+        }
+        else
+        {
+            IsValidDate = false;
+        }
+    }
+
+    private void SubmitSelection()
+    {
+        Console.WriteLine($"Site: {SelectedSite}, Date: {SelectedDate}");
+    }
+}
