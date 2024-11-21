@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using DotNetEnv;
 
 // Update the path to your environment file (macOS path format)
-var envFilePath = "Users/nathanmichelotti/Desktop/College/Fall 2024/CS 425/Senior Project/ImageArchive/src/ExtractImagePaths/Program.cs";
+var envFilePath = "Users/nathanmichelotti/Desktop/College/Fall 2024/CS 425/Senior Project/ImageArchive\src\ExtractImagePaths\Program.cs";
 
 DotNetEnv.Env.Load(envFilePath);
 

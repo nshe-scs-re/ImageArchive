@@ -4,7 +4,7 @@ secrets:
   image_archive_api_cert:
     file: /Users/nathanmichelotti/Desktop/College/Fall 2024/CS 425/Senior Project/OneDrive_1_10-22-2024/secrets/image-archive-api.pfx
   image_archive_api_cert_pw:
-    file: /Users/nathanmichelotti/Desktop/College/Fall 2024/CS 425/Senior Project/ImageArchive/source/secrets/image-archive-api-cert-pw.txt
+    file: Users/nathanmichelotti/Desktop/College/Fall 2024/CS 425/Senior Project/ImageArchive/source/secrets/image-archive-api-cert-pw.txt
 
 volumes:
   sqlvolume:

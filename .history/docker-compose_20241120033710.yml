@@ -1,20 +1,22 @@
 secrets:
   image_archive_ca_cert:
-    file: /Users/nathanmichelotti/Desktop/College/Fall 2024/CS 425/Senior Project/OneDrive_1_10-22-2024/secrets/image-archive-ca.crt
+    file: /Users/nathanmichelotti/Desktop/College/Fall 2024/CS 425/Senior Project/ImageArchive/secrets/image-archive-ca.crt
   image_archive_api_cert:
-    file: /Users/nathanmichelotti/Desktop/College/Fall 2024/CS 425/Senior Project/OneDrive_1_10-22-2024/secrets/image-archive-api.pfx
+    file: /Users/nathanmichelotti/Desktop/College/Fall 2024/CS 425/Senior Project/ImageArchive/secrets/image-archive-api.pfx
   image_archive_api_cert_pw:
-    file: /Users/nathanmichelotti/Desktop/College/Fall 2024/CS 425/Senior Project/ImageArchive/source/secrets/image-archive-api-cert-pw.txt
+    file: /Users/nathanmichelotti/Desktop/College/Fall 2024/CS 425/Senior Project/ImageArchive/secrets/image-archive-api-cert-pw.txt
 
 volumes:
   sqlvolume:
+  
+version: "3.8"  
 
 services:
   dev_db:
     container_name: dev_db
     profiles: [dev]
     image: mcr.microsoft.com/mssql/server:2022-latest
-    env_file: /Users/nathanmichelotti/Desktop/College/Fall 2024/CS 425/Senior Project/OneDrive_1_10-22-2024/secrets/dev_db.env
+    env_file: /Users/nathanmichelotti/Desktop/College/Fall 2024/CS 425/Senior Project/ImageArchive/secrets/dev_db.env
     volumes:
       - sqlvolume:/var/opt/mssql
     restart: unless-stopped
@@ -39,7 +41,7 @@ services:
         target: /usr/local/share/ca-certificates/image-archive-ca.crt
       - source: image_archive_api_cert
         target: /https/image_archive_api_cert.pfx
-    env_file: /Users/nathanmichelotti/Desktop/College/Fall 2024/CS 425/Senior Project/OneDrive_1_10-22-2024/secrets/dev_api.env
+    env_file: /Users/nathanmichelotti/Desktop/College/Fall 2024/CS 425/Senior Project/ImageArchive/secrets/dev_api.env
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_HTTP_PORTS: 8080
@@ -47,10 +49,10 @@ services:
     ports:
       - "127.0.0.1:8080:8080"
       # - "127.0.0.1:8081:8081"
-    volumes:
-      - /Users/nathanmichelotti/Desktop/College/Fall 2024/CS 425/Senior Project/OneDrive_1_10-22-2024/Images
-      - /Users/nathanmichelotti/Library/Application/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
-      - /Users/nathanmichelotti/Library/Application/ASP.NET/Https:/home/app/.aspnet/https:ro
+    volumes:  
+      - /Users/nathanmichelotti/Desktop/College/Fall 2024/CS 425/Senior Project/ImageArchive/Images:/app/Images
+      - /Users/nathanmichelotti/Library/Application Support/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - /Users/nathanmichelotti/Library/Application Support/ASP.NET/Https:/home/app/.aspnet/https:ro
 
   dev_frontend:
     container_name: dev_frontend
@@ -77,8 +79,8 @@ services:
       - "127.0.0.1:80:80"
       # - "127.0.0.1:443:443"
     volumes:
-      - /Users/nathanmichelotti/Library/Application/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
-      - /Users/nathanmichelotti/Library/Application/ASP.NET/Https:/home/app/.aspnet/https:ro
+      - /Users/nathanmichelotti/Library/Application Support/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - /Users/nathanmichelotti/Library/Application Support/ASP.NET/Https:/home/app/.aspnet/https:ro
 
   api:
     profiles: [prod]

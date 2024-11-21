@@ -1,10 +1,11 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿
 <Project ToolsVersion="15.0" Sdk="Microsoft.Docker.Sdk">
   <PropertyGroup Label="Globals">
     <ProjectVersion>2.1</ProjectVersion>
     <DockerTargetOS>Linux</DockerTargetOS>
     <DockerPublishLocally>False</DockerPublishLocally>
     <ProjectGuid>cbec8347-1728-48bb-bca3-8313368b881e</ProjectGuid>
+    <UserSecretsId>75045a54-f1d0-4093-b09f-e1f649511236</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
     <None Include=".env" />

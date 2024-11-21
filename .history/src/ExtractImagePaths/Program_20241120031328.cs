@@ -5,8 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using DotNetEnv;
 
-// Update the path to your environment file (macOS path format)
-var envFilePath = "Users/nathanmichelotti/Desktop/College/Fall 2024/CS 425/Senior Project/ImageArchive/src/ExtractImagePaths/Program.cs";
+var envFilePath = "C:\\Users\\whaley\\source\\secrets\\ExtractImagePaths.env";
 
 DotNetEnv.Env.Load(envFilePath);
 
@@ -17,24 +16,34 @@ var configuration = new ConfigurationBuilder()
 
 var directoryRootPath = configuration["NEVCAN_DIRECTORY_ROOT_PATH"];
 
-if (string.IsNullOrEmpty(directoryRootPath))
+if(string.IsNullOrEmpty(directoryRootPath))
 {
     Console.WriteLine("ERROR: Variable 'directoryRootPath' not set. Exiting.");
     return;
 }
 
-// Expand the environment variable in the path
 directoryRootPath = Environment.ExpandEnvironmentVariables(directoryRootPath);
 
 var dbConnectionString = configuration["ConnectionStrings:ImageDb"] ?? configuration["DB_CONNECTION_STRING"];
 
-if (string.IsNullOrEmpty(dbConnectionString))
+if(string.IsNullOrEmpty(dbConnectionString))
 {
     Console.WriteLine("ERROR: Variable 'dbConnectionString' not set. Exiting.");
     return;
 }
 
-// Use macOS-compatible paths directly, removing Windows-specific variables
+var windowsUserName =  configuration["WINDOWS_USER_NAME"] ?? configuration["WindowsUser:Name"] ;
+var windowsBasePath =  configuration["WINDOWS_USER_BASE_PATH"] ?? configuration["WindowsUser:BasePath"];
+if(windowsUserName is not null)
+{
+    windowsUserName = Environment.ExpandEnvironmentVariables(windowsUserName);
+}
+
+if(windowsBasePath is not null)
+{
+    windowsBasePath = Environment.ExpandEnvironmentVariables(windowsBasePath);
+}
+
 var serviceProvider = new ServiceCollection()
     .AddSqlServer<ImageDbContext>(dbConnectionString)
     .AddLogging(configure =>
@@ -50,11 +59,11 @@ var logger = serviceProvider.GetService<ILogger<Program>>();
 logger.LogInformation("Environment is set to: {environment}.", configuration["ASPNETCORE_ENVIRONMENT"]);
 logger.LogInformation("Directory root path is set to: {directoryRootPath}.", directoryRootPath);
 
-using (var scope = serviceProvider.CreateScope())
+using(var scope = serviceProvider.CreateScope())
 {
     var context = scope.ServiceProvider.GetService<ImageDbContext>();
 
-    if (context.Database.CanConnect())
+    if(context.Database.CanConnect())
     {
         logger.LogInformation("Database connection success!");
     }
@@ -69,7 +78,7 @@ try
 {
     logger.LogInformation("Root directory is set to: {directoryRootPath}", directoryRootPath);
 
-    if (Directory.Exists(directoryRootPath))
+    if(Directory.Exists(directoryRootPath))
     {
         logger.LogInformation("Root directory exists. Finding subdirectories...");
 
@@ -83,7 +92,7 @@ try
         return;
     }
 }
-catch (Exception ex)
+catch(Exception ex)
 {
     logger.LogError("{ex.Message}", ex.Message);
     return;
@@ -95,7 +104,7 @@ var imagePaths = GetImagePaths(directoryRootPath);
 
 logger.LogInformation("Found {imagePaths.Count} image paths.", imagePaths.Count);
 
-if (imagePaths.Count == 0)
+if(imagePaths.Count is 0)
 {
     logger.LogError("No image paths found. Exiting application.");
     return;
@@ -105,15 +114,15 @@ InsertImagePathsIntoDatabase(imagePaths, serviceProvider);
 
 List<string> GetImagePaths(string directoryRootPath)
 {
-    var imagePaths = new List<string>();
+    List<string> imagePaths = [];
 
-    var imageExtensions = new List<string> { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".tiff" };
+    List<string> imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".tiff"];
 
-    foreach (var directory in Directory.GetDirectories(directoryRootPath, "*", SearchOption.AllDirectories))
+    foreach(var directory in Directory.GetDirectories(directoryRootPath, "*", SearchOption.AllDirectories))
     {
-        foreach (var extension in imageExtensions)
+        foreach(var extension in imageExtensions)
         {
-            foreach (var file in Directory.GetFiles(directory, $"*{extension}"))
+            foreach(var file in Directory.GetFiles(directory, $"*{extension}"))
             {
                 imagePaths.Add(file);
             }
@@ -125,7 +134,7 @@ List<string> GetImagePaths(string directoryRootPath)
 
 void InsertImagePathsIntoDatabase(List<string> filePaths, ServiceProvider serviceProvider)
 {
-    var siteNames = new List<string>
+    List<string> siteNames = new List<string>
     {
         "Sheep",
         "Snake",
@@ -136,38 +145,49 @@ void InsertImagePathsIntoDatabase(List<string> filePaths, ServiceProvider servic
         "Lassen"
     };
 
-    using (var scope = serviceProvider.CreateScope())
+    using(var scope = serviceProvider.CreateScope())
     {
         var context = scope.ServiceProvider.GetRequiredService<ImageDbContext>();
 
         var images = filePaths.Select(filePath =>
         {
-            var name = Path.GetFileName(filePath);
+            string name = Path.GetFileName(filePath);
 
-            var nameWithoutExtension = Path.GetFileNameWithoutExtension(name);
+            string nameWithoutExtension = Path.GetFileNameWithoutExtension(name);
 
-            if (nameWithoutExtension.Length <= 2)
+            if(nameWithoutExtension.Length <= 2)
             {
                 logger.LogWarning("Skipping file with short name: {imagePath}", filePath);
                 return (IsValid: false, Image: null as Image);
             }
 
-            var unixTimeString = nameWithoutExtension[..^2];
+            string unixTimeString = nameWithoutExtension[..^2];
 
-            if (!long.TryParse(unixTimeString, out var unixTime))
+            if(!long.TryParse(unixTimeString, out long unixTime))
             {
                 logger.LogWarning("Skipping file with invalid Unix time: {imagePath}", filePath);
                 return (IsValid: false, Image: null as Image);
             }
 
-            var dateTime = DateTimeOffset.FromUnixTimeSeconds(unixTime).DateTime;
+            DateTime dateTime = DateTimeOffset.FromUnixTimeSeconds(unixTime).DateTime;
 
-            var siteName = siteNames.FirstOrDefault(s => filePath.Contains(s)) ?? string.Empty;
+            string siteName = siteNames.FirstOrDefault(s => filePath.Contains(s)) ?? string.Empty;
 
-            var camera = filePath.Contains("Camera2") ? 2 : 1;
+            int camera = filePath.Contains("Camera2") ? 2 : 1;
 
-            // Ensure file path is compatible with macOS/Linux
-            filePath = filePath.Replace('\\', '/');
+            if(filePath.Contains('\\'))
+            {
+                if(string.IsNullOrEmpty(windowsBasePath))
+                {
+                    logger.LogError("Windows file path found. Variable 'windowsBasePath' is not set. Cannot convert the file path to Linux format.");
+                }
+                else
+                {
+                    logger.LogDebug("Windows file path found. Converting Windows file path to Linux file path.");
+                    filePath = filePath.Replace(windowsBasePath, "/app/");
+                    filePath = filePath.Replace('\\', '/');
+                }
+            }
 
             var image = new Image
             {
@@ -180,12 +200,13 @@ void InsertImagePathsIntoDatabase(List<string> filePaths, ServiceProvider servic
             };
 
             return (IsValid: true, Image: image);
+
         })
         .Where(result => result.IsValid)
         .Select(result => result.Image)
         .ToList();
 
-        if (images.Count != 0)
+        if(images.Count != 0)
         {
             logger.LogInformation(
                 "Example insertion:\n\t" +
@@ -213,15 +234,15 @@ void InsertImagePathsIntoDatabase(List<string> filePaths, ServiceProvider servic
 
         Console.WriteLine("\nContinue with insertion? (Y/N):");
 
-        var choice = Console.ReadLine()!.Trim().ToUpper();
+        string choice = Console.ReadLine()!.Trim().ToUpper();
 
-        while (choice is not "Y" and not "N")
+        while(choice is not "Y" and not "N")
         {
             logger.LogError("Invalid input. Please enter Y or N:");
             choice = Console.ReadLine()!.Trim().ToUpper();
         }
 
-        if (choice == "N")
+        if(choice == "N")
         {
             logger.LogInformation("Exiting...");
             return;
@@ -229,7 +250,7 @@ void InsertImagePathsIntoDatabase(List<string> filePaths, ServiceProvider servic
 
         context.Images.AddRange(images!);
 
-        var count = context.SaveChanges();
+        int count = context.SaveChanges();
 
         logger.LogInformation("Insertion complete. {addedCount} insertions.", count);
     }
