@@ -1,292 +1,175 @@
 ﻿@page "/about"
 @attribute [StreamRendering]
 @rendermode InteractiveServer
+@inject ThemeService ThemeService
+
+
+
 
 <PageTitle>About Us</PageTitle>
 
-<style>
-    .about-container {
-        background-color: #f8f9fa;
-        color: #333333;
-        padding: 2rem;
-        border-radius: 10px;
-        max-width: 1000px;
-        margin: 2rem auto;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    }
-
-    .section {
-        margin-bottom: 3rem;
-    }
-
-        .section h2 {
-            color: #0056b3;
-            margin-bottom: 1rem;
-        }
-
-    .team-member {
-        margin-top: 2rem;
-        border-top: 1px solid #ddd;
-        padding-top: 1.5rem;
-    }
-
-        .team-member h3 {
-            color: #0056b3;
-            margin-bottom: 0.5rem;
-        }
-
-        .team-member p {
-            margin-bottom: 0.5rem;
-            line-height: 1.8;
-        }
-
-    .feature-list {
-        margin-left: 1.5rem;
-        list-style-type: disc;
-    }
-
-    .values-list {
-        margin-left: 1.5rem;
-        list-style-type: circle;
-    }
-
-    .dark-mode .about-container {
-        background-color: #444444;
-        color: #ffffff;
-    }
-
-    .dark-mode .section h2,
-    .dark-mode .team-member h3 {
-        color: #aad4ff;
-    }
-
-    .dark-mode .feature-list li,
-    .dark-mode .values-list li {
-        color: #cccccc;
-    }
-</style>
-
-
-
-
-
-
-
 <!-- Image Section for Lake Tahoe -->
-<img src="TAHOE.jpg" alt="Beautiful view of Lake Tahoe" class="about-image" />
-
-<style>
-    .about-image {
-        display: block;
-        max-width: 100%;
-        border-radius: 8px;
-        margin: 1rem auto;
-        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2); /* Optional shadow for effect */
-        align-self: center;
-    }
-</style>
 
 
 
+<div class="container-fluid bg-body-tertiary my-3">
+  
+  <h1 class="text-center fw-bold my-3 custom-theme-light fs-1">About the Image Archive Project</h1>
+  <hr />
+  <p class="fs-4">
+    Welcome to the Image Archive Project – a dedicated platform aimed at empowering researchers, environmentalists, and field science professionals with efficient access to a vast collection of environmental imagery data. Developed by a team of passionate students from the University of Nevada, Reno, this project addresses the unique challenges of accessing, organizing, and analyzing large-scale image data collected across Nevada's scientific field stations.
+  </p>
+  <img src="TAHOE.jpg" alt="Beautiful view of Lake Tahoe" class="about-tahoe-image my-3" />
 
-
-
-
-
-
-
-
-
-
-<div class="about-container">
-    <h1>About the Image Archive Project</h1>
-    <p>
-        Welcome to the Image Archive Project – a dedicated platform aimed at empowering researchers, environmentalists, and field science professionals with efficient access to a vast collection of environmental imagery data. Developed by a team of passionate students from the University of Nevada, Reno, this project addresses the unique challenges of accessing, organizing, and analyzing large-scale image data collected across Nevada's scientific field stations.
+  <div class="my-3">
+    <h2 class="text-center h2 custom-theme-light">Project Mission</h2>
+    <p class="fs-4">
+      Our mission is to bridge the gap between data collection and data utilization by providing a centralized, accessible, and user-friendly image repository platform. In an era where the volume of data is exploding, especially within environmental and field sciences, researchers face the challenge of accessing specific datasets from fragmented storage systems. This platform aims to simplify data retrieval, enhance research productivity, and foster collaboration across interdisciplinary teams.
     </p>
+    <p class="fs-4">
+      We are committed to creating a robust, scalable solution that allows researchers to filter, search, and download data quickly. By building this platform, we seek to facilitate research that contributes to our understanding of environmental phenomena across the Great Basin region, including areas in Nevada, Utah, Arizona, Idaho, and Oregon.
+    </p>
+  </div>
 
-    <div class="section">
-        <h2>Project Mission</h2>
-        <p>
-            Our mission is to bridge the gap between data collection and data utilization by providing a centralized, accessible, and user-friendly image repository platform. In an era where the volume of data is exploding, especially within environmental and field sciences, researchers face the challenge of accessing specific datasets from fragmented storage systems. This platform aims to simplify data retrieval, enhance research productivity, and foster collaboration across interdisciplinary teams.
-        </p>
-        <p>
-            We are committed to creating a robust, scalable solution that allows researchers to filter, search, and download data quickly. By building this platform, we seek to facilitate research that contributes to our understanding of environmental phenomena across the Great Basin region, including areas in Nevada, Utah, Arizona, Idaho, and Oregon.
-        </p>
+  <div class="my-3">
+    <h2 class="text-center h2 custom-theme-light">Our Vision</h2>
+    <p class="fs-4">
+      Our vision is to set a new standard for data accessibility within environmental research communities. We aim to be a pivotal tool in advancing research and education by delivering a platform that integrates seamlessly into the workflows of scientists and researchers. By prioritizing user experience, security, and adaptability, we aspire to create a repository that not only meets current needs but can also evolve to address future requirements and technological advancements.
+    </p>
+  </div>
+
+  <div class="my-3">
+    <h2 class="text-center h2 custom-theme-light">Key Features and Capabilities</h2>
+    <p class="fs-4">
+      The Image Archive Project is designed with a range of powerful features that cater to the specialized needs of researchers working with large datasets. These features ensure that users can interact with the platform in an intuitive, secure, and efficient manner:
+    </p>
+    <ul class="feature-list fs-4">
+      <li><strong>Advanced Search Filters:</strong> Users can filter images based on date, location, camera number, and more, enabling quick access to specific data points.</li>
+      <li><strong>Role-Based Access Control:</strong> Tailored access levels ensure data security and allow administrators to manage user permissions effectively.</li>
+      <li><strong>Batch Uploads and Metadata Tagging:</strong> Efficiently upload and organize large volumes of data with automated tagging to streamline data organization.</li>
+      <li><strong>Pagination and Previews:</strong> Paginated results with thumbnail previews allow users to browse data quickly without overwhelming the interface.</li>
+      <li><strong>Customizable Query Histories:</strong> Users can save frequently used search queries, enabling them to streamline repetitive searches.</li>
+      <li><strong>Telemetry and Analytics:</strong> Data on user interactions helps us improve the platform, ensuring it adapts to the evolving needs of the community.</li>
+      <li><strong>Machine Learning Extensions:</strong> Future capabilities include using ML for image categorization and anomaly detection to enhance the research process.</li>
+    </ul>
+  </div>
+
+  <div class="my-3">
+    <h2 class="text-center h2 custom-theme-light">Core Values</h2>
+    <p class="fs-4">
+      Our team is guided by values that shape the development of this platform and ensure its alignment with the needs of the scientific community:
+    </p>
+    <ul class="values-list fs-4">
+      <li><strong>Precision:</strong> We focus on accuracy in data presentation and search results, making it easier for researchers to find and trust the information they access.</li>
+      <li><strong>Innovation:</strong> We embrace new technologies and ideas to ensure the platform remains relevant and powerful in a fast-evolving digital landscape.</li>
+      <li><strong>Collaboration:</strong> Working closely with stakeholders and advisors, we create solutions that respond directly to the needs of the research community.</li>
+      <li><strong>Security:</strong> Protecting data integrity and access is at the heart of our platform, ensuring that sensitive research information is safeguarded.</li>
+      <li><strong>Adaptability:</strong> Our modular architecture allows the platform to grow, with new features and integrations easily added as the project develops.</li>
+    </ul>
+  </div>
+
+
+  <div class="my-3">
+    <h2 class="text-center h2 custom-theme-light">Our Commitment to the Research Community</h2>
+    <p class="fs-4">
+      The Image Archive Project was born from a genuine need within the research community for a better way to access and utilize environmental imagery data. We remain dedicated to refining and expanding the platform, taking user feedback seriously to ensure it continues to meet the evolving demands of researchers. This is more than a project; it’s a mission to advance environmental research and collaboration.
+  
+      Thank you for taking the time to learn about our platform and team. We look forward to empowering you with better data access tools and to supporting your research endeavors.
+    </p>
+  </div>
+
+  <div class="my-3">
+    <h2 class="text-center h2 custom-theme-light">Meet the Team</h2>
+    <p class="my-2 fs-4">
+      This project is made possible by the collaborative efforts of a dedicated team of students, each bringing unique skills and perspectives to create a truly innovative platform.
+    </p>
+  </div>
+
+  <div class="my-3 row bg-body-secondary">
+    <h2 class="text-center pt-4 h2 custom-theme-light">Wyatt Haley – Full-Stack Developer and Infrastructure Lead</h2>
+    <div class="col text-center my-3 pb-4">
+      <img src="genderless-placeholder.png" alt="Wyatt" width="266" height="266" />
     </div>
-
-    <div class="section">
-        <h2>Our Vision</h2>
-        <p>
-            Our vision is to set a new standard for data accessibility within environmental research communities. We aim to be a pivotal tool in advancing research and education by delivering a platform that integrates seamlessly into the workflows of scientists and researchers. By prioritizing user experience, security, and adaptability, we aspire to create a repository that not only meets current needs but can also evolve to address future requirements and technological advancements.
-        </p>
+    <div class="col align-self-center my-3">
+      <p class="fs-4">
+        Wyatt leverages his experience in ASP.NET MVC and Linux systems administration to manage the platform’s infrastructure. He is instrumental in ensuring that the application is robust, scalable, and meets high performance standards. His responsibilities include both backend and frontend development, as well as coordinating the project’s deployment on enterprise-grade servers.
+      </p>
     </div>
+  </div>
 
-    <div class="section">
-        <h2>Key Features and Capabilities</h2>
-        <p>
-            The Image Archive Project is designed with a range of powerful features that cater to the specialized needs of researchers working with large datasets. These features ensure that users can interact with the platform in an intuitive, secure, and efficient manner:
-        </p>
-        <ul class="feature-list">
-            <li><strong>Advanced Search Filters:</strong> Users can filter images based on date, location, camera number, and more, enabling quick access to specific data points.</li>
-            <li><strong>Role-Based Access Control:</strong> Tailored access levels ensure data security and allow administrators to manage user permissions effectively.</li>
-            <li><strong>Batch Uploads and Metadata Tagging:</strong> Efficiently upload and organize large volumes of data with automated tagging to streamline data organization.</li>
-            <li><strong>Pagination and Previews:</strong> Paginated results with thumbnail previews allow users to browse data quickly without overwhelming the interface.</li>
-            <li><strong>Customizable Query Histories:</strong> Users can save frequently used search queries, enabling them to streamline repetitive searches.</li>
-            <li><strong>Telemetry and Analytics:</strong> Data on user interactions helps us improve the platform, ensuring it adapts to the evolving needs of the community.</li>
-            <li><strong>Machine Learning Extensions:</strong> Future capabilities include using ML for image categorization and anomaly detection to enhance the research process.</li>
-        </ul>
+  <div class="my-3 row bg-body-secondary">
+    <h2 class="text-center pt-4 h2 custom-theme-light">AJ Di Diana – Security and Networking Specialist</h2>
+    <div class="col text-center my-3 pb-4">
+      <img src="genderless-placeholder.png" alt="AJ" width="266" height="266" />
     </div>
-
-    <div class="section">
-        <h2>Core Values</h2>
-        <p>
-            Our team is guided by values that shape the development of this platform and ensure its alignment with the needs of the scientific community:
-        </p>
-        <ul class="values-list">
-            <li><strong>Precision:</strong> We focus on accuracy in data presentation and search results, making it easier for researchers to find and trust the information they access.</li>
-            <li><strong>Innovation:</strong> We embrace new technologies and ideas to ensure the platform remains relevant and powerful in a fast-evolving digital landscape.</li>
-            <li><strong>Collaboration:</strong> Working closely with stakeholders and advisors, we create solutions that respond directly to the needs of the research community.</li>
-            <li><strong>Security:</strong> Protecting data integrity and access is at the heart of our platform, ensuring that sensitive research information is safeguarded.</li>
-            <li><strong>Adaptability:</strong> Our modular architecture allows the platform to grow, with new features and integrations easily added as the project develops.</li>
-        </ul>
+    <div class="col align-self-center my-3">
+    <p class="fs-4">
+      With a background in cybersecurity and tools like Wireshark and Nmap, AJ focuses on the security aspects of the project. She is responsible for implementing secure authentication mechanisms, including integration with Google, Microsoft, and UNR’s NetID systems, to protect the platform from unauthorized access while ensuring smooth user experiences.
+    </p>
     </div>
+  </div>
 
-    <div class="section">
-        <h2>Meet the Team</h2>
-        <p>
-            This project is made possible by the collaborative efforts of a dedicated team of students, each bringing unique skills and perspectives to create a truly innovative platform.
-        </p>
-
-        <div class="team-member">
-            <img src="placeholder.jpg" alt="Wyatt" class="about-image" width="200" height="200" />
-
-            
-            <h3>Wyatt Haley – Full-Stack Developer and Infrastructure Lead</h3>
-            <p>
-                Wyatt leverages his experience in ASP.NET MVC and Linux systems administration to manage the platform’s infrastructure. He is instrumental in ensuring that the application is robust, scalable, and meets high performance standards. His responsibilities include both backend and frontend development, as well as coordinating the project’s deployment on enterprise-grade servers.
-            </p>
-        </div>
-
-        <div class="team-member">
-            <div class="team-member">
-                <img src="AJ.jpg" alt="AJ" class="about-image" width="200" height="200" />
-
-            <h3>AJ Di Diana – Security and Networking Specialist</h3>
-            <p>
-                With a background in cybersecurity and tools like Wireshark and Nmap, AJ focuses on the security aspects of the project. She is responsible for implementing secure authentication mechanisms, including integration with Google, Microsoft, and UNR’s NetID systems, to protect the platform from unauthorized access while ensuring smooth user experiences.
-            </p>
-        </div>
-
-        <div class="team-member">
-                <img src="PATRICK.jpg" alt="Patrick" class="about-image" width="200" height="200" />
-
-            <h3>Pat Lehr – Front-End Developer and Usability Expert</h3>
-            <p>
-                Pat’s strengths in object-oriented programming and firmware engineering have positioned him as the front-end lead for this project. He works closely with the team to design an intuitive, accessible interface that meets the needs of both tech-savvy researchers and those less familiar with digital platforms.
-            </p>
-        </div>
-
-        <div class="team-member">
-                <img src="placeholder.jpg" alt="Nate" class="about-image" width="200" height="200" />
-
-            <h3>Nate Michelotti – Data and Machine Learning Enthusiast</h3>
-            <p>
-                Specializing in ML and data science, Nate brings analytical depth to the team. He will work on integrating machine learning extensions that can categorize images and detect anomalies, which will add significant research value to the platform. His role also involves optimizing backend data handling for improved query performance.
-            </p>
-        </div>
+  <div class="my-3 row bg-body-secondary">
+      <h2 class="text-center pt-4 h2 custom-theme-light">Pat Lehr – Front-End Developer and Usability Expert</h2>
+      <div class="col text-center my-3 pb-4">
+      <img src="PATRICK.jpg" alt="Patrick" class="about-image" width="266" height="266" />
     </div>
-
-    <div class="section">
-        <h2>Our Commitment to the Research Community</h2>
-        <p>
-            The Image Archive Project was born from a genuine need within the research community for a better way to access and utilize environmental imagery data. We remain dedicated to refining and expanding the platform, taking user feedback seriously to ensure it continues to meet the evolving demands of researchers. This is more than a project; it’s a mission to advance environmental research and collaboration.
-        </p>
-        <p>
-            Thank you for taking the time to learn about our platform and team. We look forward to empowering you with better data access tools and to supporting your research endeavors.
-        </p>
+    <div class="col align-self-center my-3">
+    <p class="fs-4">
+      Pat’s strengths in object-oriented programming and firmware engineering have positioned him as the front-end lead for this project. He works closely with the team to design an intuitive, accessible interface that meets the needs of both tech-savvy researchers and those less familiar with digital platforms.
+    </p>
     </div>
+  </div>
+
+  <div class="my-3 row bg-body-secondary">
+    <h2 class="text-center pt-4 h2 custom-theme-light"> Michelotti – Data and Machine Learning Enthusiast</h2>
+    <div class="col text-center my-3 pb-4">
+      <img src="genderless-placeholder.png" alt="Nate" class="about-image" width="266" height="266" />
+    </div>
+      <div class="col align-self-center my-3">
+      <p class="fs-4">
+        Specializing in ML and data science, Nate brings analytical depth to the team. He will work on integrating machine learning extensions that can categorize images and detect anomalies, which will add significant research value to the platform. His role also involves optimizing backend data handling for improved query performance.
+      </p>
+    </div>
+  </div>
 </div>
-</div>
-
-
 
 <div class="feedback-section">
-    <h3>Give Us Your Feedback</h3>
-    <div class="feedback-form">
-        <input type="text" @bind="feedbackText" placeholder="Your feedback..." class="form-control my-2" />
-        <select @bind="rating" class="form-select my-2">
-            <option value="1">1 - Poor</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5 - Excellent</option>
-        </select>
-        <button @onclick="SubmitFeedback" class="btn btn-primary mt-2">Submit Feedback</button>
-        <p class="feedback-stats mt-3">Total Feedback: @feedbackCount | Average Rating: @averageRating</p>
-    </div>
+  <h3>Give Us Your Feedback</h3>
+  <div class="feedback-form">
+    <input type="text" @bind="feedbackText" placeholder="Your feedback..." class="form-control my-3" />
+    <select @bind="rating" class="form-select my-3">
+      <option value="1">1 - Poor</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5 - Excellent</option>
+    </select>
+    <button @onclick="SubmitFeedback" class="btn btn-primary mt-2">Submit Feedback</button>
+    <p class="feedback-stats mt-3">Total Feedback: @feedbackCount | Average Rating: @averageRating</p>
+  </div>
 
-    <div class="view-feedback mt-4">
-        <button class="btn btn-secondary" @onclick="ToggleFeedbackList">
-            @(showFeedbackList ? "Hide Feedback" : "View Feedback")
-        </button>
-        @if (showFeedbackList)
+  <div class="view-feedback mt-4">
+    <button class="btn btn-secondary" @onclick="ToggleFeedbackList">
+        @(showFeedbackList ? "Hide Feedback" : "View Feedback")
+    </button>
+    @if (showFeedbackList)
+    {
+      <ul class="feedback-list mt-3">
+        @foreach (var feedback in feedbackList)
         {
-            <ul class="feedback-list mt-3">
-                @foreach (var feedback in feedbackList)
-                {
-                    <li class="feedback-item">
-                        <p><strong>Rating:</strong> @feedback.Rating</p>
-                        <p>@feedback.Comment</p>
-                        <hr />
-                    </li>
-                }
-            </ul>
+          <li class="feedback-item">
+            <p><strong>Rating:</strong> @feedback.Rating</p>
+            <p>@feedback.Comment</p>
+            <hr />
+          </li>
         }
-    </div>
+      </ul>
+    }
+  </div>
 </div>
 
-<style>
-    .feedback-section {
-        background-color: #f8f9fa;
-        color: #333;
-        padding: 1.5rem;
-        border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        max-width: 600px;
-        margin: auto;
-    }
 
-    .feedback-form input, .feedback-form select {
-        width: 100%;
-    }
-
-    .view-feedback {
-        text-align: center;
-    }
-
-    .feedback-list {
-        list-style: none;
-        padding: 0;
-        max-height: 200px;
-        overflow-y: auto;
-        background-color: #f1f1f1;
-        border-radius: 8px;
-        padding: 1rem;
-    }
-
-    .feedback-item {
-        padding: 0.5rem 0;
-    }
-
-        .feedback-item hr {
-            border-top: 1px solid #ddd;
-        }
-
-    .feedback-stats {
-        font-weight: bold;
-        color: #0056b3;
-    }
-</style>
 
 @code {
     private string feedbackText;
@@ -334,52 +217,6 @@
     </div>
 </div>
 
-<style>
-    /* Center the achievements container vertically and horizontally */
-    .achievements-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        background-color: #f5f5f5;
-    }
-
-    /* Style the achievements box */
-    .achievements {
-        background-color: #ffffff;
-        border-radius: 10px;
-        padding: 2rem;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        max-width: 400px;
-        text-align: center;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-        /* Title styling */
-        .achievements h3 {
-            font-size: 1.8rem;
-            color: #0056b3;
-            margin-bottom: 1rem;
-        }
-
-        /* Paragraph styling */
-        .achievements p {
-            font-size: 1.2rem;
-            color: #333333;
-            margin: 0.5rem 0;
-        }
-
-            /* Highlight the strong elements within paragraphs */
-            .achievements p strong {
-                color: #0056b3;
-            }
-
-        /* Add hover effect */
-        .achievements:hover {
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-            transform: scale(1.02);
-        }
-</style>
 
 @code {
     private int imagesProcessed = 0;
