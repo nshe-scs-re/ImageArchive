@@ -1,4 +1,4 @@
-﻿function blazorDownloadFile(url, fileName) {
+﻿function download(url, fileName) {
     var link = document.createElement('a');
     link.href = url;
     link.download = fileName;

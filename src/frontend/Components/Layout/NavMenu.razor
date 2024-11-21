@@ -1,35 +1,78 @@
 ﻿@inject NavigationManager Navigation
+@inject ThemeService ThemeService
 
-<nav class="navbar navbar-expand-md bg-body-tertiary rounded">
+<nav class="navbar navbar-expand-md rounded @GetTheme()">
   <div class="container-fluid">
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavBar">
       <span class="navbar-toggler-icon"></span>
     </button>
-    <div class="collapse navbar-collapse" id="mainNavBar">
-      <ul class="navbar-nav mx-auto justify-content-md-center">
+    <div class="navbar-collapse collapse row" id="mainNavBar">
+      <ul class="col navbar-nav mx-auto justify-content-md-start"></ul>
+      <ul class="col navbar-nav mx-auto justify-content-md-center">
         <AuthorizeView>
           <Authorized>
-            <li class="nav-item"><NavLink class="nav-link rounded" href="/" Match="NavLinkMatch.All">Home</NavLink></li>
-            <li class="nav-item"><NavLink class="nav-link rounded" href="http://localhost:8080/swagger">Swagger</NavLink></li>
+            <li class="nav-item"><a class="btn btn-light rounded custom-btn-fixed-size-sm @GetButtonTheme()" href="/" Match="NavLinkMatch.All">Home</a></li>
+            <li class="nav-item"><a class="btn btn-light rounded custom-btn-fixed-size-sm @GetButtonTheme()" href="http://localhost:8080/swagger">Swagger</a></li>
           </Authorized>
           <NotAuthorized>
-            <li class="nav-item"><NavLink class="nav-link rounded" href="/" Match="NavLinkMatch.All">Home</NavLink></li>
+            <li class="nav-item"><a class="btn btn-light rounded custom-btn-fixed-size-sm @GetButtonTheme()" href="/" Match="NavLinkMatch.All">Home</a></li>
+            <li class="nav-item"><a class="btn btn-light rounded custom-btn-fixed-size-sm @GetButtonTheme()" href="http://localhost:8080/swagger">Swagger</a></li>
           </NotAuthorized>
         </AuthorizeView>
       </ul>
-      <ul class="navbar-nav ml-auto justify-content-md-end">
+      <ul class="col navbar-nav mx-auto justify-content-md-end">
         <AuthorizeView>
           <Authorized>
+            <li>
+              @if (ThemeService.State)
+              {
+                <div class="nav-item">
+                  <button type="button" class="btn btn-light rounded custom-btn-fixed-size-md @GetButtonTheme()"@onclick=ToggleTheme>
+                    <i class="bi bi-moon-stars-fill"></i>
+                    <span class="ms-1">Dark Mode</span>
+                  </button>
+                </div>
+              }
+              else
+              {
+                <div class="nav-item">
+                  <button type="button" class="btn btn-light rounded custom-btn-fixed-size-md @GetButtonTheme()" @onclick=ToggleTheme>
+                    <i class="bi bi-brightness-high-fill"></i>
+                    <span class="ms-1">Light Mode</span>
+                  </button>
+                </div> 
+              }
+            </li>
             <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle rounded" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">@userName</a>
+              <a class="nav-link dropdown-toggle rounded @GetButtonTheme()" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">@userName</a>
               <ul class="dropdown-menu">
-                <li><NavLink class="dropdown-item nav-link" href="/profile" Match="NavLinkMatch.All">View Profile</NavLink></li>
-                <li><NavLink class="dropdown-item nav-link" href="/logout">Logout</NavLink></li>
+                <li><a class="dropdown-item custom-btn-fixed-size-md @GetButtonTheme()" href="/profile" Match="NavLinkMatch.All">View Profile</a></li>
+                <li><a class="dropdown-item custom-btn-fixed-size-md @GetButtonTheme()" href="/logout">Logout</a></li>
               </ul>
             </li>
           </Authorized>
           <NotAuthorized>
-            <li class="nav-item"><NavLink class="nav-link rounded" href="/login">Login</NavLink></li>
+            <li>
+              @if (ThemeService.State)
+              {
+                <div class="nav-item">
+                  <button type="button" class="btn btn-light rounded custom-btn-fixed-size-md @GetButtonTheme()"@onclick=ToggleTheme>
+                    <i class="bi bi-moon-stars-fill"></i>
+                    <span class="ms-1">Dark Mode</span>
+                  </button>
+                </div>
+              }
+              else
+              {
+                <div class="nav-item">
+                  <button type="button" class="btn btn-light rounded custom-btn-fixed-size-md @GetButtonTheme()" @onclick=ToggleTheme>
+                    <i class="bi bi-brightness-high-fill"></i>
+                    <span class="ms-1">Light Mode</span>
+                  </button>
+                </div> 
+              }
+            </li>
+            <li class="nav-item"><a class="btn btn-light rounded custom-btn-fixed-size-sm @GetButtonTheme()" href="/login">Login</a></li>
           </NotAuthorized>
         </AuthorizeView>
       </ul>
@@ -53,5 +96,30 @@
         }
 
         await base.OnInitializedAsync();
+    }
+
+    public void ToggleTheme()
+    {
+        ThemeService.ToggleTheme();
+    }
+
+    protected override void OnInitialized()
+    {
+        ThemeService.StateChanged += StateHasChanged;
+    }
+
+    private string GetTheme()
+    {
+        return ThemeService.State ? "bg-body-tertiary" : "custom-color-bg-dm-secondary";
+    }
+
+    private string GetButtonTheme()
+    {
+        return ThemeService.State ? "nav-link" : "custom-color-btn-dm";
+    }
+
+    public void Dispose()
+    {
+        ThemeService.StateChanged -= StateHasChanged;
     }
 }
