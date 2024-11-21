@@ -1,7 +1,7 @@
 ﻿@page "/about"
 @attribute [StreamRendering]
 @rendermode InteractiveServer
-
+@inject ThemeService ThemeService
 
 
 
@@ -12,9 +12,9 @@
 
 
 
-<div class="container-fluid bg-body-tertiary my-3">
+<div class="container-fluid  my-3 @GetTheme()">
   
-  <h1 class="text-center fw-bold my-3 custom-theme-light fs-1">About the Image Archive Project</h1>
+  <h1 class="text-center fw-bold py-3 h1 custom-theme-light fs-1">About the Image Archive Project</h1>
   <hr />
   <p class="fs-4">
     Welcome to the Image Archive Project – a dedicated platform aimed at empowering researchers, environmentalists, and field science professionals with efficient access to a vast collection of environmental imagery data. Developed by a team of passionate students from the University of Nevada, Reno, this project addresses the unique challenges of accessing, organizing, and analyzing large-scale image data collected across Nevada's scientific field stations.
@@ -85,7 +85,7 @@
     </p>
   </div>
 
-  <div class="my-3 row bg-body-secondary">
+  <div class="my-3 row @GetTheme()">
     <h2 class="text-center pt-4 h2 custom-theme-light">Wyatt Haley – Full-Stack Developer and Infrastructure Lead</h2>
     <div class="col text-center my-3 pb-4">
       <img src="genderless-placeholder.png" alt="Wyatt" width="266" height="266" />
@@ -97,7 +97,7 @@
     </div>
   </div>
 
-  <div class="my-3 row bg-body-secondary">
+  <div class="my-3 row @GetTheme()">
     <h2 class="text-center pt-4 h2 custom-theme-light">AJ Di Diana – Security and Networking Specialist</h2>
     <div class="col text-center my-3 pb-4">
       <img src="genderless-placeholder.png" alt="AJ" width="266" height="266" />
@@ -109,7 +109,7 @@
     </div>
   </div>
 
-  <div class="my-3 row bg-body-secondary">
+  <div class="my-3 row @GetTheme()">
       <h2 class="text-center pt-4 h2 custom-theme-light">Pat Lehr – Front-End Developer and Usability Expert</h2>
       <div class="col text-center my-3 pb-4">
       <img src="PATRICK.jpg" alt="Patrick" class="about-image" width="266" height="266" />
@@ -121,7 +121,7 @@
     </div>
   </div>
 
-  <div class="my-3 row bg-body-secondary">
+  <div class="my-3 row @GetTheme()">
     <h2 class="text-center pt-4 h2 custom-theme-light"> Michelotti – Data and Machine Learning Enthusiast</h2>
     <div class="col text-center my-3 pb-4">
       <img src="genderless-placeholder.png" alt="Nate" class="about-image" width="266" height="266" />
@@ -134,7 +134,7 @@
   </div>
 </div>
 
-<div class="custom-feedback-section">
+<div class="custom-feedback-section my-3">
   <h3>Give Us Your Feedback</h3>
   <div class="custom-feedback-form">
     <input type="text" @bind="feedbackText" placeholder="Your feedback..." class="form-control my-3" />
@@ -155,7 +155,7 @@
     </button>
     @if (showFeedbackList)
     {
-      <ul class="custom-feedback-list mt-3">
+      <ul class="custom-feedback-list my-3">
         @foreach (var feedback in feedbackList)
         {
           <li class="custom-feedback-item">
@@ -168,7 +168,14 @@
     }
   </div>
 </div>
-
+<div class="custom-achievements-container @GetTheme()">
+    <div class="custom-achievements">
+        <h3>Platform Achievements</h3>
+        <p><strong>Images Processed:</strong> @imagesProcessed</p>
+        <p><strong>Users Served:</strong> @usersServed</p>
+        <p><strong>Regions Covered:</strong> @regionsCovered</p>
+    </div>
+</div>
 
 
 @code {
@@ -203,22 +210,8 @@
         public int Rating { get; set; }
         public string Comment { get; set; }
     }
-}
 
-
-
-
-<div class="custom-achievements-container">
-    <div class="custom-achievements">
-        <h3>Platform Achievements</h3>
-        <p><strong>Images Processed:</strong> @imagesProcessed</p>
-        <p><strong>Users Served:</strong> @usersServed</p>
-        <p><strong>Regions Covered:</strong> @regionsCovered</p>
-    </div>
-</div>
-
-
-@code {
+   
     private int imagesProcessed = 0;
     private int usersServed = 0;
     private int regionsCovered = 0;
@@ -230,4 +223,25 @@
         usersServed = 2000;
         regionsCovered = 5;
     }
+    protected override void OnInitialized()
+    {
+        ThemeService.StateChanged += StateHasChanged;
+    }
+    private string GetTheme()
+    {
+        return ThemeService.State ? "bg-body-tertiary" : "custom-color-bg-dm-secondary";
+    }
+    public void Dispose()
+    {
+        ThemeService.StateChanged -= StateHasChanged;
+    }
+
 }
+
+
+
+
+
+
+
+
