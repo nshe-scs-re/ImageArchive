@@ -2,6 +2,8 @@
 @attribute [StreamRendering]
 @rendermode InteractiveServer
 @inject HttpService HttpService
+@inject ThemeService ThemeService
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Home</PageTitle>
 
@@ -192,4 +194,10 @@ else if (querySubmitted && loading is false)
             await FormSubmit();
         }
     }
+
+    private async Task DownloadImage(long imageId)
+    {
+        await JSRuntime.InvokeVoidAsync("download", $"/api/images/download/{imageId}", $"image_{imageId}.jpg");
+    }
+
 }

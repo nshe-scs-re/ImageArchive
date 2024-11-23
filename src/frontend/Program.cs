@@ -78,6 +78,39 @@ app.MapGet("/api/images/{id}", async (HttpService HttpService, long id) =>
         return Results.Problem($"Error fetching image: {ex.Message}");
     }
 });
+//===============================================
+app.MapGet("/api/images/download/{id}", async (HttpService HttpService, long id) =>
+{
+    try
+    {
+        var response = await HttpService.GetImagesByIdAsync(id);
+
+        if(!response.IsSuccessStatusCode)
+        {
+            return Results.NotFound();
+        }
+
+        var stream = await response.Content.ReadAsStreamAsync();
+        var contentDisposition = new System.Net.Http.Headers.ContentDispositionHeaderValue("attachment")
+        {
+            FileName = $"image_{id}.jpg" // Set the desired filename format here
+        };
+
+        return Results.Stream(
+            stream,
+            "image/jpeg", // Change MIME type if necessary based on the actual image type
+            contentDisposition.FileName
+        );
+    }
+    catch(Exception exception)
+    {
+        Console.WriteLine($"ERROR [Program.cs] [/api/images/download/{id}]: Exception message: {exception.Message}");
+        return Results.Problem($"Error fetching image for download: {exception.Message}");
+    }
+});
+
+//===============================================
+
 
 app.MapGet("/Account/Login", async (HttpContext httpContext, string returnUrl = "/") =>
 {

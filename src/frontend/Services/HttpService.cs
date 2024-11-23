@@ -44,7 +44,38 @@ public class HttpService
 
     public async Task<HttpResponseMessage> GetImages(DateTime startDate, DateTime endDate, int pageIndex, int pageSize)
     {
-        var httpClient = this.CreateClient();
-        return await httpClient.GetAsync($"api/images/paginated?startDate={startDate}&endDate={endDate}&pageIndex={pageIndex}&pageSize={pageSize}");
+        var httpClient = CreateClient();
+        return await httpClient.GetAsync($"api/images/paginated?filter={startDate},{endDate},{pageIndex},{pageSize},{site}");
+    }
+
+    public async Task<HttpResponseMessage> GetImagesAllAsync()
+    {
+        var httpClient = CreateClient();
+        return await httpClient.GetAsync("api/images/all");
+    }
+
+    public async Task<HttpResponseMessage> GetArchiveStatusAsync(Guid jobId)
+    {
+        var httpClient = CreateClient();
+        return await httpClient.GetAsync($"api/archive/status/{jobId}");
+    }
+
+    public async Task<HttpResponseMessage> GetArchiveDownloadAsync(Guid jobId)
+    {
+        var httpClient = CreateClient();
+        return await httpClient.GetAsync($"api/archive/download/{jobId}");
+    }
+
+    public async Task<HttpResponseMessage> GetDownloadImageAsync(long id)
+    {
+        var httpClient = CreateClient();
+        return await httpClient.GetAsync($"api/images/download/{id}");
+    }
+
+
+    public async Task<HttpResponseMessage> PostArchiveRequestAsync(ArchiveRequest request)
+    {
+        var httpClient = CreateClient();
+        return await httpClient.PostAsJsonAsync("api/archive/request", request);
     }
 }

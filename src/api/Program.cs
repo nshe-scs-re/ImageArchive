@@ -132,7 +132,43 @@ app.MapGet("/api/archive/download/{jobId}", (ArchiveManager manager, Guid jobId)
     {
         return Results.Problem(exception.Message);
     }
-});
+})
+.WithSummary("Requests an archive download.")
+.Produces<FileResult>(200, "application/zip");
+//-----------------------------------------------------------------------------------------
+app.MapGet("/api/images/{id}", async (ImageDbContext dbContext, long id) =>
+{
+    try
+    {
+        var image = await dbContext.Images.FindAsync(id);
+        if(image is null)
+        {
+            Console.WriteLine($"DEBUG [Program.cs] [/api/images/id]: image with Id {id} is null.");
+            return Results.NotFound();
+        }
+
+        var fileStream = new FileStream(image.FilePath!, FileMode.Open, FileAccess.Read);
+        string extension = Path.GetExtension(image.FilePath)!.ToLowerInvariant();
+        string mimeType = extension switch
+        {
+            ".jpeg" or ".jpg" => "image/jpeg",
+            ".png" => "image/png",
+            ".gif" => "image/gif",
+            _ => "application/octet-stream"
+        };
+
+        return Results.File(fileStream, mimeType);
+    }
+    catch(Exception exception)
+    {
+        Console.WriteLine($"ERROR [Program.cs] [/api/images/id]: Exception message: {exception.Message}");
+        return Results.Problem(exception.Message);
+    }
+})
+.WithSummary("Retrieves a single image based on a given id value.")
+.Produces<FileResult>(200, "image/jpeg");
+
+//-----------------------------------------------------------------------------------------
 
 app.MapGet("/api/images", async (ImageDbContext dbContext) =>
 {
