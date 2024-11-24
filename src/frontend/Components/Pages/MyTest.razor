@@ -1,10 +1,62 @@
 ﻿@page "/mytest"
-@rendermode InteractiveServer
 @inject HttpService HttpService
 @inject IConfiguration config
 
 <h3>MyTest</h3>
-<InputFile OnChange="UploadSingle" id="fileInputElement" multiple accept=".gif,.png,.jpg,.jpeg" />
+
+<button @onclick="OnShowModalClick">Upload Files</button>
+
+<div class="modal" tabindex="-1" style="display:@(isModalVisible ? "block" : "none")">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Upload Files</h5>
+                <button type="button" class="btn-close" @onclick="OnHideModalClick"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="siteName" class="form-label">Site Name</label>
+                    <select class="form-select" id="siteName" @bind="siteName">
+                        <option value="">Select a site</option>
+                        @foreach (var site in siteNames)
+                        {
+                            <option value="@site">@site</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="cameraPosition" class="form-label">Camera Position</label>
+                    <select class="form-select" id="cameraPosition" @bind="cameraPosition">
+                        <option value="">Select a camera position</option>
+                        @foreach (var position in cameraPositions)
+                        {
+                            <option value="@position">@position</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="cameraNumber" class="form-label">Camera Number</label>
+                        <select class="form-select" id="cameraNumber" @bind="cameraNumber">
+                        <option value="">Select a camera number</option>
+                        @foreach (var number in cameraNumbers)
+                        {
+                            <option value="@number">@number</option>
+                        }
+                        </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="photoTime" class="form-label">Time of Photo Taken (PST)</label>
+                            <input type="datetime-local" class="form-control" id="photoTime" @bind="photoTime" />
+                </div>
+                <InputFile OnChange="UploadSingle" id="fileInputElement" multiple accept=".gif,.png,.jpg,.jpeg" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @onclick="OnHideModalClick">Close</button>
+                <button type="button" class="btn btn-primary" @onclick="UploadFiles" disabled="@(!CanUpload)">Upload</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 
 
@@ -21,19 +73,32 @@
 }
 
 @code{
-  //TODO: User clicks button and button triggers a modal for file uploading, site selection, time selection, and camera selection
-    //TODO: User can upload multiple files and their time must be converted to UNIX (potentially the file name must be changed too?)
+    private bool isModalVisible = false;
     private int maxAllowedFiles = 5;
-    //TODO: private int maxFileSize = 1024 * 1024 *3; learn limits of browser and image for upload limit and size limit
-    private List<string> errors = new(); 
+    private List<string> errors = new();
     private List<IBrowserFile> selectedFiles = new List<IBrowserFile>();
-    private ElementReference fileInputElement;
-    // private
-    // private async Task TriggerFileUpload()
-    // {
-    //     var mouseEvent = new MouseEventArgs { Type = "click" };
-    //     await js.InvokeVoidAsync("dispatchEvent", fileInputElement, mouseEvent);
-    // }
+    private string siteName;
+    private string cameraPosition;
+    private string cameraNumber;
+    private DateTime? photoTime;
+    private bool CanUpload => !string.IsNullOrEmpty(siteName) && !string.IsNullOrEmpty(cameraPosition) && photoTime.HasValue;
+
+    private List<string> siteNames = new() { "Rockland", "Sheep", "Snake", "Spring" };
+    private List<string> cameraPositions = new() { "Position 1", "Position 2", "Position 3" };
+    private List<string> cameraNumbers = new() { "Camera 1", "Camera 2", "Camera 3" };
+
+    private Task OnShowModalClick()
+    {
+        isModalVisible = true;
+        return Task.CompletedTask;
+    }
+
+    private Task OnHideModalClick()
+    {
+        isModalVisible = false;
+        return Task.CompletedTask;
+    }
+
     //TODO: Button triggers once the user clicks the upload button, but the button doesnt trigger ever again without refreshing web page. Why?
     private async Task UploadSingle(InputFileChangeEventArgs e)
     {
@@ -72,6 +137,15 @@
         {
             Console.WriteLine($"Message: {ex.Message}");
             throw;
+        }
+    }
+
+    private async Task UploadFiles()
+    {
+        if (CanUpload)
+        {
+            await UploadSingle(new InputFileChangeEventArgs(selectedFiles));
+            OnHideModalClick();
         }
     }
 }
