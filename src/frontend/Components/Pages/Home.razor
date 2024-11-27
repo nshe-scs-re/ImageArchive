@@ -1,7 +1,8 @@
-﻿@page "/"
+@page "/"
 @attribute [StreamRendering]
 @inject HttpService HttpService
 @inject ThemeService ThemeService
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Home</PageTitle>
 
@@ -133,6 +134,7 @@ else if (querySubmitted && loading is false)
                 <div class="d-flex justify-content-between align-items-center">
                   <div class="btn-group">
                     <button type="button" class="btn btn-sm btn-light @GetButtonTheme()">View</button>
+                    <button type="button" class="btn btn-sm btn-light @GetButtonTheme()" @onclick="() => DownloadImage(image.Id)">Download</button>
                   </div>
                 </div>
               </div>
@@ -273,5 +275,12 @@ else if (querySubmitted && loading is false)
             Console.WriteLine($"ERROR [Home.razor] [PaginationChangedAsync]: {exception.Message}");
             throw;
         }
+    }
+    
+    private async Task DownloadImage(long Id)
+    {
+        var url = $"/api/images/{Id}";
+
+        await JSRuntime.InvokeVoidAsync("download", url, $"{Id}.jpg");
     }
 }
