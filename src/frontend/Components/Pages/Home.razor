@@ -156,7 +156,7 @@ else if (querySubmitted && loading is false)
         </button>
       </li>
       <li class="page-item">
-        <input type="number" min="0" max="@totalPages" class="page-link @GetButtonTheme()" value="@pageIndex" @onchange="PaginationChangedAsync"/> 
+        <input type="number" min="0" max="@totalPages" class="page-link text-center @GetButtonTheme()" value="@pageIndex" @onchange="UpdatePaginationAsync"/> 
       </li>
       <li class="page-item">
         <button type="button" class="page-link @GetButtonTheme()" @onclick="NextPage">
@@ -258,13 +258,13 @@ else if (querySubmitted && loading is false)
         ThemeService.StateChanged -= StateHasChanged;
     }
 
-    private async Task PaginationChangedAsync(ChangeEventArgs e)
+    private async Task UpdatePaginationAsync(ChangeEventArgs e)
     {
         try
         {
-            if(int.TryParse(e.Value.ToString(), out int result))
+            if(int.TryParse(e.Value.ToString(), out int inputValue))
             {
-               pageIndex = result;
+                pageIndex = Math.Clamp(inputValue, 0, totalPages);
                 await GetImagesByPageAsync();
             }
         }
