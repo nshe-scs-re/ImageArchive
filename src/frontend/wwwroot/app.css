@@ -290,7 +290,6 @@ h1:focus {
         font-size: 1.2rem;
         margin: 0.5rem 0;
     }
-
         .custom-achievements p strong {
         }
 
@@ -302,4 +301,14 @@ h1:focus {
 .h1.custom-theme-light,
 .h2.custom-theme-light {
     color: #0056b3;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
 }

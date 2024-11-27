@@ -185,18 +185,24 @@ app.MapGet("/api/images/paginated", async (ImageDbContext dbContext, string filt
             !DateTime.TryParse(parameters[1], out DateTime endDate) ||
             !int.TryParse(parameters[2], out int pageIndex) ||
             !int.TryParse(parameters[3], out int pageSize)
-        ) return Results.BadRequest();
+        )
+        {
+            return Results.BadRequest();
+        }
 
         string site = parameters[4];
-
-        var images = await dbContext.Images
+        var query = dbContext.Images
             .Where(i => i.DateTime >= startDate && i.DateTime <= endDate && i.Site == site)
-            .OrderBy(i => i.Id)
+            .OrderBy(i => i.Id);
+
+        int totalCount = await query.CountAsync();
+
+        var images = await query
             .Skip(pageIndex * pageSize)
             .Take(pageSize)
             .ToListAsync();
 
-        return Results.Ok(images);
+        return Results.Ok(new {TotalCount = totalCount, Images = images });
     }
     catch(Exception exception)
     {
