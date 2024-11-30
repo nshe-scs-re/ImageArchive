@@ -155,63 +155,28 @@ h1:focus {
     .accordion-button.custom-theme-dark:hover::after {
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23091f2c' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
     }
-
         
-    .ml-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh; /* Full-height viewport */
-        padding: 20px;
-        background-color: #f8f9fa; /* Light gray background */
-    }
     
-    .ml-form {
-        background-color: white;
-        border-radius: 12px;
-        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-        padding: 30px;
-        max-width: 400px;
-        width: 100%;
-    }
-    
-    .ml-form h1 {
-        text-align: center;
-        font-size: 1.5rem;
-        margin-bottom: 20px;
-        color: #343a40;
-    }
-    
-    .ml-form label {
-        font-weight: bold;
-        margin-top: 10px;
-    }
-    
-    .ml-form input,
-    .ml-form select {
-        width: 100%;
-        padding: 10px;
-        margin-top: 5px;
-        border: 1px solid #ced4da;
-        border-radius: 8px;
-        font-size: 1rem;
-    }
-    
-    .ml-form button {
-        margin-top: 20px;
-        width: 100%;
-        padding: 10px;
-        background-color: #007bff;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: background-color 0.3s;
-    }
-    
-    .ml-form button:hover {
-        background-color: #0056b3;
-    }
-    
+  /* General container styling */
+.ml-container {
+    background-color: #ffffff; /* White background for clean appearance */
+    border-radius: 8px;       /* Rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    margin: 20px auto;        /* Center container and add spacing */
+    padding: 20px;            /* Space inside the container */
+    max-width: 800px;         /* Limit width for better readability */
+    transition: transform 0.2s, box-shadow 0.2s; /* Add hover effect */
+}
+
+/* Hover effect for containers */
+.ml-container:hover {
+    transform: scale(1.02);   /* Slightly enlarge on hover */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Darker shadow on hover */
+}
+
+/* Text styling inside the container */
+.ml-container h1, .ml-container h2, .ml-container p {
+    font-family: 'Arial', sans-serif; /* Clean, professional font */
+    color: #333;                      /* Dark text for contrast */
+    line-height: 1.6;                 /* Improve readability */
+}
