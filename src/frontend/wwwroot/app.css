@@ -159,24 +159,24 @@ h1:focus {
     
   /* General container styling */
 .ml-container {
-    background-color: #ffffff; /* White background for clean appearance */
-    border-radius: 8px;       /* Rounded corners */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
-    margin: 20px auto;        /* Center container and add spacing */
-    padding: 20px;            /* Space inside the container */
-    max-width: 800px;         /* Limit width for better readability */
-    transition: transform 0.2s, box-shadow 0.2s; /* Add hover effect */
+    background-color: #ffffff; 
+    border-radius: 8px;      
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+    margin: 20px auto;       
+    padding: 20px;           
+    max-width: 800px;         
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
 /* Hover effect for containers */
 .ml-container:hover {
-    transform: scale(1.02);   /* Slightly enlarge on hover */
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Darker shadow on hover */
+    transform: scale(1.02);  
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
 /* Text styling inside the container */
 .ml-container h1, .ml-container h2, .ml-container p {
-    font-family: 'Arial', sans-serif; /* Clean, professional font */
-    color: #333;                      /* Dark text for contrast */
-    line-height: 1.6;                 /* Improve readability */
+    font-family: 'Arial', sans-serif; 
+    color: #333;                  
+    line-height: 1.6;                 
 }
