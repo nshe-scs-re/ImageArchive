@@ -1,53 +1,39 @@
-import os
 import tensorflow as tf
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout, BatchNormalization
 
-# Paths to dataset
-train_dir = "data/train"
-test_dir = "data/test"
 
-# Image preprocessing
-image_size = (128, 128)
-batch_size = 32
+def create_cnn_model(input_shape=(256, 256, 3), num_classes=2):
+    model = Sequential()
 
-train_datagen = ImageDataGenerator(rescale=1.0/255.0)
-test_datagen = ImageDataGenerator(rescale=1.0/255.0)
+    # Convolutional Layer 1
+    model.add(Conv2D(32, (3, 3), activation='relu',
+              padding='same', input_shape=input_shape))
+    model.add(BatchNormalization())
+    model.add(MaxPooling2D(pool_size=(2, 2)))
 
-train_generator = train_datagen.flow_from_directory(
-    train_dir,
-    target_size=image_size,
-    batch_size=batch_size,
-    class_mode='binary'
-)
+    # Convolutional Layer 2
+    model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
+    model.add(BatchNormalization())
+    model.add(MaxPooling2D(pool_size=(2, 2)))
 
-test_generator = test_datagen.flow_from_directory(
-    test_dir,
-    target_size=image_size,
-    batch_size=batch_size,
-    class_mode='binary'
-)
+    # Convolutional Layer 3
+    model.add(Conv2D(128, (3, 3), activation='relu', padding='same'))
+    model.add(BatchNormalization())
+    model.add(MaxPooling2D(pool_size=(2, 2)))
 
-# Build the model
-model = Sequential([
-    Conv2D(32, (3, 3), activation='relu', input_shape=(128, 128, 3)),
-    MaxPooling2D((2, 2)),
-    Conv2D(64, (3, 3), activation='relu'),
-    MaxPooling2D((2, 2)),
-    Flatten(),
-    Dense(128, activation='relu'),
-    Dropout(0.5),
-    Dense(1, activation='sigmoid')  # Binary classification
-])
+    # Fully Connected Layers
+    model.add(Flatten())
+    model.add(Dense(128, activation='relu'))
+    model.add(Dropout(0.5))  # Prevent overfitting
+    model.add(Dense(64, activation='relu'))
+    model.add(Dropout(0.5))
 
-model.compile(optimizer='adam', loss='binary_crossentropy',
-              metrics=['accuracy'])
+    # Output Layer
+    if num_classes > 1:
+        # Multi-class classification
+        model.add(Dense(num_classes, activation='softmax'))
+    else:
+        model.add(Dense(1, activation='sigmoid'))  # Binary classification
 
-# Train the model
-epochs = 10
-history = model.fit(
-    train_generator, validation_data=test_generator, epochs=epochs)
-
-# Save the model
-model.save("model.h5")
+    return model

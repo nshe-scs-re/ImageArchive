@@ -1,24 +1,31 @@
-from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing.image import load_img, img_to_array
+import tensorflow as tf
 import numpy as np
-
-# Load the model
-model = load_model("snow_detection_model.h5")
-
-# Load and preprocess an image
+from tensorflow.keras.preprocessing.image import load_img, img_to_array
+from model import create_cnn_model
 
 
-def predict_image(image_path):
-    image = load_img(image_path, target_size=(128, 128))
-    image_array = img_to_array(image) / 255.0
+def predict_image(image_path, model_path, input_shape=(256, 256, 3)):
+    # Load the trained model
+    model = tf.keras.models.load_model(model_path)
+
+    # Load and preprocess the image
+    image = load_img(image_path, target_size=input_shape[:2])
+    image_array = img_to_array(image) / 255.0  # Normalize
     image_array = np.expand_dims(image_array, axis=0)  # Add batch dimension
 
+    # Predict
     prediction = model.predict(image_array)
-    if prediction[0][0] > 0.5:
-        print("Yes")
+
+    # Interpret prediction
+    if prediction[0] > 0.5:
+        return "Snow"
     else:
-        print("No")
+        return "No Snow"
 
 
-# Test with a new image
-predict_image("path/to/new/image.jpg")
+# Example Usage
+if __name__ == "__main__":
+    image_path = "dataset"
+    model_path = "model.h5"
+    result = predict_image(image_path, model_path)
+    print(f"Prediction: {result}")
