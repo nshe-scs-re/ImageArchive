@@ -1,0 +1,157 @@
+﻿@page "/help"
+@inject IJSRuntime JS
+@inject ThemeService ThemeService
+
+<PageTitle>Help & Documentation</PageTitle>
+
+<div class="custom-help-section @GetTheme()">
+    <h2 class="text-center custom-help-section py-2 @GetTheme()"> Help & Documentation</h2>
+    <p>Welcome to the Image Archive Help and Documentation page! This comprehensive resource is here to ensure you have all the guidance you need to navigate our platform with confidence and ease. Whether you’re just starting out or looking to explore advanced features, this page offers detailed step-by-step instructions, practical tips, and solutions to common questions. From setting up your account and performing basic searches to mastering advanced filters and managing your profile settings, we’ve covered every aspect to help you make the most of our tools. Designed with your needs in mind, this guide aims to simplify your experience, enhance your productivity, and address any concerns you may encounter. Dive into the sections below to unlock the full potential of our platform and find the answers you're looking for, all in one place.</p>
+
+    <div class="custom-help-section custom-theme">
+        <h2>Table of Contents</h2>
+        <ul>
+            <li><a href="/help#getting-started" @onclick="@(() => ScrollToSection("getting-started"))">Getting Started</a></li>
+            <li><a href="/help#advanced-filters" @onclick="@(() => ScrollToSection("advanced-filters"))">Using Advanced Filters</a></li>
+            <li><a href="/help#account-management" @onclick="@(() => ScrollToSection("account-management"))">Account Management</a></li>
+            <li><a href="/help#faq" @onclick="@(() => ScrollToSection("faq"))">Frequently Asked Questions</a></li>
+            <li><a href="/help#custom-contact-support" @onclick="@(() => ScrollToSection("contact-support"))">Contact Support</a></li>
+        </ul>
+    </div>
+
+
+
+
+    <div id="getting-started" class="custom-help-section">
+        <h2>Getting Started</h2>
+        <p>
+            To get started with our platform, navigate to the Home page, where you’ll find an intuitive search bar designed to help you explore the image repository efficiently. Begin by entering your desired query parameters, such as specific dates, locations, times, or camera numbers. These filters allow you to refine your search to match your exact needs, whether you’re looking for images from a particular time frame, a specific region, or captured by a certain camera. The platform is built to handle both simple and complex queries, ensuring you can quickly access the data that matters most to your research or project.
+
+            Once your query is submitted, the platform will display a curated set of images that meet your criteria. Each result includes essential metadata, allowing you to analyze the images in detail before downloading them individually or in bulk. To save time and enhance your workflow, take advantage of additional features like paginated results for faster browsing and advanced filtering options for more precise searches. Whether you're conducting research, tracking environmental changes, or simply exploring the archive, the platform is designed to make the process as seamless and efficient as possible.
+        </p>
+    </div>
+
+    <div id="advanced-filters" class="custom-help-section">
+        <h2>Using Advanced Filters</h2>
+        <p>Our platform allows for detailed filtering options:</p>
+        <ul>
+            <li><strong>Date Range:</strong> Filter images captured between specific start and end dates.</li>
+            <li><strong>Time Range:</strong> Narrow down results to specific times of day.</li>
+            <li><strong>Camera Number:</strong> Choose the exact camera used to capture images.</li>
+            <li><strong>Position:</strong> Select images based on camera angle or location.</li>
+        </ul>
+    </div>
+
+    <div id="account-management" class="custom-help-section">
+        <h2>Account Management</h2>
+        <p>You can manage your account settings by accessing your profile from the navigation bar. Here, you can update your personal information, adjust notification preferences, and enable dark mode for a comfortable viewing experience.</p>
+    </div>
+
+    <div id="faq" class="custom-help-section">
+        <h2>Frequently Asked Questions</h2>
+        <div class="custom-faq-item">
+          <p class="custom-faq-question" @onclick="@(() => ToggleAnswer("faq-answer-0"))">How can I reset my password?</p>
+          <p class="custom-faq-answer" id="faq-answer-0" style="display:none;">To reset your password, go to the Profile page and click on 'Reset Password.' Follow the on-screen instructions to complete the process.</p>
+         </div>
+         <div class="custom-faq-item">
+          <p class="custom-faq-question" @onclick="@(() => ToggleAnswer("faq-answer-1"))">Can I save my search queries for future use?</p>
+          <p class="custom-faq-answer" id="faq-answer-1" style="display:none;">Yes, you can save search queries under the 'Saved Searches' section in your profile. This allows you to quickly access commonly used queries.</p>
+         </div>
+         <div class="custom-faq-item">
+          <p class="custom-faq-question" @onclick="@(() => ToggleAnswer("faq-answer-2"))">What file formats are supported for uploads?</p>
+          <p class="custom-faq-answer" id="faq-answer-2" style="display:none;">Currently, we support .jpg, and .png formats. Ensure that images are high-resolution and accurately tagged for optimal performance.</p>
+      </div>
+    </div>
+    
+
+
+    <div id="custom-contact-support" class="custom-contact-support @GetTheme()">
+        <h2>Contact Support</h2>
+        <p>If you encounter any issues, please don't hesitate to reach out. We are here to help with any questions or problems you may have.</p>
+        <p><strong>Email:</strong> support@imagerepository.com</p>
+        <p><strong>Phone:</strong> +1 (555) 123-4567</p>
+    </div>
+
+    <div class="custom-feedback-section @GetTheme()">
+        <h2>Your Feedback Matters</h2>
+        <p>Help us improve our platform by sharing your feedback. We appreciate your input!</p>
+        <textarea @bind="feedbackText" placeholder="Type your feedback here..."></textarea>
+        <button @onclick="SubmitFeedback">Submit Feedback</button>
+        <p class="mt-3"><strong>Total Feedback Submissions:</strong> @feedbackCount</p>
+        <div class="custom-recent-feedback">
+            <h4>Recent Feedback</h4>
+            @foreach (var feedback in recentFeedbacks)
+            {
+                <p>@feedback</p>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript functions for interactivity when scrolling to a specific section or getting an answer to a FAQ -->
+<script>
+   window.helpFunctions = {
+    toggleAnswer: function (answerId) {
+        const answerElement = document.getElementById(answerId);
+        if (answerElement) {
+            if (answerElement.style.display === 'none' || !answerElement.style.display) {
+                answerElement.style.display = 'block';
+            } else {
+                answerElement.style.display = 'none';
+            }
+        }
+    },
+    scrollToSection: function (sectionId) {
+        const sectionElement = document.getElementById(sectionId);
+        if (sectionElement) {
+            sectionElement.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+};
+
+</script>
+
+@code {
+    private string feedbackText;
+    private int feedbackCount = 0;
+    private List<string> recentFeedbacks = new();
+
+   
+        protected override void OnInitialized()
+        {
+            ThemeService.StateChanged += StateHasChanged;
+        }
+
+        public void Dispose()
+        {
+            ThemeService.StateChanged -= StateHasChanged;
+        }
+ 
+
+
+    private async Task ToggleAnswer(string answerId)
+    {
+        await JS.InvokeVoidAsync("helpFunctions.toggleAnswer", answerId);
+    }
+
+    private async Task ScrollToSection(string sectionId)
+    {
+        await JS.InvokeVoidAsync("helpFunctions.scrollToSection", sectionId);
+    }
+
+    private void SubmitFeedback()
+    {
+        if (!string.IsNullOrWhiteSpace(feedbackText))
+        {
+            feedbackCount++;
+            recentFeedbacks.Insert(0, feedbackText);
+            if (recentFeedbacks.Count > 5) recentFeedbacks.RemoveAt(recentFeedbacks.Count - 1);
+            feedbackText = string.Empty;
+        }
+    }
+    private string GetTheme()
+    {
+        return ThemeService.State ? "bg-body-tertiary" : "custom-color-bg-dm-secondary";
+    }
+
+}
