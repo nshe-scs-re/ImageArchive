@@ -13,10 +13,12 @@
           <Authorized>
             <li class="nav-item"><a class="btn btn-light rounded custom-btn-fixed-size-sm @GetButtonTheme()" href="/" Match="NavLinkMatch.All">Home</a></li>
             <li class="nav-item"><a class="btn btn-light rounded custom-btn-fixed-size-sm @GetButtonTheme()" href="http://localhost:8080/swagger">Swagger</a></li>
+            <li class="nav-item"><NavLink class="nav-link rounded" href="/mytest" Match="NavLinkMatch.All">AJs Test Page</NavLink></li>
           </Authorized>
           <NotAuthorized>
             <li class="nav-item"><a class="btn btn-light rounded custom-btn-fixed-size-sm @GetButtonTheme()" href="/" Match="NavLinkMatch.All">Home</a></li>
             <li class="nav-item"><a class="btn btn-light rounded custom-btn-fixed-size-sm @GetButtonTheme()" href="http://localhost:8080/swagger">Swagger</a></li>
+            <li class="nav-item"><NavLink class="nav-link rounded" href="/mytest" Match="NavLinkMatch.All">AJs Test Page</NavLink></li>
           </NotAuthorized>
         </AuthorizeView>
       </ul>
