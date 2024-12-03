@@ -76,7 +76,7 @@
         <h2>Your Feedback Matters</h2>
         <p>Help us improve our platform by sharing your feedback. We appreciate your input!</p>
         <textarea @bind="feedbackText" placeholder="Type your feedback here..."></textarea>
-        <button @onclick="SubmitFeedback">Submit Feedback</button>
+        <button class="btn btn-light rounded @GetButtonTheme()" @onclick="SubmitFeedback">Submit Feedback</button>
         <p class="mt-3"><strong>Total Feedback Submissions:</strong> @feedbackCount</p>
         <div class="custom-recent-feedback">
             <h4>Recent Feedback</h4>
@@ -152,6 +152,10 @@
     private string GetTheme()
     {
         return ThemeService.State ? "bg-body-tertiary" : "custom-color-bg-dm-secondary";
+    }
+    private string GetButtonTheme()
+    {
+        return ThemeService.State ? "btn-outline-secondary" : "custom-color-btn-dm-border";
     }
 
 }
