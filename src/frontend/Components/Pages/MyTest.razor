@@ -1,0 +1,295 @@
+﻿@page "/mytest"
+@inject HttpService HttpService
+@inject IConfiguration config
+
+<h3>MyTest</h3>
+
+<!-- Current Date and Time -->
+<section class="current-datetime">
+    <h4>Current Date and Time</h4>
+    <p>@DateTime.Now.ToString("F")</p>
+</section>
+
+<!-- Tooltip Button -->
+<section class="upload-hint">
+    <h4>Hints</h4>
+    <button class="btn btn-info" @onclick="OnShowModalClick" data-bs-toggle="tooltip" title="Only upload image files (i.e. .jpg, .jpeg, .png, .gif)">
+        ?
+    </button>
+</section>
+
+<!-- Upload One File Section -->
+<section class="upload-one-file">
+    <h4>Upload One File</h4>
+    <button class="btn btn-primary" @onclick="OnShowModalClick">Upload One File</button>
+</section>
+
+<!-- Upload Multiple Files Section -->
+<section class="upload-multiple-files">
+    <h4>Upload Multiple Files</h4>
+    <button class="btn btn-primary" @onclick="OnShowBatchModalClick">Upload Multiple Files</button>
+</section>
+
+<!-- Single File Upload Modal -->
+<div class="modal" tabindex="-1" style="display:@(isModalVisible ? "block" : "none")">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Upload Files</h5>
+                <button type="button" class="btn-close" @onclick="OnHideModalClick"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="siteName" class="form-label">Site Name</label>
+                    <select class="form-select" id="siteName" @bind="siteName">
+                        <option value="">Select a site</option>
+                        @foreach (var site in siteNames)
+                        {
+                            <option value="@site">@site</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="cameraPosition" class="form-label">Camera Position</label>
+                    <select class="form-select" id="cameraPosition" @bind="cameraPosition">
+                        <option value="">Select a camera position</option>
+                        @foreach (var position in cameraPositions)
+                        {
+                            <option value="@position">@position</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="cameraNumber" class="form-label">Camera Number</label>
+                    <select class="form-select" id="cameraNumber" @bind="cameraNumber">
+                        <option value="">Select a camera number</option>
+                        @foreach (var number in cameraNumbers)
+                        {
+                            <option value="@number">@number</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="photoTime" class="form-label">Time of Photo Taken (PST)</label>
+                    <input type="datetime-local" class="form-control" id="photoTime" @bind="photoTime" />
+                </div>
+                <InputFile OnChange="UploadSingle" id="fileInputElement" multiple accept=".gif,.png,.jpg,.jpeg" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @onclick="OnHideModalClick">Close</button>
+                <button type="button" class="btn btn-primary" @onclick="UploadFiles" disabled="@(!CanUpload)">Upload</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Multiple File Upload Modal -->
+<div class="modal" tabindex="-1" style="display:@(isBatchModalVisible ? "block" : "none")">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Upload Multiple Files</h5>
+                <button type="button" class="btn-close" @onclick="OnHideBatchModalClick"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="batchSiteName" class="form-label">Site Name</label>
+                    <select class="form-select" id="batchSiteName" @bind="batchSiteName">
+                        <option value="">Select a site</option>
+                        @foreach (var site in siteNames)
+                        {
+                            <option value="@site">@site</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="batchCameraPosition" class="form-label">Camera Position</label>
+                    <select class="form-select" id="batchCameraPosition" @bind="batchCameraPosition">
+                        <option value="">Select a camera position</option>
+                        @foreach (var position in cameraPositions)
+                        {
+                            <option value="@position">@position</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="batchCameraNumber" class="form-label">Camera Number</label>
+                    <select class="form-select" id="batchCameraNumber" @bind="batchCameraNumber">
+                        <option value="">Select a camera number</option>
+                        @foreach (var number in cameraNumbers)
+                        {
+                            <option value="@number">@number</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="batchPhotoTime" class="form-label">Time of Photo Taken (PST)</label>
+                    <input type="datetime-local" class="form-control" id="batchPhotoTime" @bind="batchPhotoTime" />
+                </div>
+                <InputFile OnChange="HandleBatchFileSelection" id="batchFileInputElement" multiple accept=".gif,.png,.jpg,.jpeg" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @onclick="OnHideBatchModalClick">Close</button>
+                <button type="button" class="btn btn-primary" @onclick="UploadBatchFiles" disabled="@(!CanBatchUpload)">Upload</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@if(errors.Count > 0)
+{
+    <h2>Error(s)</h2>
+    <ul class="text-danger">
+        @foreach (var error in errors)
+        {
+            <li>@error</li>
+        }
+    </ul>
+}
+
+@code{
+    private bool isModalVisible = false;
+    private bool isBatchModalVisible = false;
+    private int maxAllowedFiles = 5;
+    private List<string> errors = new();
+    private List<IBrowserFile> selectedFiles = new List<IBrowserFile>();
+    private List<IBrowserFile> batchSelectedFiles = new List<IBrowserFile>();
+    private string siteName = string.Empty;
+    private string cameraPosition = string.Empty;
+    private string cameraNumber = string.Empty;
+    private DateTime? photoTime;
+    private string batchSiteName = string.Empty;
+    private string batchCameraPosition = string.Empty;
+    private string batchCameraNumber = string.Empty;
+    private DateTime? batchPhotoTime;
+    private bool CanUpload => !string.IsNullOrEmpty(siteName) && !string.IsNullOrEmpty(cameraPosition) && !string.IsNullOrEmpty(cameraNumber) && photoTime.HasValue;
+    private bool CanBatchUpload => !string.IsNullOrEmpty(batchSiteName) && !string.IsNullOrEmpty(batchCameraPosition) && !string.IsNullOrEmpty(batchCameraNumber) && batchPhotoTime.HasValue && batchSelectedFiles.Count > 0;
+
+    private List<string> siteNames = new() { "Rockland", "Sheep", "Snake", "Spring" };
+    private List<string> cameraPositions = new() { "Position 1", "Position 2", "Position 3" };
+    private List<string> cameraNumbers = new() { "Camera 1", "Camera 2", "Camera 3" };
+
+    private Task OnShowModalClick()
+    {
+        isModalVisible = true;
+        return Task.CompletedTask;
+    }
+
+    private Task OnHideModalClick()
+    {
+        isModalVisible = false;
+        return Task.CompletedTask;
+    }
+    private Task OnShowBatchModalClick()
+    {
+        isBatchModalVisible = true;
+        return Task.CompletedTask;
+    }
+
+    private Task OnHideBatchModalClick()
+    {
+        isBatchModalVisible = false;
+        return Task.CompletedTask;
+    }
+
+    //TODO: Button triggers once the user clicks the upload button, but the button doesnt trigger ever again without refreshing web page. Why?
+    private async Task UploadSingle(InputFileChangeEventArgs e)
+    {
+        errors.Clear();
+        var files = e.GetMultipleFiles();
+        selectedFiles.AddRange(files);
+
+        try
+        { 
+            var response = await HttpService.UploadImageAsync("api/upload/multiple", selectedFiles);
+            foreach (var file in files)
+            {
+                // Get the file name and size
+                var fileName = file.Name;
+                var fileSize = file.Size;
+
+                // Read the file contents
+                using var stream = file.OpenReadStream();
+                using var reader = new StreamReader(stream);
+                var fileContents = await reader.ReadToEndAsync();
+
+                // Do something with the file contents
+                Console.WriteLine($"File name: {fileName}");
+                Console.WriteLine($"File size: {fileSize} bytes");
+                Console.WriteLine($"File contents: {fileContents}");
+                if (response.IsSuccessStatusCode)
+                {
+                    // Handle success (e.g., show a success message, navigate to another page, etc.)
+                    await OnHideModalClick();
+                }
+                else
+                {
+                    // Handle error (e.g., show an error message)
+                    errors.Add("Error uploading file.");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Message: {ex.Message}");
+            throw;
+        }
+    }
+    private void HandleBatchFileSelection(InputFileChangeEventArgs e)
+    {
+        errors.Clear();
+        var files = e.GetMultipleFiles();
+        if (files.Count > maxAllowedFiles)
+        {
+            errors.Add($"Error: Upload exceeding max file count. {maxAllowedFiles}");
+            return;
+        }
+        batchSelectedFiles.AddRange(files);
+    }
+
+    private async Task UploadBatchFiles()
+    {
+        if (batchSelectedFiles.Count == 0)
+        {
+            errors.Add("No files selected for upload.");
+            return;
+        }
+
+        try
+        {
+            foreach (var file in batchSelectedFiles)
+            {
+                var fileName = file.Name;
+                var fileSize = file.Size;
+
+                using var stream = file.OpenReadStream();
+                using var reader = new StreamReader(stream);
+                var fileContents = await reader.ReadToEndAsync();
+
+                Console.WriteLine($"File name: {fileName}");
+                Console.WriteLine($"File size: {fileSize} bytes");
+                Console.WriteLine($"File contents: {fileContents}");
+            }
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Message: {ex.Message}");
+            errors.Add($"Error: {ex.Message}");
+        }
+        finally
+        {
+            batchSelectedFiles.Clear();
+            await OnHideBatchModalClick();
+        }
+    }
+
+    private async Task UploadFiles() 
+    {
+        if (CanUpload)
+        {
+            await UploadSingle(new InputFileChangeEventArgs(selectedFiles));
+            await OnHideModalClick();
+        }
+    }
+}
