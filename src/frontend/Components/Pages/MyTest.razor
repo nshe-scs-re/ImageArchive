@@ -4,8 +4,9 @@
 
 <h3>MyTest</h3>
 
-<button @onclick="OnShowModalClick">Upload Files</button>
-
+<button @onclick="OnShowModalClick">Upload One File</button>
+<button @onclick="OnShowBatchModalClick">Upload Multiple Files</button>
+<!-- Single File Upload Modal -->
 <div class="modal" tabindex="-1" style="display:@(isModalVisible ? "block" : "none")">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -57,8 +58,58 @@
         </div>
     </div>
 </div>
-
-
+<!-- Multiple File Upload Modal -->
+<div class="modal" tabindex="-1" style="display:@(isBatchModalVisible ? "block" : "none")">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Upload Multiple Files</h5>
+                <button type="button" class="btn-close" @onclick="OnHideBatchModalClick"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="batchSiteName" class="form-label">Site Name</label>
+                    <select class="form-select" id="batchSiteName" @bind="batchSiteName">
+                        <option value="">Select a site</option>
+                        @foreach (var site in siteNames)
+                        {
+                            <option value="@site">@site</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="batchCameraPosition" class="form-label">Camera Position</label>
+                    <select class="form-select" id="batchCameraPosition" @bind="batchCameraPosition">
+                        <option value="">Select a camera position</option>
+                        @foreach (var position in cameraPositions)
+                        {
+                            <option value="@position">@position</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="batchCameraNumber" class="form-label">Camera Number</label>
+                    <select class="form-select" id="batchCameraNumber" @bind="batchCameraNumber">
+                        <option value="">Select a camera number</option>
+                        @foreach (var number in cameraNumbers)
+                        {
+                            <option value="@number">@number</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="batchPhotoTime" class="form-label">Time of Photo Taken (PST)</label>
+                    <input type="datetime-local" class="form-control" id="batchPhotoTime" @bind="batchPhotoTime" />
+                </div>
+                <InputFile OnChange="HandleBatchFileSelection" id="batchFileInputElement" multiple accept=".gif,.png,.jpg,.jpeg" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @onclick="OnHideBatchModalClick">Close</button>
+                <button type="button" class="btn btn-primary" @onclick="UploadBatchFiles" disabled="@(!CanBatchUpload)">Upload</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 
 @if(errors.Count > 0)
@@ -74,14 +125,21 @@
 
 @code{
     private bool isModalVisible = false;
+    private bool isBatchModalVisible = false;
     private int maxAllowedFiles = 5;
     private List<string> errors = new();
     private List<IBrowserFile> selectedFiles = new List<IBrowserFile>();
-    private string siteName;
-    private string cameraPosition;
-    private string cameraNumber;
+    private List<IBrowserFile> batchSelectedFiles = new List<IBrowserFile>();
+    private string siteName = string.Empty;
+    private string cameraPosition = string.Empty;
+    private string cameraNumber = string.Empty;
     private DateTime? photoTime;
-    private bool CanUpload => !string.IsNullOrEmpty(siteName) && !string.IsNullOrEmpty(cameraPosition) && photoTime.HasValue;
+    private string batchSiteName = string.Empty;
+    private string batchCameraPosition = string.Empty;
+    private string batchCameraNumber = string.Empty;
+    private DateTime? batchPhotoTime;
+    private bool CanUpload => !string.IsNullOrEmpty(siteName) && !string.IsNullOrEmpty(cameraPosition) && !string.IsNullOrEmpty(cameraNumber) && photoTime.HasValue;
+    private bool CanBatchUpload => !string.IsNullOrEmpty(batchSiteName) && !string.IsNullOrEmpty(batchCameraPosition) && !string.IsNullOrEmpty(batchCameraNumber) && batchPhotoTime.HasValue && batchSelectedFiles.Count > 0;
 
     private List<string> siteNames = new() { "Rockland", "Sheep", "Snake", "Spring" };
     private List<string> cameraPositions = new() { "Position 1", "Position 2", "Position 3" };
@@ -98,6 +156,17 @@
         isModalVisible = false;
         return Task.CompletedTask;
     }
+    private Task OnShowBatchModalClick()
+    {
+        isBatchModalVisible = true;
+        return Task.CompletedTask;
+    }
+
+    private Task OnHideBatchModalClick()
+    {
+        isBatchModalVisible = false;
+        return Task.CompletedTask;
+    }
 
     //TODO: Button triggers once the user clicks the upload button, but the button doesnt trigger ever again without refreshing web page. Why?
     private async Task UploadSingle(InputFileChangeEventArgs e)
@@ -105,17 +174,10 @@
         errors.Clear();
         var files = e.GetMultipleFiles();
         selectedFiles.AddRange(files);
-        // var response = HttpService.UploadImageAsync(files);
-        // var temp = await response.Result.Content.ReadAsStringAsync();
-        //TODO: Set it to where the user can upload image BUT only if site, time, and camera are selected
+
         try
         { 
-            if (e.FileCount > maxAllowedFiles)
-            {
-                errors.Add($"Error: Upload exceeding max file count. {maxAllowedFiles}");
-                //selectedFiles.RemoveRange(maxAllowedFiles, selectedFiles.Count - maxAllowedFiles);
-            }
-            var response = await HttpService.UploadImageAsync(selectedFiles);
+            var response = await HttpService.UploadImageAsync("api/upload/multiple", selectedFiles);
             foreach (var file in files)
             {
                 // Get the file name and size
@@ -139,13 +201,60 @@
             throw;
         }
     }
+    private void HandleBatchFileSelection(InputFileChangeEventArgs e)
+    {
+        errors.Clear();
+        var files = e.GetMultipleFiles();
+        if (files.Count > maxAllowedFiles)
+        {
+            errors.Add($"Error: Upload exceeding max file count. {maxAllowedFiles}");
+            return;
+        }
+        batchSelectedFiles.AddRange(files);
+    }
+
+    private async Task UploadBatchFiles()
+    {
+        if (batchSelectedFiles.Count == 0)
+        {
+            errors.Add("No files selected for upload.");
+            return;
+        }
+
+        try
+        {
+            foreach (var file in batchSelectedFiles)
+            {
+                var fileName = file.Name;
+                var fileSize = file.Size;
+
+                using var stream = file.OpenReadStream();
+                using var reader = new StreamReader(stream);
+                var fileContents = await reader.ReadToEndAsync();
+
+                Console.WriteLine($"File name: {fileName}");
+                Console.WriteLine($"File size: {fileSize} bytes");
+                Console.WriteLine($"File contents: {fileContents}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Message: {ex.Message}");
+            errors.Add($"Error: {ex.Message}");
+        }
+        finally
+        {
+            batchSelectedFiles.Clear();
+            await OnHideBatchModalClick();
+        }
+    }
 
     private async Task UploadFiles()
     {
         if (CanUpload)
         {
             await UploadSingle(new InputFileChangeEventArgs(selectedFiles));
-            OnHideModalClick();
+            await OnHideModalClick();
         }
     }
 }
