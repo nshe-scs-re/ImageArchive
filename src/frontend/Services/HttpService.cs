@@ -13,14 +13,12 @@ public class HttpService
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IAntiforgery _antiforgery;
     private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly HttpClient _httpClient;
 
-    public HttpService(IHttpClientFactory httpClientFactory, IAntiforgery antiforgery, IHttpContextAccessor httpContextAccessor, HttpClient httpClient)
+    public HttpService(IHttpClientFactory httpClientFactory, IAntiforgery antiforgery, IHttpContextAccessor httpContextAccessor)
     {
         _httpClientFactory = httpClientFactory;
         _antiforgery = antiforgery;
         _httpContextAccessor = httpContextAccessor;
-        _httpClient = httpClient;
     }
 
     public HttpClient CreateClient()
@@ -82,7 +80,6 @@ public class HttpService
     public async Task<HttpResponseMessage> UploadImageAsync(string url, List<IBrowserFile> files)
     {
         //most commented lines are remains from testing
-        var httpClient = this.CreateClient();
         //var startDate = DateTime.Now.AddDays(-7);
         //var endDate = DateTime.Now;
 
@@ -94,6 +91,9 @@ public class HttpService
         //    Description = "This is blah"
 
         //};
+
+        var httpClient = CreateClient();
+
         using var content = new MultipartFormDataContent();
         foreach(var file in files)
         {
@@ -102,7 +102,7 @@ public class HttpService
             content.Add(fileContent, "files", file.Name);
         }
 
-        var response = await _httpClient.PostAsync(url, content);
+        var response = await httpClient.PostAsync(url, content);
         response.EnsureSuccessStatusCode();
         return response;
     }
