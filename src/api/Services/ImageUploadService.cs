@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using api.Models;
 using api.Data;
-
+using Azure.Identity;
 
 public class ImageUploadService
 {
@@ -18,23 +18,31 @@ public class ImageUploadService
         //TODO: investigate why it doesn't save to DB, but uploading to the uploads folder in wwwroot works
         _storagePath = Path.Combine("wwwroot", "uploads");
 
-        if(!Directory.Exists(_storagePath))
+        if (!Directory.Exists(_storagePath))
         {
             Directory.CreateDirectory(_storagePath);
         }
     }
 
     //TODO: check the IFormFile Config to make sure that it cooperates with everything else --  I was having issues with other IFormFile. Seems to work tho
-    public async Task<string> SaveImageAsync(IFormFile file)
+    public async Task<string> SaveImageAsync(IFormFile file, int camera, int? cameraPosition, string? site)
     {
         try
         {
+            //TODO: Validate file size
+            // Validate file type
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (!allowedExtensions.Contains(extension))
+            {
+                throw new InvalidOperationException("Invalid file type.");
+            }
             var fileName = Path.GetFileNameWithoutExtension(file.FileName);
-            var extension = Path.GetExtension(file.FileName);
+            //var extension = Path.GetExtension(file.FileName);
             var uniqueFileName = $"{fileName}_{Guid.NewGuid()}{extension}";
             var filePath = Path.Combine(_storagePath, uniqueFileName);
 
-            await using(var fileStream = new FileStream(filePath, FileMode.Create))
+            await using (var fileStream = new FileStream(filePath, FileMode.Create))
             {
                 await file.CopyToAsync(fileStream);
             }
@@ -45,11 +53,12 @@ public class ImageUploadService
                 Name = fileName,
                 FilePath = filePath,
                 DateTime = DateTime.UtcNow,
-                UnixTime = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds()
+                UnixTime = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds(),
+                Site = site
             };
 
             _context.Images.Add(image);
-            await _context.SaveChangesAsync(); 
+            await _context.SaveChangesAsync();
             return uniqueFileName;
         }
         catch (Exception ex)

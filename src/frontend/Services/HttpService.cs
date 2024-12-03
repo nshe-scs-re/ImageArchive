@@ -5,6 +5,7 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Components.Forms;
+using System;
 namespace frontend.Services;
 
 public class HttpService
@@ -12,12 +13,14 @@ public class HttpService
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IAntiforgery _antiforgery;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly HttpClient _httpClient;
 
-    public HttpService(IHttpClientFactory httpClientFactory, IAntiforgery antiforgery, IHttpContextAccessor httpContextAccessor)
+    public HttpService(IHttpClientFactory httpClientFactory, IAntiforgery antiforgery, IHttpContextAccessor httpContextAccessor, HttpClient httpClient)
     {
         _httpClientFactory = httpClientFactory;
         _antiforgery = antiforgery;
         _httpContextAccessor = httpContextAccessor;
+        _httpClient = httpClient;
     }
 
     public HttpClient CreateClient()
@@ -76,7 +79,7 @@ public class HttpService
         return await httpClient.PostAsJsonAsync("api/archive/request", request);
     }
 
-    public async Task<HttpResponseMessage> UploadImageAsync(List<IBrowserFile> files)
+    public async Task<HttpResponseMessage> UploadImageAsync(string url, List<IBrowserFile> files)
     {
         //most commented lines are remains from testing
         var httpClient = this.CreateClient();
@@ -92,21 +95,16 @@ public class HttpService
 
         //};
         using var content = new MultipartFormDataContent();
-
-        // Add the file to the request
-        if(files != null)
+        foreach(var file in files)
         {
-            foreach(var file in files)
-            {
-                var fileContent = new StreamContent(file.OpenReadStream());
-                fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
-                content.Add(fileContent, "file", file.Name);
-            }
+            var fileContent = new StreamContent(file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024)); // 10 MB max file size
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+            content.Add(fileContent, "files", file.Name);
         }
 
-        // Send the request to the upload endpoint
-        return await httpClient.PostAsync("api/upload", content);
-        // return await httpClient.PostAsJsonAsync($"api/upload", request);
+        var response = await _httpClient.PostAsync(url, content);
+        response.EnsureSuccessStatusCode();
+        return response;
     }
 
 
