@@ -1,4 +1,6 @@
-<footer class="row row-cols-1 row-cols-md-2 row-cols-xl-3 bg-body-tertiary rounded p-5 align-items-center">
+@inject ThemeService ThemeService
+
+<footer class="row row-cols-1 row-cols-md-2 row-cols-xl-3 rounded p-5 align-items-center @GetTheme()">
     <div class="col d-none d-xl-block">
         <ResearchLogo />
     </div>
@@ -6,13 +8,13 @@
         <h5 class="p-1">Information</h5>
         <ul class="list-unstyled">
             <li class="p-1">
-                <a class="text-body-secondary" href="#" rel="" target="_self">About</a>
+                <a class="custom-color-footer-link" href="/About" rel="" target="_self">About</a>
             </li>
             <li class="p-1">
                 <a class="custom-color-footer-link" href="/Help" rel="" target="_self">Help & Documentation</a>
             </li>
             <li class="p-1">
-                <a class="text-body-secondary" href="https://github.com/nshe-scs-re" rel="external" target="_blank">Github</a>
+                <a class="custom-color-footer-link" href="https://github.com/nshe-scs-re" rel="external" target="_blank">Github</a>
             </li>
         </ul>
     </div>
@@ -20,11 +22,29 @@
         <h5 class="p-1">Partner Links</h5>
         <ul class="list-unstyled">
             <li class="p-1">
-                <a class="text-body-secondary" href="https://nshe.nevada.edu/system-administration/" rel="external" target="_blank">Nevada System of Higher Education</a>
-            </li>
+                <a class="custom-color-footer-link" href="https://nshe.nevada.edu/system-administration/" rel="external" target="_blank">Nevada System of Higher Education</a>
+            </li> 
             <li class="p-1">
-                <a class="text-body-secondary" href="https://scs.nevada.edu/" rel="external" target="_blank">System Computing Services</a>
+                <a class="custom-color-footer-link" href="https://scs.nevada.edu/" rel="external" target="_blank">System Computing Services</a>
             </li>
         </ul>
     </div>
 </footer>
+
+@code
+{
+    protected override void OnInitialized()
+    {
+        ThemeService.StateChanged += StateHasChanged;
+    }
+
+    private string GetTheme()
+    {
+        return ThemeService.State ? "bg-body-tertiary" : "custom-color-bg-dm-secondary";
+    }
+
+    public void Dispose()
+    {
+        ThemeService.StateChanged -= StateHasChanged;
+    }
+}
