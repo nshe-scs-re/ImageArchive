@@ -139,8 +139,8 @@ else if (querySubmitted && loading is false)
                 }
                 <div class="d-flex justify-content-between align-items-center">
                   <div class="btn-group">
-                    <button type="button" class="btn btn-sm btn-light @GetButtonTheme()">View</button>
-                    <button type="button" class="btn btn-sm btn-light @GetButtonTheme()" @onclick="() => DownloadImage(image.Id)">Download</button>
+                    <button type="button" class="btn btn-sm btn-light @GetButtonTheme()" @onclick="() => UpdateImageSrc(image.Id)" data-bs-toggle="modal" data-bs-target="#view-image-modal">View</button>
+                    <button type="button" class="btn btn-sm btn-light @GetButtonTheme()" @onclick="() => DownloadImage(image)">Download</button>
                   </div>
                 </div>
               </div>
@@ -180,6 +180,19 @@ else if (querySubmitted && loading is false)
   </div>
 }
 
+<div class="modal fade" id="view-image-modal" tabindex="-1">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img src="@imageSrc"/>
+      </div>
+    </div>
+  </div>
+</div>
+
 @code
 {
     private ImageQuery imageQuery = new();
@@ -190,6 +203,7 @@ else if (querySubmitted && loading is false)
     private int pageSize = 9;
     private int totalImages = 0;
     private int totalPages = 0;
+    private string imageSrc = string.Empty;
 
     protected override void OnInitialized()
     {
@@ -283,10 +297,15 @@ else if (querySubmitted && loading is false)
         }
     }
     
-    private async Task DownloadImage(long Id)
+    private async Task DownloadImage(Image image)
     {
-        var url = $"/api/images/{Id}";
+        var url = $"/api/images/{image.Id}";
 
-        await JSRuntime.InvokeVoidAsync("download", url, $"{Id}.jpg");
+        await JSRuntime.InvokeVoidAsync("download", url, $"{image.UnixTime}.jpg");
+    }
+
+    private void UpdateImageSrc(long Id)
+    {
+        imageSrc = $"/api/images/{Id}";
     }
 }
