@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Components.Forms;
 using System;
-namespace frontend.Services;
+namespace frontend.Services; 
 
 public class HttpService
 {
