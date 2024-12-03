@@ -37,17 +37,17 @@
                 </div>
                 <div class="mb-3">
                     <label for="cameraNumber" class="form-label">Camera Number</label>
-                        <select class="form-select" id="cameraNumber" @bind="cameraNumber">
+                    <select class="form-select" id="cameraNumber" @bind="cameraNumber">
                         <option value="">Select a camera number</option>
                         @foreach (var number in cameraNumbers)
                         {
                             <option value="@number">@number</option>
                         }
-                        </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="photoTime" class="form-label">Time of Photo Taken (PST)</label>
-                            <input type="datetime-local" class="form-control" id="photoTime" @bind="photoTime" />
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="photoTime" class="form-label">Time of Photo Taken (PST)</label>
+                    <input type="datetime-local" class="form-control" id="photoTime" @bind="photoTime" />
                 </div>
                 <InputFile OnChange="UploadSingle" id="fileInputElement" multiple accept=".gif,.png,.jpg,.jpeg" />
             </div>
@@ -193,6 +193,16 @@
                 Console.WriteLine($"File name: {fileName}");
                 Console.WriteLine($"File size: {fileSize} bytes");
                 Console.WriteLine($"File contents: {fileContents}");
+                if (response.IsSuccessStatusCode)
+                {
+                    // Handle success (e.g., show a success message, navigate to another page, etc.)
+                    await OnHideModalClick();
+                }
+                else
+                {
+                    // Handle error (e.g., show an error message)
+                    errors.Add("Error uploading file.");
+                }
             }
         }
         catch (Exception ex)
@@ -236,6 +246,7 @@
                 Console.WriteLine($"File size: {fileSize} bytes");
                 Console.WriteLine($"File contents: {fileContents}");
             }
+
         }
         catch (Exception ex)
         {
