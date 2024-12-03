@@ -28,6 +28,8 @@ builder.Services.AddSqlServer<ImageDbContext>(builder.Configuration.GetConnectio
 
 builder.Services.AddScoped<ArchiveManager>();
 
+builder.Services.AddScoped<ImageUploadService>();
+
 builder.Services.AddAntiforgery(); //TODO: Configure antiforgery options
 
 builder.Services.AddCors(options =>
@@ -244,5 +246,86 @@ app.MapGet("/api/images/{id}", async (ImageDbContext dbContext, long id) =>
 })
 .WithSummary("Retrieves a single image based on a given id value.")
 .Produces<FileResult>(200, "image/jpeg");
+
+app.MapPost("/api/upload/single", async (HttpRequest request, ImageUploadService imageService) =>
+{
+    try
+    {
+        var form = await request.ReadFormAsync();
+        var file = form.Files["file"];
+        if(file == null || file.Length == 0)
+        {
+            return Results.BadRequest("No file uploaded or file is empty.");
+        }
+
+        if(!int.TryParse(form["camera"], out int camera))
+        {
+            return Results.BadRequest("Invalid camera value.");
+        }
+
+        int? cameraPosition = null;
+        if(int.TryParse(form["cameraPosition"], out int parsedCameraPosition))
+        {
+            cameraPosition = parsedCameraPosition;
+        }
+
+        string? site = form["site"];
+
+        var savedFileName = await imageService.SaveImageAsync(file, camera, cameraPosition, site);
+        var fileUrl = $"/uploads/{savedFileName}";
+        return Results.Ok(new { Message = "Upload successful!", ImageUrl = fileUrl, FileName = savedFileName });
+    }
+    catch(Exception ex)
+    {
+        return Results.Problem("An error occurred while processing the file upload: " + ex.Message);
+    }
+
+    //Console.WriteLine("Upload endpoint hit.");
+    //var request = await context.Request.ReadFromJsonAsync<UploadPractice>();
+   // Console.WriteLine($"{request.Name}{request.dateTime}{request.Description}");
+   // return Results.Ok("My endpoint works");
+});
+
+
+app.MapPost("/api/upload/multiple", async (HttpRequest request, ImageUploadService imageService) =>
+{
+    try
+    {
+        var form = await request.ReadFormAsync();
+        var files = form.Files;
+        if(files == null || files.Count == 0)
+        {
+            return Results.BadRequest("No files uploaded or files are empty.");
+        }
+
+        if(!int.TryParse(form["camera"], out int camera))
+        {
+            return Results.BadRequest("Invalid camera value.");
+        }
+
+        int? cameraPosition = null;
+        if(int.TryParse(form["cameraPosition"], out int parsedCameraPosition))
+        {
+            cameraPosition = parsedCameraPosition;
+        }
+
+        string? site = form["site"];
+
+        List<string> savedFileNames = new List<string>();
+
+        foreach(var file in files)
+        {
+            var savedFileName = await imageService.SaveImageAsync(file, camera, cameraPosition, site);
+            savedFileNames.Add(savedFileName);
+        }
+
+        return Results.Ok(new { Message = "Upload successful!", FileNames = savedFileNames });
+    }
+    catch(Exception ex) 
+    {
+        return Results.Problem("An error occurred while processing the file upload: " + ex.Message);
+    }
+});
+
 
 app.Run();
