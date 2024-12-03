@@ -154,4 +154,161 @@ h1:focus {
 
     .accordion-button.custom-theme-dark:hover::after {
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23091f2c' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+
     }
+
+.custom-about-container {
+    background-color: #f8f9fa;
+    color: #333333;
+    padding: 2rem;
+    border-radius: 10px;
+    max-width: 1000px;
+    margin: 2rem auto;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.custom-section {
+    margin-bottom: 3rem;
+}
+
+    .custom-section h2 {
+        color: #0056b3;
+        margin-bottom: 1rem;
+    }
+
+.custom-team-member {
+    margin-top: 2rem;
+    border-top: 1px solid #ddd;
+    padding-top: 1.5rem;
+}
+
+    .custom-team-member h3 {
+        color: #0056b3;
+        margin-bottom: 0.5rem;
+    }
+
+    .custom-team-member p {
+        margin-bottom: 0.5rem;
+        line-height: 1.8;
+    }
+
+.custom-feature-list {
+    margin-left: 1.5rem;
+    list-style-type: disc;
+}
+
+.custom-values-list {
+    margin-left: 1.5rem;
+    list-style-type: circle;
+}
+
+.dark-mode .about-container {
+    background-color: #444444;
+    color: #ffffff;
+}
+
+.dark-mode .section h2,
+.dark-mode .team-member h3 {
+    color: #aad4ff;
+}
+
+.dark-mode .feature-list li,
+.dark-mode .values-list li {
+    color: #cccccc;
+}
+
+
+.custom-about-tahoe-image {
+    display: block;
+    max-width: 100%;
+    border-radius: 8px;
+    margin: 1rem auto;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2); /* Optional shadow for effect */
+    align-self: center;
+}
+
+
+.custom-feedback-section {
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    margin: auto;
+}
+
+.custom-feedback-form input, .custom-feedback-form select {
+    width: 100%;
+}
+
+.custom-view-feedback {
+    text-align: center;
+}
+
+.custom-feedback-list {
+    list-style: none;
+    padding: 0;
+    max-height: 200px;
+    overflow-y: auto;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.custom-feedback-item {
+    padding: 0.5rem 0;
+}
+
+    .custom-feedback-item hr {
+        border-top: 1px solid #ddd;
+    }
+
+.custom-feedback-stats {
+    font-weight: bold;
+}
+
+.custom-achievements-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.custom-achievements {
+    border-radius: 10px;
+    padding: 2rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+    .custom-achievements h3 {
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+    }
+
+    .custom-achievements p {
+        font-size: 1.2rem;
+        margin: 0.5rem 0;
+    }
+        .custom-achievements p strong {
+        }
+
+    .custom-achievements:hover {
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        transform: scale(1.02);
+    }
+
+.h1.custom-theme-light,
+.h2.custom-theme-light {
+    color: #0056b3;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
+}
