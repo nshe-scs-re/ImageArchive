@@ -4,8 +4,32 @@
 
 <h3>MyTest</h3>
 
-<button @onclick="OnShowModalClick">Upload One File</button>
-<button @onclick="OnShowBatchModalClick">Upload Multiple Files</button>
+<!-- Current Date and Time -->
+<section class="current-datetime">
+    <h4>Current Date and Time</h4>
+    <p>@DateTime.Now.ToString("F")</p>
+</section>
+
+<!-- Tooltip Button -->
+<section class="upload-hint">
+    <h4>Hints</h4>
+    <button class="btn btn-info" @onclick="OnShowModalClick" data-bs-toggle="tooltip" title="Only upload image files (i.e. .jpg, .jpeg, .png, .gif)">
+        ?
+    </button>
+</section>
+
+<!-- Upload One File Section -->
+<section class="upload-one-file">
+    <h4>Upload One File</h4>
+    <button class="btn btn-primary" @onclick="OnShowModalClick">Upload One File</button>
+</section>
+
+<!-- Upload Multiple Files Section -->
+<section class="upload-multiple-files">
+    <h4>Upload Multiple Files</h4>
+    <button class="btn btn-primary" @onclick="OnShowBatchModalClick">Upload Multiple Files</button>
+</section>
+
 <!-- Single File Upload Modal -->
 <div class="modal" tabindex="-1" style="display:@(isModalVisible ? "block" : "none")">
     <div class="modal-dialog">
