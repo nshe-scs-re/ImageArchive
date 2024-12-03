@@ -1,0 +1,253 @@
+﻿@page "/help"
+@inject IJSRuntime JS
+
+<PageTitle>Help & Documentation</PageTitle>
+
+<style>
+    .help-container {
+        background-color: #f8f9fa;
+        color: #333;
+        padding: 2rem;
+        border-radius: 10px;
+        max-width: 1200px;
+        margin: 2rem auto;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        font-family: Arial, sans-serif;
+    }
+
+    .section {
+        margin-bottom: 3rem;
+    }
+
+        .section h2 {
+            color: #004080;
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+        }
+
+    .faq-item {
+        margin-bottom: 1.5rem;
+    }
+
+    .faq-question {
+        font-weight: bold;
+        color: #004080;
+        cursor: pointer;
+        transition: color 0.3s ease;
+        font-size: 1.1rem;
+    }
+
+        .faq-question:hover {
+            color: #002060;
+        }
+
+    .faq-answer {
+        display: none;
+        font-size: 1rem;
+        margin-top: 0.5rem;
+        line-height: 1.6;
+        background-color: #e0ebff;
+        padding: 0.5rem;
+        border-radius: 5px;
+    }
+
+    .contact-support {
+        background-color: #e9f2f9;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-top: 2rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .toc {
+        background-color: #f0f8ff;
+        padding: 1rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+    }
+
+        .toc ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .toc li {
+            padding: 0.5rem 0;
+        }
+
+        .toc a {
+            color: #0056b3;
+            text-decoration: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+            .toc a:hover {
+                color: #003366;
+            }
+
+    .feedback-section {
+        background-color: #f8f9fa;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        margin-top: 3rem;
+        text-align: center;
+    }
+
+        .feedback-section textarea {
+            width: 100%;
+            height: 100px;
+            padding: 0.5rem;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            resize: none;
+            margin-bottom: 1rem;
+        }
+
+        .feedback-section button {
+            padding: 0.7rem 2rem;
+            border-radius: 5px;
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+            .feedback-section button:hover {
+                background-color: #218838;
+            }
+
+    .recent-feedback {
+        max-height: 150px;
+        overflow-y: auto;
+        margin-top: 1rem;
+        padding: 1rem;
+        background-color: #e9f2f9;
+        border-radius: 8px;
+    }
+</style>
+
+<!-- JavaScript functions for interactivity -->
+<script>
+    window.helpFunctions = {
+        toggleAnswer: function (answerId) {
+            const answerElement = document.getElementById(answerId);
+            if (answerElement) {
+                answerElement.style.display = answerElement.style.display === 'none' ? 'block' : 'none';
+            }
+        },
+        scrollToSection: function (sectionId) {
+            const sectionElement = document.getElementById(sectionId);
+            if (sectionElement) {
+                sectionElement.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+    };
+</script>
+
+<div class="help-container">
+    <h1>Help & Documentation</h1>
+    <p>Welcome to the Help and Documentation page! Here, you will find comprehensive guides and answers to frequently asked questions to make your experience with our platform smooth and efficient.</p>
+
+    <div class="toc">
+        <h3>Table of Contents</h3>
+        <ul>
+            <li><a href="#getting-started" @onclick="@(() => ScrollToSection("getting-started"))">Getting Started</a></li>
+            <li><a href="#advanced-filters" @onclick="@(() => ScrollToSection("advanced-filters"))">Using Advanced Filters</a></li>
+            <li><a href="#account-management" @onclick="@(() => ScrollToSection("account-management"))">Account Management</a></li>
+            <li><a href="#faq" @onclick="@(() => ScrollToSection("faq"))">Frequently Asked Questions</a></li>
+            <li><a href="#contact-support" @onclick="@(() => ScrollToSection("contact-support"))">Contact Support</a></li>
+        </ul>
+    </div>
+
+
+
+    <div id="getting-started" class="section">
+        <h2>Getting Started</h2>
+        <p>To begin, navigate to the Home page and enter your desired query parameters to explore the image repository. You can filter images by date, time, location, camera number, and more. Each search will return a set of images matching your criteria, which you can analyze and download as needed.</p>
+    </div>
+
+    <div id="advanced-filters" class="section">
+        <h2>Using Advanced Filters</h2>
+        <p>Our platform allows for detailed filtering options:</p>
+        <ul>
+            <li><strong>Date Range:</strong> Filter images captured between specific start and end dates.</li>
+            <li><strong>Time Range:</strong> Narrow down results to specific times of day.</li>
+            <li><strong>Camera Number:</strong> Choose the exact camera used to capture images.</li>
+            <li><strong>Position:</strong> Select images based on camera angle or location.</li>
+        </ul>
+    </div>
+
+    <div id="account-management" class="section">
+        <h2>Account Management</h2>
+        <p>You can manage your account settings by accessing your profile from the navigation bar. Here, you can update your personal information, adjust notification preferences, and enable dark mode for a comfortable viewing experience.</p>
+    </div>
+
+    <div id="faq" class="faq-section">
+        <h2>Frequently Asked Questions</h2>
+        <div class="faq-item">
+            <p class="faq-question" @onclick="@(() => ToggleAnswer("faq-answer-0"))">How can I reset my password?</p>
+            <p class="faq-answer" id="faq-answer-0">To reset your password, go to the Profile page and click on 'Reset Password.' Follow the on-screen instructions to complete the process.</p>
+        </div>
+        <div class="faq-item">
+            <p class="faq-question" @onclick="@(() => ToggleAnswer("faq-answer-1"))">Can I save my search queries for future use?</p>
+            <p class="faq-answer" id="faq-answer-1">Yes, you can save search queries under the 'Saved Searches' section in your profile. This allows you to quickly access commonly used queries.</p>
+        </div>
+        <div class="faq-item">
+            <p class="faq-question" @onclick="@(() => ToggleAnswer("faq-answer-2"))">What file formats are supported for uploads?</p>
+            <p class="faq-answer" id="faq-answer-2">Currently, we support .jpg, .png, and .tiff formats. Ensure that images are high-resolution and accurately tagged for optimal performance.</p>
+        </div>
+    </div>
+
+
+    <div id="contact-support" class="contact-support">
+        <h2>Contact Support</h2>
+        <p>If you encounter any issues, please don't hesitate to reach out. We are here to help with any questions or problems you may have.</p>
+        <p><strong>Email:</strong> support@imagerepository.com</p>
+        <p><strong>Phone:</strong> +1 (555) 123-4567</p>
+    </div>
+
+    <div class="feedback-section">
+        <h2>Your Feedback Matters</h2>
+        <p>Help us improve our platform by sharing your feedback. We appreciate your input!</p>
+        <textarea @bind="feedbackText" placeholder="Type your feedback here..."></textarea>
+        <button @onclick="SubmitFeedback">Submit Feedback</button>
+        <p class="mt-3"><strong>Total Feedback Submissions:</strong> @feedbackCount</p>
+        <div class="recent-feedback">
+            <h4>Recent Feedback</h4>
+            @foreach (var feedback in recentFeedbacks)
+            {
+                <p>@feedback</p>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private string feedbackText;
+    private int feedbackCount = 0;
+    private List<string> recentFeedbacks = new();
+
+    private async Task ToggleAnswer(string answerId)
+    {
+        await JS.InvokeVoidAsync("helpFunctions.toggleAnswer", answerId);
+    }
+
+    private async Task ScrollToSection(string sectionId)
+    {
+        await JS.InvokeVoidAsync("helpFunctions.scrollToSection", sectionId);
+    }
+
+    private void SubmitFeedback()
+    {
+        if (!string.IsNullOrWhiteSpace(feedbackText))
+        {
+            feedbackCount++;
+            recentFeedbacks.Insert(0, feedbackText);
+            if (recentFeedbacks.Count > 5) recentFeedbacks.RemoveAt(recentFeedbacks.Count - 1);
+            feedbackText = string.Empty;
+        }
+    }
+}
