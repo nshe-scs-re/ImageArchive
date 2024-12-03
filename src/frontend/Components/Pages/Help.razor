@@ -1,175 +1,37 @@
 ﻿@page "/help"
 @inject IJSRuntime JS
+@inject ThemeService ThemeService
 
 <PageTitle>Help & Documentation</PageTitle>
 
-<style>
-    .help-container {
-        background-color: #f8f9fa;
-        color: #333;
-        padding: 2rem;
-        border-radius: 10px;
-        max-width: 1200px;
-        margin: 2rem auto;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        font-family: Arial, sans-serif;
-    }
+<div class="custom-help-section @GetTheme() p-2">
 
-    .section {
-        margin-bottom: 3rem;
-    }
+    <h2 class="text-center custom-help-section py-3 @GetTheme()"> Help & Documentation</h2>
 
-        .section h2 {
-            color: #004080;
-            font-size: 1.8rem;
-            margin-bottom: 1rem;
-        }
+    <div class="m-3">
+      <p>Welcome to the Image Archive Help and Documentation page! This comprehensive resource is here to ensure you have all the guidance you need to navigate our platform with confidence and ease. Whether you’re just starting out or looking to explore advanced features, this page offers detailed step-by-step instructions, practical tips, and solutions to common questions. From setting up your account and performing basic searches to mastering advanced filters and managing your profile settings, we’ve covered every aspect to help you make the most of our tools. Designed with your needs in mind, this guide aims to simplify your experience, enhance your productivity, and address any concerns you may encounter. Dive into the sections below to unlock the full potential of our platform and find the answers you're looking for, all in one place.</p>
+    </div>
 
-    .faq-item {
-        margin-bottom: 1.5rem;
-    }
-
-    .faq-question {
-        font-weight: bold;
-        color: #004080;
-        cursor: pointer;
-        transition: color 0.3s ease;
-        font-size: 1.1rem;
-    }
-
-        .faq-question:hover {
-            color: #002060;
-        }
-
-    .faq-answer {
-        display: none;
-        font-size: 1rem;
-        margin-top: 0.5rem;
-        line-height: 1.6;
-        background-color: #e0ebff;
-        padding: 0.5rem;
-        border-radius: 5px;
-    }
-
-    .contact-support {
-        background-color: #e9f2f9;
-        padding: 1.5rem;
-        border-radius: 8px;
-        margin-top: 2rem;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    .toc {
-        background-color: #f0f8ff;
-        padding: 1rem;
-        border-radius: 10px;
-        margin-bottom: 2rem;
-    }
-
-        .toc ul {
-            list-style-type: none;
-            padding: 0;
-        }
-
-        .toc li {
-            padding: 0.5rem 0;
-        }
-
-        .toc a {
-            color: #0056b3;
-            text-decoration: none;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-            .toc a:hover {
-                color: #003366;
-            }
-
-    .feedback-section {
-        background-color: #f8f9fa;
-        padding: 2rem;
-        border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        margin-top: 3rem;
-        text-align: center;
-    }
-
-        .feedback-section textarea {
-            width: 100%;
-            height: 100px;
-            padding: 0.5rem;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            resize: none;
-            margin-bottom: 1rem;
-        }
-
-        .feedback-section button {
-            padding: 0.7rem 2rem;
-            border-radius: 5px;
-            background-color: #28a745;
-            color: #fff;
-            border: none;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-            .feedback-section button:hover {
-                background-color: #218838;
-            }
-
-    .recent-feedback {
-        max-height: 150px;
-        overflow-y: auto;
-        margin-top: 1rem;
-        padding: 1rem;
-        background-color: #e9f2f9;
-        border-radius: 8px;
-    }
-</style>
-
-<!-- JavaScript functions for interactivity -->
-<script>
-    window.helpFunctions = {
-        toggleAnswer: function (answerId) {
-            const answerElement = document.getElementById(answerId);
-            if (answerElement) {
-                answerElement.style.display = answerElement.style.display === 'none' ? 'block' : 'none';
-            }
-        },
-        scrollToSection: function (sectionId) {
-            const sectionElement = document.getElementById(sectionId);
-            if (sectionElement) {
-                sectionElement.scrollIntoView({ behavior: 'smooth' });
-            }
-        }
-    };
-</script>
-
-<div class="help-container">
-    <h1>Help & Documentation</h1>
-    <p>Welcome to the Help and Documentation page! Here, you will find comprehensive guides and answers to frequently asked questions to make your experience with our platform smooth and efficient.</p>
-
-    <div class="toc">
-        <h3>Table of Contents</h3>
+    <div class="custom-help-section custom-theme m-3">
+        <h2>Table of Contents</h2>
         <ul>
-            <li><a href="#getting-started" @onclick="@(() => ScrollToSection("getting-started"))">Getting Started</a></li>
-            <li><a href="#advanced-filters" @onclick="@(() => ScrollToSection("advanced-filters"))">Using Advanced Filters</a></li>
-            <li><a href="#account-management" @onclick="@(() => ScrollToSection("account-management"))">Account Management</a></li>
-            <li><a href="#faq" @onclick="@(() => ScrollToSection("faq"))">Frequently Asked Questions</a></li>
-            <li><a href="#contact-support" @onclick="@(() => ScrollToSection("contact-support"))">Contact Support</a></li>
+            <li><a href="/help#getting-started" @onclick="@(() => ScrollToSection("getting-started"))">Getting Started</a></li>
+            <li><a href="/help#advanced-filters" @onclick="@(() => ScrollToSection("advanced-filters"))">Using Advanced Filters</a></li>
+            <li><a href="/help#account-management" @onclick="@(() => ScrollToSection("account-management"))">Account Management</a></li>
+            <li><a href="/help#faq" @onclick="@(() => ScrollToSection("faq"))">Frequently Asked Questions</a></li>
+            <li><a href="/help#custom-contact-support" @onclick="@(() => ScrollToSection("contact-support"))">Contact Support</a></li>
         </ul>
     </div>
 
-
-
-    <div id="getting-started" class="section">
+    <div id="getting-started" class="custom-help-section m-3">
         <h2>Getting Started</h2>
-        <p>To begin, navigate to the Home page and enter your desired query parameters to explore the image repository. You can filter images by date, time, location, camera number, and more. Each search will return a set of images matching your criteria, which you can analyze and download as needed.</p>
+        <p>
+            To get started with our platform, navigate to the Home page, where you’ll find an intuitive search bar designed to help you explore the image repository efficiently. Begin by entering your desired query parameters, such as specific dates, locations, times, or camera numbers. These filters allow you to refine your search to match your exact needs, whether you’re looking for images from a particular time frame, a specific region, or captured by a certain camera. The platform is built to handle both simple and complex queries, ensuring you can quickly access the data that matters most to your research or project.
+            Once your query is submitted, the platform will display a curated set of images that meet your criteria. Each result includes essential metadata, allowing you to analyze the images in detail before downloading them individually or in bulk. To save time and enhance your workflow, take advantage of additional features like paginated results for faster browsing and advanced filtering options for more precise searches. Whether you're conducting research, tracking environmental changes, or simply exploring the archive, the platform is designed to make the process as seamless and efficient as possible.
+        </p>
     </div>
 
-    <div id="advanced-filters" class="section">
+    <div id="advanced-filters" class="custom-help-section m-3">
         <h2>Using Advanced Filters</h2>
         <p>Our platform allows for detailed filtering options:</p>
         <ul>
@@ -180,42 +42,41 @@
         </ul>
     </div>
 
-    <div id="account-management" class="section">
+    <div id="account-management" class="custom-help-section m-3">
         <h2>Account Management</h2>
         <p>You can manage your account settings by accessing your profile from the navigation bar. Here, you can update your personal information, adjust notification preferences, and enable dark mode for a comfortable viewing experience.</p>
     </div>
 
-    <div id="faq" class="faq-section">
+    <div id="faq" class="custom-help-section m-3">
         <h2>Frequently Asked Questions</h2>
-        <div class="faq-item">
-            <p class="faq-question" @onclick="@(() => ToggleAnswer("faq-answer-0"))">How can I reset my password?</p>
-            <p class="faq-answer" id="faq-answer-0">To reset your password, go to the Profile page and click on 'Reset Password.' Follow the on-screen instructions to complete the process.</p>
+        <div class="custom-faq-item">
+          <p class="custom-faq-question" @onclick="@(() => ToggleAnswer("faq-answer-0"))">How can I reset my password?</p>
+          <p class="custom-faq-answer" id="faq-answer-0" style="display:none;">To reset your password, go to the Profile page and click on 'Reset Password.' Follow the on-screen instructions to complete the process.</p>
         </div>
-        <div class="faq-item">
-            <p class="faq-question" @onclick="@(() => ToggleAnswer("faq-answer-1"))">Can I save my search queries for future use?</p>
-            <p class="faq-answer" id="faq-answer-1">Yes, you can save search queries under the 'Saved Searches' section in your profile. This allows you to quickly access commonly used queries.</p>
+         <div class="custom-faq-item">
+          <p class="custom-faq-question" @onclick="@(() => ToggleAnswer("faq-answer-1"))">Can I save my search queries for future use?</p>
+          <p class="custom-faq-answer" id="faq-answer-1" style="display:none;">Yes, you can save search queries under the 'Saved Searches' section in your profile. This allows you to quickly access commonly used queries.</p>
         </div>
-        <div class="faq-item">
-            <p class="faq-question" @onclick="@(() => ToggleAnswer("faq-answer-2"))">What file formats are supported for uploads?</p>
-            <p class="faq-answer" id="faq-answer-2">Currently, we support .jpg, .png, and .tiff formats. Ensure that images are high-resolution and accurately tagged for optimal performance.</p>
+         <div class="custom-faq-item">
+          <p class="custom-faq-question" @onclick="@(() => ToggleAnswer("faq-answer-2"))">What file formats are supported for uploads?</p>
+          <p class="custom-faq-answer" id="faq-answer-2" style="display:none;">Currently, we support .jpg, and .png formats. Ensure that images are high-resolution and accurately tagged for optimal performance.</p>
         </div>
     </div>
 
-
-    <div id="contact-support" class="contact-support">
+    <div id="custom-contact-support" class="custom-contact-support m-3 @GetTheme()">
         <h2>Contact Support</h2>
         <p>If you encounter any issues, please don't hesitate to reach out. We are here to help with any questions or problems you may have.</p>
         <p><strong>Email:</strong> support@imagerepository.com</p>
         <p><strong>Phone:</strong> +1 (555) 123-4567</p>
     </div>
 
-    <div class="feedback-section">
+    <div class="custom-feedback-section m-3 @GetTheme()">
         <h2>Your Feedback Matters</h2>
         <p>Help us improve our platform by sharing your feedback. We appreciate your input!</p>
         <textarea @bind="feedbackText" placeholder="Type your feedback here..."></textarea>
-        <button @onclick="SubmitFeedback">Submit Feedback</button>
+        <button class="btn btn-light rounded @GetButtonTheme()" @onclick="SubmitFeedback">Submit Feedback</button>
         <p class="mt-3"><strong>Total Feedback Submissions:</strong> @feedbackCount</p>
-        <div class="recent-feedback">
+        <div class="custom-recent-feedback">
             <h4>Recent Feedback</h4>
             @foreach (var feedback in recentFeedbacks)
             {
@@ -225,11 +86,43 @@
     </div>
 </div>
 
+<!-- JavaScript functions for interactivity when scrolling to a specific section or getting an answer to a FAQ -->
+<script>
+   window.helpFunctions = {
+    toggleAnswer: function (answerId) {
+        const answerElement = document.getElementById(answerId);
+        if (answerElement) {
+            if (answerElement.style.display === 'none' || !answerElement.style.display) {
+                answerElement.style.display = 'block';
+            } else {
+                answerElement.style.display = 'none';
+            }
+        }
+    },
+    scrollToSection: function (sectionId) {
+        const sectionElement = document.getElementById(sectionId);
+        if (sectionElement) {
+            sectionElement.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+};
+</script>
+
 @code {
-    private string feedbackText;
+    private string? feedbackText;
     private int feedbackCount = 0;
     private List<string> recentFeedbacks = new();
 
+    protected override void OnInitialized()
+    {
+        ThemeService.StateChanged += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        ThemeService.StateChanged -= StateHasChanged;
+    }
+ 
     private async Task ToggleAnswer(string answerId)
     {
         await JS.InvokeVoidAsync("helpFunctions.toggleAnswer", answerId);
@@ -249,5 +142,13 @@
             if (recentFeedbacks.Count > 5) recentFeedbacks.RemoveAt(recentFeedbacks.Count - 1);
             feedbackText = string.Empty;
         }
+    }
+    private string GetTheme()
+    {
+        return ThemeService.State ? "bg-body-tertiary" : "custom-color-bg-dm-secondary";
+    }
+    private string GetButtonTheme()
+    {
+        return ThemeService.State ? "btn-outline-secondary" : "custom-color-btn-dm-border";
     }
 }
