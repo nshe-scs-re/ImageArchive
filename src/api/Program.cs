@@ -321,7 +321,7 @@ app.MapPost("/api/upload/multiple", async (HttpRequest request, ImageUploadServi
 
         return Results.Ok(new { Message = "Upload successful!", FileNames = savedFileNames });
     }
-    catch(Exception ex)
+    catch(Exception ex) 
     {
         return Results.Problem("An error occurred while processing the file upload: " + ex.Message);
     }
