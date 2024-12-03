@@ -13,20 +13,20 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
 
     public Guid StartArchive(ArchiveRequest request)
     {
-        Guid jobId = Guid.NewGuid();
+        Guid id = Guid.NewGuid();
 
-        while(!Jobs.TryAdd(jobId, request))
+        while(!Jobs.TryAdd(id, request))
         {
-            jobId = Guid.NewGuid();
+            id = Guid.NewGuid();
         }
 
-        Jobs[jobId].JobId = jobId;
+        Jobs[id].Id = id;
 
         Task.Run(async () =>
         {
             try
             {
-                await this.ProcessArchiveRequest(jobId);
+                await ProcessArchiveRequest(id);
             }
             catch(Exception exception)
             {
@@ -35,7 +35,7 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
             }
         });
 
-        return jobId;
+        return id;
     }
 
     public ArchiveRequest GetJob(Guid jobId)
