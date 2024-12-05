@@ -410,8 +410,8 @@ input::-webkit-inner-spin-button {
 input[type=number] {
   -moz-appearance: textfield;
 }
-  /* General container styling */
-.ml-container {
+
+.custom-ml-container {
     background-color: #ffffff; 
     border-radius: 8px;      
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
@@ -421,14 +421,12 @@ input[type=number] {
     transition: transform 0.2s, box-shadow 0.2s;
 }
 
-/* Hover effect for containers */
-.ml-container:hover {
+.custom-ml-container:hover {
     transform: scale(1.02);  
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
-/* Text styling inside the container */
-.ml-container h1, .ml-container h2, .ml-container p {
+.custom-ml-container h1, .custom-ml-container h2, .custom-ml-container p {
     font-family: 'Arial', sans-serif; 
     color: #333;                  
     line-height: 1.6;                 
