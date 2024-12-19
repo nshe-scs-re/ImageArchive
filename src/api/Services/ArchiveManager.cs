@@ -54,29 +54,15 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
 
     public string GetFilePath(Guid jobId)
     {
-        if(Jobs.TryGetValue(jobId, out ArchiveRequest? request))
-        {
-            if(request.Status is ArchiveStatus.Completed)
-            {
-                string filePath = Path.Combine(Directory.GetCurrentDirectory(), "Archives", $"{jobId}.zip");
+        string filePath = Path.Combine(Directory.GetCurrentDirectory(), "Archives", $"{jobId}.zip");
 
-                return File.Exists(filePath) ? filePath : throw new FileNotFoundException("The file does not exist.");
-            }
-            else
-            {
-                throw new InvalidOperationException("The archiving process has not completed."); //TODO: Move scope of determining process status outside of this function
-            }
-        }
-        else
-        {
-            throw new KeyNotFoundException($"No archive process found with ID: {jobId}");
-        }
+        return File.Exists(filePath)
+            ? filePath
+            : throw new FileNotFoundException("The file does not exist.");
     }
 
     public async Task ProcessArchiveRequest(Guid jobId)
     {
-        //Console.WriteLine($"DEBUG [ArchiveManager.cs] [ProcessArchiveRequest]: Archiving process started...");
-
         Stopwatch stopwatch = Stopwatch.StartNew();
 
         ArchiveRequest request = Jobs[jobId];
@@ -87,6 +73,7 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
         {
             ImageDbContext dbContext = DbScope.ServiceProvider.GetRequiredService<ImageDbContext>();
 
+            //TODO: Extend LINQ query to include other search parameters
             List<Image> images = await dbContext.Images
                 .Where(i => i.DateTime >= request.StartDate && i.DateTime <= request.EndDate)
                 .ToListAsync();
