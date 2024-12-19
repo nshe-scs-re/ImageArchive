@@ -52,13 +52,14 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
             : throw new KeyNotFoundException($"No archive process found with ID: {jobId}");
     }
 
+    public bool ValidateFileExistence(Guid jobId)
+    {
+        return File.Exists(GetFilePath(jobId));
+    }
+
     public string GetFilePath(Guid jobId)
     {
-        string filePath = Path.Combine(Directory.GetCurrentDirectory(), "Archives", $"{jobId}.zip");
-
-        return File.Exists(filePath)
-            ? filePath
-            : throw new FileNotFoundException("The file does not exist.");
+        return Path.Combine(Directory.GetCurrentDirectory(), "Archives", $"{jobId}.zip");
     }
 
     public async Task ProcessArchiveRequest(Guid jobId)
