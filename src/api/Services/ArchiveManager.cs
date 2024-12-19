@@ -13,14 +13,14 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
 
     public Guid StartArchive(ArchiveRequest request)
     {
-        Guid id = Guid.NewGuid();
+        Guid id;
 
-        while(!Jobs.TryAdd(id, request))
+        do
         {
             id = Guid.NewGuid();
+            request.Id = id;
         }
-
-        Jobs[id].Id = id;
+        while(!Jobs.TryAdd(id, request));
 
         Task.Run(async () =>
         {
