@@ -30,7 +30,7 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
             }
             catch(Exception exception)
             {
-                request.Status = ArchiveRequest.ArchiveStatus.Failed;
+                request.Status = ArchiveStatus.Failed;
                 request.AddError($"Processing failed: {exception.Message}");
             }
         });
@@ -45,11 +45,18 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
             : throw new KeyNotFoundException($"No archive process found with ID: {jobId}");
     }
 
+    public ArchiveStatus GetJobStatus(Guid jobId)
+    {
+        return Jobs.TryGetValue(jobId, out ArchiveRequest? request)
+            ? request.Status
+            : throw new KeyNotFoundException($"No archive process found with ID: {jobId}");
+    }
+
     public string GetFilePath(Guid jobId)
     {
         if(Jobs.TryGetValue(jobId, out ArchiveRequest? request))
         {
-            if(request.Status is ArchiveRequest.ArchiveStatus.Completed)
+            if(request.Status is ArchiveStatus.Completed)
             {
                 string filePath = Path.Combine(Directory.GetCurrentDirectory(), "Archives", $"{jobId}.zip");
 
@@ -74,7 +81,7 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
 
         ArchiveRequest request = Jobs[jobId];
 
-        Jobs[jobId].Status = ArchiveRequest.ArchiveStatus.Processing;
+        Jobs[jobId].Status = ArchiveStatus.Processing;
 
         using(IServiceScope DbScope = DbScopeFactory.CreateScope())
         {
@@ -145,7 +152,7 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
 
             Console.WriteLine($"DEBUG: Archiving complete. Elapsed Time: {stopwatch.Elapsed}");
 
-            Jobs[jobId].Status = ArchiveRequest.ArchiveStatus.Completed;
+            Jobs[jobId].Status = ArchiveStatus.Completed;
         }
     }
 }
