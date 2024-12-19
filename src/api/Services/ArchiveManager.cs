@@ -47,9 +47,7 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
 
     public ArchiveStatus GetJobStatus(Guid jobId)
     {
-        return Jobs.TryGetValue(jobId, out ArchiveRequest? request)
-            ? request.Status
-            : throw new KeyNotFoundException($"No archive process found with ID: {jobId}");
+        return GetJob(jobId).Status;
     }
 
     public bool ValidateFileExistence(Guid jobId)
