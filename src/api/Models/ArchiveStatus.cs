@@ -1,4 +1,4 @@
-﻿namespace frontend.Models;
+﻿namespace api.Models;
 
 public enum ArchiveStatus
 {
@@ -9,3 +9,4 @@ public enum ArchiveStatus
     Processing = 3,
     Completed = 4
 }
+

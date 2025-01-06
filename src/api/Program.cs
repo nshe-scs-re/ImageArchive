@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +23,11 @@ builder.Services.AddSwaggerGen(options =>
         Version = "v1",
         Description = "An ASP.NET Core 8 minimal Web API for managing an image archive."
     });
+});
+
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
 builder.Services.AddSqlServer<ImageDbContext>(builder.Configuration.GetConnectionString("ImageDb"));
@@ -96,28 +102,19 @@ app.MapPost("/api/archive/request", async (ArchiveManager manager, HttpContext c
     {
         ArchiveRequest? request = await context.Request.ReadFromJsonAsync<ArchiveRequest>();
 
-        Console.WriteLine($"DEBUG [Program.cs] [/api/archive/start]: endpoint hit: request: {request.StartDate} {request.EndDate}");
-
-        if(request == null)
+        if(request is null)
         {
             return Results.BadRequest();
         }
 
-        Guid jobId = manager.StartArchive(request);
+        request = manager.ProcessArchiveRequest(request);
 
-        if(jobId == Guid.Empty)
-        {
-            return Results.Problem("Error creating new archive job.");
-        }
-
-        ArchiveRequest job = manager.GetJob(jobId);
-
-        return Results.Accepted($"/api/archive/request/{jobId}", job); //TODO: 'Created' response?
+        return Results.Accepted($"/api/archive/request/{request.Id}", request);
     }
     catch(Exception exception)
     {
         Console.WriteLine($"ERROR [Program.cs] [/api/archive/start]: Exception message: {exception.Message}");
-        return Results.Problem();
+        return Results.Problem(detail: exception.Message);
     }
 })
 .WithSummary("Starts an archive process.")
@@ -135,7 +132,7 @@ app.MapGet("/api/archive/status/{jobId}", (ArchiveManager manager, Guid jobId) =
     catch(Exception exception)
     {
         Console.WriteLine($"ERROR [Program.cs] [/api/archive/status/{jobId}]: Exception message: {exception.Message}");
-        return Results.Problem(exception.Message);
+        return Results.Problem(detail: exception.Message);
     }
 })
 .WithSummary("Retrieves an archive job status.")
@@ -145,20 +142,33 @@ app.MapGet("/api/archive/download/{jobId}", (ArchiveManager manager, Guid jobId)
 {
     try
     {
-        string filePath = manager.GetFilePath(jobId);
+        var request = manager.GetJob(jobId);
 
-        FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+        if(request is null || string.IsNullOrEmpty(request.FilePath) || !File.Exists(request.FilePath))
+        {
+            return Results.NotFound(request);
+        }
+
+        if(request.Status is not ArchiveStatus.Completed)
+        {
+            return Results.Conflict(request);
+        }
+
+        FileStream fileStream = new FileStream(request.FilePath, FileMode.Open, FileAccess.Read);
 
         return Results.File(fileStream, "application/zip", $"{jobId}.zip");
     }
     catch(Exception exception)
     {
         Console.WriteLine($"ERROR [Program.cs] [/api/archive/download]: Exception message: {exception.Message}");
-        return Results.Problem(exception.Message);
+        return Results.Problem(detail: exception.Message, statusCode: 500);
     }
 })
 .WithSummary("Requests an archive download.")
-.Produces<FileResult>(200, "application/zip");
+.Produces<FileResult>(200, "application/zip")
+.Produces<ArchiveRequest>(404, "application/json")
+.Produces<ArchiveRequest>(409, "application/json")
+.Produces(500);
 
 app.MapGet("/api/images/all", async (ImageDbContext dbContext) =>
 {
@@ -171,7 +181,7 @@ app.MapGet("/api/images/all", async (ImageDbContext dbContext) =>
     catch(Exception exception)
     {
         Console.WriteLine($"ERROR [Program.cs] [/api/images/all]: Exception message: {exception.Message}");
-        return Results.Problem(exception.Message);
+        return Results.Problem(detail: exception.Message, statusCode: 500);
     }
 })
 .WithSummary("Retrieves a list of all images stored in the database.")
@@ -183,7 +193,9 @@ app.MapGet("/api/images/paginated", async (ImageDbContext dbContext, string filt
     {
         var parameters = filter.Split(',');
 
-        if( !DateTime.TryParse(parameters[0], out DateTime startDate) ||
+        if
+        ( 
+            !DateTime.TryParse(parameters[0], out DateTime startDate) ||
             !DateTime.TryParse(parameters[1], out DateTime endDate) ||
             !int.TryParse(parameters[2], out int pageIndex) ||
             !int.TryParse(parameters[3], out int pageSize)
@@ -193,6 +205,7 @@ app.MapGet("/api/images/paginated", async (ImageDbContext dbContext, string filt
         }
 
         string site = parameters[4];
+
         var query = dbContext.Images
             .Where(i => i.DateTime >= startDate && i.DateTime <= endDate && i.Site == site)
             .OrderBy(i => i.Id);
@@ -286,7 +299,6 @@ app.MapPost("/api/upload/single", async (HttpRequest request, ImageUploadService
    // return Results.Ok("My endpoint works");
 });
 
-
 app.MapPost("/api/upload/multiple", async (HttpRequest request, ImageUploadService imageService) =>
 {
     try
@@ -326,6 +338,5 @@ app.MapPost("/api/upload/multiple", async (HttpRequest request, ImageUploadServi
         return Results.Problem("An error occurred while processing the file upload: " + ex.Message);
     }
 });
-
 
 app.Run();
