@@ -66,8 +66,11 @@ else
 
 ushort ConvertToBigEndian16(ushort value)
 {
-    ushort my_msb = (ushort)(value << 8); // shift lsb to msb
-    ushort my_lsb = (ushort)(value >> 8); // shift msb to lsb
+    ushort originalMsb = (ushort)((value >> 8) & 0xFF);
+    ushort originalLsb = (ushort)(value & 0xFF);
 
-    return (ushort)(my_msb | my_lsb); // combine to effectively switch byte positions
+    ushort newMsb = (ushort)(originalLsb << 8);
+    ushort newLsb = originalMsb;
+
+    return (ushort)(newMsb | newLsb);
 }
