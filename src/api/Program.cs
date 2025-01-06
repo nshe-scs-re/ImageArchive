@@ -144,7 +144,7 @@ app.MapGet("/api/archive/download/{jobId}", (ArchiveManager manager, Guid jobId)
     {
         var request = manager.GetJob(jobId);
 
-        if(request is null || string.IsNullOrEmpty(request.filePath) || !File.Exists(request.filePath))
+        if(request is null || string.IsNullOrEmpty(request.FilePath) || !File.Exists(request.FilePath))
         {
             return Results.NotFound(request);
         }
@@ -154,7 +154,7 @@ app.MapGet("/api/archive/download/{jobId}", (ArchiveManager manager, Guid jobId)
             return Results.Conflict(request);
         }
 
-        FileStream fileStream = new FileStream(request.filePath, FileMode.Open, FileAccess.Read);
+        FileStream fileStream = new FileStream(request.FilePath, FileMode.Open, FileAccess.Read);
 
         return Results.File(fileStream, "application/zip", $"{jobId}.zip");
     }

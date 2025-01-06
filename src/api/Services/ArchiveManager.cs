@@ -55,7 +55,7 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
                 
             string zipFilePath = Path.Combine(Directory.GetCurrentDirectory(), "Archives", $"{request.Id}.zip");
 
-            request.filePath = zipFilePath;
+            request.FilePath = zipFilePath;
 
             ConcurrentBag<Exception> exceptions = new ConcurrentBag<Exception>();
 

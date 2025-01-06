@@ -8,7 +8,7 @@ public class ArchiveRequest
     public ArchiveStatus Status { get; set; } = ArchiveStatus.Unknown;
     public List<string> ExceptionMessages { get; set; } = new List<string>();
 
-    public string? filePath { get; set; }
+    public string? FilePath { get; set; }
 
     public void AddError(string message)
     {
