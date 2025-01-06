@@ -11,31 +11,24 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
 {
     private static readonly ConcurrentDictionary<Guid, ArchiveRequest> Jobs = new();
 
-    public Guid StartArchive(ArchiveRequest request)
+    private void RegisterJob(ArchiveRequest request)
     {
-        Guid id;
-
         do
         {
-            id = Guid.NewGuid();
-            request.Id = id;
+            request.Id = Guid.NewGuid();
         }
-        while(!Jobs.TryAdd(id, request));
+        while(!Jobs.TryAdd(request.Id, request));
+    }
 
-        Task.Run(async () =>
-        {
-            try
-            {
-                await ProcessArchiveRequest(id);
-            }
-            catch(Exception exception)
-            {
-                request.Status = ArchiveStatus.Failed;
-                request.AddError($"Processing failed: {exception.Message}");
-            }
-        });
+    public ArchiveRequest ProcessArchiveRequest(ArchiveRequest request)
+    {
+        RegisterJob(request);
 
-        return id;
+        #pragma warning disable CS4014 // Allow the async method to run without awaiting it. This is intentional.
+        CreateArchiveAsync(request);
+        #pragma warning restore CS4014
+
+        return request;
     }
 
     public ArchiveRequest GetJob(Guid jobId)
@@ -45,28 +38,11 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
             : throw new KeyNotFoundException($"No archive process found with ID: {jobId}");
     }
 
-    public ArchiveStatus GetJobStatus(Guid jobId)
-    {
-        return GetJob(jobId).Status;
-    }
-
-    public bool ValidateFileExistence(Guid jobId)
-    {
-        return File.Exists(GetFilePath(jobId));
-    }
-
-    public string GetFilePath(Guid jobId)
-    {
-        return Path.Combine(Directory.GetCurrentDirectory(), "Archives", $"{jobId}.zip");
-    }
-
-    public async Task ProcessArchiveRequest(Guid jobId)
+    private async Task CreateArchiveAsync(ArchiveRequest request)
     {
         Stopwatch stopwatch = Stopwatch.StartNew();
 
-        ArchiveRequest request = Jobs[jobId];
-
-        Jobs[jobId].Status = ArchiveStatus.Processing;
+        request.Status = ArchiveStatus.Processing;
 
         using(IServiceScope DbScope = DbScopeFactory.CreateScope())
         {
@@ -77,7 +53,9 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
                 .Where(i => i.DateTime >= request.StartDate && i.DateTime <= request.EndDate)
                 .ToListAsync();
                 
-            string zipFilePath = Path.Combine(Directory.GetCurrentDirectory(), "Archives", $"{jobId}.zip");
+            string zipFilePath = Path.Combine(Directory.GetCurrentDirectory(), "Archives", $"{request.Id}.zip");
+
+            request.filePath = zipFilePath;
 
             ConcurrentBag<Exception> exceptions = new ConcurrentBag<Exception>();
 
@@ -138,7 +116,7 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
 
             Console.WriteLine($"DEBUG: Archiving complete. Elapsed Time: {stopwatch.Elapsed}");
 
-            Jobs[jobId].Status = ArchiveStatus.Completed;
+            request.Status = ArchiveStatus.Completed;
         }
     }
 }
