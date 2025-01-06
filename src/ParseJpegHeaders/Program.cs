@@ -1,13 +1,32 @@
 ﻿using System;
 using System.IO;
 
-string filePath = @"C:\ImagesTest\Sheep\Site 1\Images\17840\154140841683.jpg";
+string filePath = @"C:\Users\whaley\source\Images\Rockland\Camera\Images\17269\149206322383.jpg";
 
 if(Path.IsPathFullyQualified(filePath) && File.Exists(filePath))
 {
     using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
     using (BinaryReader binaryReader = new BinaryReader(fileStream))
     {
+        if(fileStream.Length < 2)
+        {
+            Console.WriteLine("[ERROR] [Program.cs] [Main]: File is too small to be a valid JPEG file. Exiting...");
+            return;
+        }
+
+        fileStream.Position = fileStream.Length - 2;
+
+        ushort segmentMarker = ConvertToBigEndian16(binaryReader.ReadUInt16());
+
+        if(segmentMarker != 0xFFD9) // JPEG EOI marker (0xFFD9)
+        {
+            Console.WriteLine($"[ERROR] [Program.cs] [Main]: Unexpected EOI marker: 0x{segmentMarker:X4}");
+            Console.WriteLine("[ERROR] [Program.cs] [Main]: Not a valid JPEG file. Exiting...");
+            return;
+        }
+
+        fileStream.Position = 0;
+
         ushort firstHeader = ConvertToBigEndian16(binaryReader.ReadUInt16());
 
         if (firstHeader != 0xFFD8) // JPEG SOI marker (0xFFD8)
@@ -19,13 +38,19 @@ if(Path.IsPathFullyQualified(filePath) && File.Exists(filePath))
 
         while (fileStream.Position < fileStream.Length)
         {
-            ushort segmentMarker = ConvertToBigEndian16(binaryReader.ReadUInt16());
+            segmentMarker = ConvertToBigEndian16(binaryReader.ReadUInt16());
 
             ushort segmentLength = ConvertToBigEndian16(binaryReader.ReadUInt16());
 
+            if(segmentLength < 2 || (fileStream.Position + (segmentLength - 2)) > fileStream.Length)
+            {
+                Console.WriteLine("[ERROR] [Program.cs] [Main]: Invalid segment length. Exiting...");
+                return;
+            }
+
             if (segmentMarker == 0xFFE0) // APP0 marker (0xFFE0)
             {
-                byte[] app0_header = binaryReader.ReadBytes(60);
+                byte[] app0_header = binaryReader.ReadBytes(segmentLength - 2);
 
                 Console.WriteLine("[INFO] [Program.cs] [Main]: Found APP0 header. Relevant bytes:");
 
@@ -47,6 +72,7 @@ if(Path.IsPathFullyQualified(filePath) && File.Exists(filePath))
                 fileStream.Position += segmentLength - 2;
             }
         }
+
     }
 }
 else
