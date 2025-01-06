@@ -3,9 +3,9 @@
 public enum ArchiveStatus
 {
     Failed = -1,
-    Unknown,
-    Pending,
-    Canceled,
-    Processing,
-    Completed
+    Unknown = 0,
+    Pending = 1,
+    Canceled = 2,
+    Processing = 3,
+    Completed = 4
 }
