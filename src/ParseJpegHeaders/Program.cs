@@ -58,6 +58,11 @@ if(Path.IsPathFullyQualified(filePath) && File.Exists(filePath))
                 Console.WriteLine("{0, -3} | {1, -10} | {2, -15}", "Byte", "Hex Value", "Decimal Value");
                 Console.WriteLine("----------------------------------");
 
+                //for(int i = 0; i < app0_header.Length; i++)
+                //{
+                //    Console.WriteLine("{0,-4} | 0x{1,-8:X2} | {1, -15}", i + 1, app0_header[i]);
+                //}
+
                 byte byte_27 = app0_header[26];
                 byte byte_29 = app0_header[28];
 
