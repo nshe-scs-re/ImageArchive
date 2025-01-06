@@ -1,5 +1,6 @@
-﻿using System;
-using System.IO;
+﻿// TODO: Iterate through all images in root image directory and parse relevant APP0 segments
+// TODO: Map enumerations for camera positions for each field site
+// TODO: Persist camera position data in database
 
 string filePath = @"C:\Users\whaley\source\Images\Rockland\Camera\Images\17269\149206322383.jpg";
 
