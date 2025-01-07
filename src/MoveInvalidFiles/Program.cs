@@ -91,12 +91,16 @@ while(true)
                     MoveInvalidFile(invalidFile, invalidDirectoryPath);
                 }
 
-                break;
+                Console.WriteLine($"[INFO] [Program.cs] [Main]: {invalidFilecount} invalid files moved to '{invalidDirectoryPath}'. Exiting...");
+
+                return;
             case 3:
                 foreach(var invalidFile in invalidFiles)
                 {
                     CopyInvalidFile(invalidFile, invalidDirectoryPath);
                 }
+
+                Console.WriteLine($"[INFO] [Program.cs] [Main]: {invalidFilecount} invalid files copied to '{invalidDirectoryPath}'.");
 
                 break;
             case 4:
@@ -105,7 +109,9 @@ while(true)
                     DeleteInvalidFile(invalidFile);
                 }
 
-                break;
+                Console.WriteLine($"[INFO] [Program.cs] [Main]: {invalidFilecount} invalid files deleted. Exiting...");
+
+                return;
             default:
                 break;
         }
