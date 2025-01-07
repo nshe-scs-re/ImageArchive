@@ -1,6 +1,6 @@
-﻿var rootDirectoryPath = @"C:\Users\whaley\source\Images";
+﻿var rootDirectoryPath = @"";
 
-var invalidDirectoryPath = @"C:\Users\whaley\source\Invalid";
+var invalidDirectoryPath = @"";
 
 if(!Directory.Exists(rootDirectoryPath))
 {
