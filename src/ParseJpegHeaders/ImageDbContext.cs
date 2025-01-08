@@ -8,7 +8,7 @@ public class ImageDbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseSqlServer("Server=127.0.0.1,1433;Database=ImageDb;User Id=sa;Password=GZLCS!^S(kx9;Trust Server Certificate=True;");
+        optionsBuilder.UseSqlServer("");
     }
 
 }
