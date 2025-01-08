@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExtractImagePaths", "src\Ex
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParseJpegHeaders", "src\ParseJpegHeaders\ParseJpegHeaders.csproj", "{7D933367-9F58-4124-AFAB-B0DC8A183831}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HandleInvalidFiles", "src\HandleInvalidFiles\HandleInvalidFiles.csproj", "{D1DCCA41-ABA0-4E78-B81F-0F7A65737580}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{7D933367-9F58-4124-AFAB-B0DC8A183831}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7D933367-9F58-4124-AFAB-B0DC8A183831}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7D933367-9F58-4124-AFAB-B0DC8A183831}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D1DCCA41-ABA0-4E78-B81F-0F7A65737580}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1DCCA41-ABA0-4E78-B81F-0F7A65737580}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1DCCA41-ABA0-4E78-B81F-0F7A65737580}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1DCCA41-ABA0-4E78-B81F-0F7A65737580}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
