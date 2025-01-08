@@ -1,8 +1,6 @@
-﻿// TODO: Iterate through all images in root image directory and parse relevant APP0 segments
-// TODO: Map enumerations for camera positions for each field site
-// TODO: Persist camera position data in database
+﻿using ParseJpegHeaders;
 
-var imageDirectoryRootPath = @"";
+var imageDirectoryRootPath = @"C:\Users\whaley\source\Images";
 
 if(!Directory.Exists(imageDirectoryRootPath))
 {
@@ -10,98 +8,123 @@ if(!Directory.Exists(imageDirectoryRootPath))
     return;
 }
 
+Console.WriteLine("[INFO] [Program.cs] [Main]: Fetching image paths...");
 var imagePaths = GetImagePaths(imageDirectoryRootPath);
 
 var invalidImages = new List<string>();
+var byteMapping = new Dictionary<string, int>();
 
-foreach(var imagePath in imagePaths)
+Console.WriteLine("[INFO] [Program.cs] [Main]: Parsing image headers...");
+for(int i=0; i<imagePaths.Count; i++)
 {
     try
     {
-        if(Path.IsPathFullyQualified(imagePath) && File.Exists(imagePath))
+        if(Path.IsPathFullyQualified(imagePaths[i]) && File.Exists(imagePaths[i]))
         {
-            using (FileStream fileStream = new FileStream(imagePath, FileMode.Open, FileAccess.Read))
-            using (BinaryReader binaryReader = new BinaryReader(fileStream))
+            using (FileStream fileStream = new FileStream(imagePaths[i], FileMode.Open, FileAccess.Read))
             {
-                if(fileStream.Length < 2)
+                using (BinaryReader binaryReader = new BinaryReader(fileStream))
                 {
-                    Console.WriteLine($"[INFO] [Program.cs] [Main]: File at '{imagePath}' too small to be a valid JPEG file. Exiting...");
-                    return;
-                }
-
-                fileStream.Position = fileStream.Length - 2;
-
-                ushort segmentMarker = ConvertToBigEndian16(binaryReader.ReadUInt16());
-
-                if(segmentMarker != 0xFFD9) // JPEG EOI marker (0xFFD9)
-                {
-                    Console.WriteLine($"[ERROR] [Program.cs] [Main]: Unexpected EOI marker: 0x{segmentMarker:X4} Exiting...");
-                    return;
-                }
-
-                fileStream.Position = 0;
-
-                ushort firstHeader = ConvertToBigEndian16(binaryReader.ReadUInt16());
-
-                if (firstHeader != 0xFFD8) // JPEG SOI marker (0xFFD8)
-                {
-                    Console.WriteLine($"[ERROR] [Program.cs] [Main]: Unexpected SOI marker: 0x{firstHeader:X4} Exiting...");
-                    return;
-                }
-
-                while (fileStream.Position < fileStream.Length)
-                {
-                    segmentMarker = ConvertToBigEndian16(binaryReader.ReadUInt16());
-
-                    ushort segmentLength = ConvertToBigEndian16(binaryReader.ReadUInt16());
-
-                    if(segmentLength < 2 || (fileStream.Position + (segmentLength - 2)) > fileStream.Length)
+                    if(!JpegIsValid(fileStream, binaryReader))
                     {
-                        Console.WriteLine("[ERROR] [Program.cs] [Main]: Invalid segment length. Exiting...");
                         return;
                     }
 
-                    if (segmentMarker == 0xFFE0) // APP0 marker (0xFFE0)
+                    while (fileStream.Position < fileStream.Length)
                     {
-                        byte[] app0_header = binaryReader.ReadBytes(segmentLength - 2);
+                        ushort segmentMarker = ConvertToBigEndian16(binaryReader.ReadUInt16());
 
-                        Console.WriteLine("[INFO] [Program.cs] [Main]: Found APP0 header. Relevant bytes:");
+                        ushort segmentLength = ConvertToBigEndian16(binaryReader.ReadUInt16());
 
-                        Console.WriteLine("----------------------------------");
-                        Console.WriteLine("{0, -3} | {1, -10} | {2, -15}", "Byte", "Hex Value", "Decimal Value");
-                        Console.WriteLine("----------------------------------");
+                        if(segmentLength < 2 || (fileStream.Position + (segmentLength - 2)) > fileStream.Length)
+                        {
+                            Console.WriteLine("[ERROR] [Program.cs] [Main]: Invalid segment length. Exiting...");
+                            return;
+                        }
 
-                        //for(int i = 0; i < app0_header.Length; i++)
-                        //{
-                        //    Console.WriteLine("{0,-4} | 0x{1,-8:X2} | {1, -15}", i + 1, app0_header[i]);
-                        //}
+                        if(segmentMarker == 0xFFE0) // APP0 marker (0xFFE0)
+                        {
+                            byte[] app0_header = binaryReader.ReadBytes(segmentLength - 2);
 
-                        byte byte_27 = app0_header[26];
-                        byte byte_29 = app0_header[28];
+                            byte byte_27 = app0_header[26];
+                            byte byte_29 = app0_header[28];
 
-                        Console.WriteLine("{0, -4} | 0x{1,-8:X2} | {1,-15}", 27, byte_27);
-                        Console.WriteLine("{0, -4} | 0x{1,-8:X2} | {1,-15}", 29, byte_29);
+                            if(byte_27 == byte_29)
+                            {
+                                int byte_27_decimal_value = byte_27;
 
-                        break;
-                    }
-                    else
-                    {
-                        Console.WriteLine("[INFO] [Program.cs] [Main]: Found segment other than APP0, skipping segment.");
-                        fileStream.Position += segmentLength - 2;
+                                imagePaths[i] = ConvertSingleWindowsPathToLinuxPath(imagePaths[i]);
+
+                                if(!byteMapping.TryAdd(imagePaths[i], byte_27_decimal_value))
+                                {
+                                    Console.WriteLine($"[ERROR] [Program.cs] [Main]: Could not add image with path '{imagePaths[i]}' to byte mapping. Exiting...");
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine($"[ERROR] [Program.cs] [Main]: Byte 27 and Byte 29 do not match. Skipping file at path '{imagePaths[i]}'");
+                            }
+
+                            break;
+                        }
+                        else
+                        {
+                            Console.WriteLine("[INFO] [Program.cs] [Main]: Found segment other than APP0, skipping segment.");
+                            fileStream.Position += segmentLength - 2;
+                        }
                     }
                 }
-
             }
         }
         else
         {
-            Console.WriteLine($"[ERROR] [Program.CS] [Main]: '{imagePath}' is an invalid file path.");
+            Console.WriteLine($"[ERROR] [Program.CS] [Main]: '{imagePaths[i]}' is an invalid file path.");
         }
     }
     catch(Exception)
     {
         throw;
     }
+}
+
+Console.WriteLine($"[INFO] [Program.cs] [Main]: Parsing complete. {byteMapping.Count} images parsed.");
+
+Console.WriteLine($"[INFO] [Program.cs] [Main]: Attempting to save to database...");
+
+using(var dbContext = new ImageDbContext())
+{
+    try
+    {
+        var paths = byteMapping.Keys.ToList();
+        var images = dbContext.Images.Where(i => paths.Contains(i.FilePath)).ToList();
+
+        foreach(var image in images)
+        {
+            if(byteMapping.TryGetValue(image.FilePath, out int cameraPosition))
+            {
+                image.CameraPosition = cameraPosition;
+            }
+            else
+            {
+                Console.WriteLine($"[ERROR] [Program.cs] [Main]: Could not find camera position for image with path '{image.FilePath}'");
+            }
+        }
+
+        dbContext.SaveChanges();
+        Console.WriteLine("[INFO] [Program.cs] [Main]: Camera positions saved to database. Exiting...");
+    }
+    catch(Exception)
+    {
+        throw;
+    }
+}
+
+string ConvertSingleWindowsPathToLinuxPath(string path)
+{
+    string windowsBasePath = @"C:\Users\whaley\source";
+    string linuxBasePath = @"/app";
+
+    return path.Replace(windowsBasePath, linuxBasePath).Replace('\\', '/');
 }
 
 ushort ConvertToBigEndian16(ushort value)
@@ -134,4 +157,35 @@ List<string> GetImagePaths(string directoryRootPath)
     }
 
     return imagePaths;
+}
+
+bool JpegIsValid(FileStream fileStream, BinaryReader binaryReader)
+{
+    if(fileStream.Length < 2)
+    {
+        Console.WriteLine($"[INFO] [Program.cs] [Main]: File too small to be a valid JPEG file. Exiting...");
+        return false;
+    }
+
+    fileStream.Position = fileStream.Length - 2;
+
+    ushort segmentMarker = ConvertToBigEndian16(binaryReader.ReadUInt16());
+
+    if(segmentMarker != 0xFFD9) // JPEG EOI marker (0xFFD9)
+    {
+        Console.WriteLine($"[ERROR] [Program.cs] [Main]: Unexpected EOI marker: 0x{segmentMarker:X4} Exiting...");
+        return false;
+    }
+
+    fileStream.Position = 0;
+
+    ushort firstHeader = ConvertToBigEndian16(binaryReader.ReadUInt16());
+
+    if(firstHeader != 0xFFD8) // JPEG SOI marker (0xFFD8)
+    {
+        Console.WriteLine($"[ERROR] [Program.cs] [Main]: Unexpected SOI marker: 0x{firstHeader:X4} Exiting...");
+        return false;
+    }
+
+    return true;
 }
