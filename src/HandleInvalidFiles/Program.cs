@@ -49,6 +49,7 @@ while(true)
                 int pageSize = 10;
                 int totalFiles = invalidFiles.Count;
                 int currentPage = 0;
+                int maxPages = 0;
 
                 while(currentPage * pageSize < totalFiles)
                 {
@@ -58,7 +59,9 @@ while(true)
                         .Skip(currentPage * pageSize)
                         .Take(pageSize);
 
-                    Console.WriteLine($"Page {currentPage + 1}/{(int)Math.Ceiling(totalFiles / (double)pageSize)}");
+                    maxPages = (int)Math.Ceiling(totalFiles / (double)pageSize);
+
+                    Console.WriteLine($"Page {currentPage + 1}/{maxPages}");
                     Console.WriteLine("Invalid Files:");
 
                     foreach(var invalidFile in currentFiles)
