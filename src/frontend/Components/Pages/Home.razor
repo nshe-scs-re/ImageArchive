@@ -48,12 +48,24 @@
           <div class="row py-2">
             <label for="Site" class="col col-form-label">Site Name:</label>
             <div class="col">
-              <InputSelect @bind-Value="imageQuery.Site" id="Site" class="form-select">
+              <InputSelect @bind-Value="imageQuery.SiteName" id="SiteName" class="form-select">
                 <option value="Rockland">Rockland</option>
                 <option value="Sheep">Sheep</option>
                 <option value="Snake">Snake</option>
                 <option value="Spring">Spring</option>
                 <option value="Eldorado">Eldorado</option>
+              </InputSelect>
+            </div>
+          </div>
+          <div class="row py-2">
+            <label for="Site" class="col col-form-label">Site Number:</label>
+            <div class="col">
+              <InputSelect @bind-Value="imageQuery.SiteNumber" id="SiteNumber" class="form-select">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
               </InputSelect>
             </div>
           </div>
@@ -235,7 +247,7 @@ else if (querySubmitted && loading is false)
 
         loading = true;
 
-        var response = await HttpService.GetImagesByPageAsync(imageQuery.StartDateTime, imageQuery.EndDateTime, pageIndex, pageSize, imageQuery.Site, imageQuery.CameraPosition);
+        var response = await HttpService.GetImagesByPageAsync(imageQuery.StartDateTime, imageQuery.EndDateTime, pageIndex, pageSize, imageQuery.SiteName, imageQuery.SiteNumber, imageQuery.CameraPosition);
 
         if(response is not null)
         {
