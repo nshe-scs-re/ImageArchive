@@ -47,10 +47,10 @@ public class HttpService
         return await httpClient.GetAsync($"api/images/{id}");
     }
 
-    public async Task<HttpResponseMessage> GetImagesByPageAsync(DateTime startDate, DateTime endDate, int pageIndex, int pageSize, string site)
+    public async Task<HttpResponseMessage> GetImagesByPageAsync(DateTime startDate, DateTime endDate, int pageIndex, int pageSize, string? site, int? cameraPosition)
     {
         var httpClient = CreateClient();
-        return await httpClient.GetAsync($"api/images/paginated?filter={startDate},{endDate},{pageIndex},{pageSize},{site}");
+        return await httpClient.GetAsync($"api/images/paginated?filter={startDate},{endDate},{pageIndex},{pageSize},{site},{cameraPosition}");
     }
 
     public async Task<HttpResponseMessage> GetImagesAllAsync()
