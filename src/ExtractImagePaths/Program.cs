@@ -282,6 +282,6 @@ void InsertImagePathsIntoDatabase(List<string> filePaths, ServiceProvider servic
 
         int count = context.SaveChanges();
 
-        logger.LogInformation("Insertion complete. {addedCount} insertions.", count);
+        logger.LogInformation("Insertion complete. {count} insertions.", count);
     }
 }
