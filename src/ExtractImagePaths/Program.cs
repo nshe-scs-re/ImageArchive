@@ -26,7 +26,7 @@ var directoryRootPath = configuration["NEVCAN_DIRECTORY_ROOT_PATH"];
 
 if(string.IsNullOrEmpty(directoryRootPath))
 {
-    Console.WriteLine("ERROR: Variable 'directoryRootPath' not set. Exiting.");
+    Console.WriteLine($"[ERROR] [Program.cs] [Main]: Variable '{nameof(directoryRootPath)}' not set. Exiting.");
     return;
 }
 
@@ -36,7 +36,7 @@ var dbConnectionString = configuration["DB_CONNECTION_STRING"] ?? configuration[
 
 if(string.IsNullOrEmpty(dbConnectionString))
 {
-    Console.WriteLine("ERROR: Variable 'dbConnectionString' not set. Exiting.");
+    Console.WriteLine($"[ERROR] [Program.cs] [Main]: Variable '{nameof(dbConnectionString)}' not set. Exiting.");
     return;
 }
 
@@ -46,10 +46,18 @@ if(windowsUserName is not null)
 {
     windowsUserName = Environment.ExpandEnvironmentVariables(windowsUserName);
 }
+else
+{
+    Console.WriteLine($"[WARNING] [Program.cs] [Main]: Variable '{nameof(windowsUserName)}' not set.");
+}
 
 if(windowsBasePath is not null)
 {
     windowsBasePath = Environment.ExpandEnvironmentVariables(windowsBasePath);
+}
+else
+{
+    Console.WriteLine($"[WARNING] [Program.cs] [Main]: Variable '{nameof(windowsBasePath)}' not set.");
 }
 
 var serviceProvider = new ServiceCollection()
