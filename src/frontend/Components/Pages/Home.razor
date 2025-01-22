@@ -149,7 +149,7 @@ else if (querySubmitted && loading is false)
               <img src="/api/images/@image.Id" class="card-img-top" width="320" height="240" />
               <div class="card-body">
                 <p class="card-text">Time: @image.DateTime</p>
-                <p class="card-text">Site: @image.Site</p>
+                <p class="card-text">Site: @image.SiteName</p>
                 <p class="card-text">Camera: @image.Camera</p>
                 @if(image.CameraPosition is not null)
                 {
@@ -235,7 +235,7 @@ else if (querySubmitted && loading is false)
 
         loading = true;
 
-        var response = await HttpService.GetImagesByPageAsync(imageQuery.StartDateTime, imageQuery.EndDateTime, pageIndex, pageSize, imageQuery.Site);
+        var response = await HttpService.GetImagesByPageAsync(imageQuery.StartDateTime, imageQuery.EndDateTime, pageIndex, pageSize, imageQuery.Site, imageQuery.CameraPosition);
 
         if(response is not null)
         {
