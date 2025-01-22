@@ -123,7 +123,7 @@
   </div>
 </div>
 
-@if (querySubmitted && loading is true)
+@if (querySubmitted && loading)
 {
   <div class="my-3 py-3 album rounded @GetTheme()">
     <div class="container">
@@ -134,10 +134,15 @@
             <div class="card shadow-sm @GetTheme()">
               <img src="/placeholder.jpg" class="card-img-top" width="320" height="240" />
               <div class="card-body">
-                <p class="card-text">Information about image</p>
+                <p class="card-text">Time: </p>
+                <p class="card-text">Site Name: </p>
+                <p class="card-text">Site Number: </p>
+                <p class="card-text">Camera: </p>
+                <p class="card-text">Camera Position: </p>
                 <div class="d-flex justify-content-between align-items-center">
                   <div class="btn-group">
-                    <button type="button" class="btn btn-sm btn-light @GetButtonTheme()">View</button>
+                    <button type="button" class="disabled btn btn-sm btn-light @GetButtonTheme()">View</button>
+                    <button type="button" class="disabled btn btn-sm btn-light @GetButtonTheme()">Download</button>
                   </div>
                 </div>
               </div>
@@ -148,7 +153,7 @@
     </div>
   </div>
 }
-else if (querySubmitted && loading is false)
+else if (querySubmitted && !loading)
 {
   <div class="my-3 py-3 album rounded @GetTheme()">
     <div class="container">
