@@ -209,7 +209,12 @@ app.MapGet("/api/images/paginated", async (ImageDbContext dbContext, string filt
         int.TryParse(parameters[6], out int cameraPosition);
 
         var query = dbContext.Images
-            .Where(i => i.DateTime >= startDate && i.DateTime <= endDate && i.SiteName == siteName && i.SiteNumber == siteNumber && i.CameraPosition == cameraPosition)
+            .Where(i => 
+                i.DateTime >= startDate && 
+                i.DateTime <= endDate && 
+                i.SiteName == siteName && 
+                i.SiteNumber == siteNumber && 
+                i.CameraPosition == cameraPosition)
             .OrderBy(i => i.Id);
 
         int totalCount = await query.CountAsync();
