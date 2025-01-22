@@ -32,7 +32,7 @@ if(string.IsNullOrEmpty(directoryRootPath))
 
 directoryRootPath = Environment.ExpandEnvironmentVariables(directoryRootPath);
 
-var dbConnectionString = configuration["ConnectionStrings:ImageDb"] ?? configuration["DB_CONNECTION_STRING"];
+var dbConnectionString = configuration["DB_CONNECTION_STRING"] ?? configuration["ConnectionStrings:ImageDb"];
 
 if(string.IsNullOrEmpty(dbConnectionString))
 {
