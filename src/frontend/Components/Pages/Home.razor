@@ -272,6 +272,7 @@ else if (querySubmitted && loading is false)
         imageQuery.StartDateTime = new DateTime(DateOnly.FromDateTime(imageQuery.StartDateTime), imageQuery.StartTimeOnly);
         imageQuery.EndDateTime = new DateTime(DateOnly.FromDateTime(imageQuery.EndDateTime), imageQuery.EndTimeOnly);
 
+        querySubmitted = true;
         loading = true;
 
         var response = await HttpService.GetImagesByPageAsync(imageQuery.StartDateTime, imageQuery.EndDateTime, pageIndex, pageSize, imageQuery.SiteName, imageQuery.SiteNumber, imageQuery.CameraPosition);
