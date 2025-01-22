@@ -9,6 +9,12 @@ string user = "";
 
 string envFilePath = $"C:\\Users\\{user}\\source\\secrets\\ExtractImagePaths.env";
 
+if(!File.Exists(envFilePath))
+{
+    Console.WriteLine($"[ERROR] [Program.cs] [Main]: Environment file not found at {envFilePath}. Exiting.");
+    return;
+}
+
 DotNetEnv.Env.Load(envFilePath);
 
 var configuration = new ConfigurationBuilder()
