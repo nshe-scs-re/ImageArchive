@@ -168,10 +168,7 @@ else if (querySubmitted && !loading)
                 <p class="card-text">Site Name: @image.SiteName</p>
                 <p class="card-text">Site Number: @image.SiteNumber</p>
                 <p class="card-text">Camera: @image.Camera</p>
-                @if(image.CameraPosition is not null)
-                {
                   <p class="card-text">Camera Position: @image.CameraPosition</p>
-                }
                 <div class="d-flex justify-content-between align-items-center">
                   <div class="btn-group">
                     <button type="button" class="btn btn-sm btn-light @GetButtonTheme()" @onclick="() => UpdateImageSrc(image.Id)" data-bs-toggle="modal" data-bs-target="#view-image-modal">View</button>
