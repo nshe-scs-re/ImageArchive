@@ -48,24 +48,23 @@
           <div class="row py-2">
             <label for="Site" class="col col-form-label">Site Name:</label>
             <div class="col">
-              <InputSelect @bind-Value="imageQuery.SiteName" id="SiteName" class="form-select">
+              <select value=@imageQuery.SiteName @onchange=OnSiteNameChanged id="SiteName" class="form-select">
                 <option value="Rockland">Rockland</option>
                 <option value="Sheep">Sheep</option>
                 <option value="Snake">Snake</option>
                 <option value="Spring">Spring</option>
                 <option value="Eldorado">Eldorado</option>
-              </InputSelect>
+              </select>
             </div>
           </div>
           <div class="row py-2">
             <label for="Site" class="col col-form-label">Site Number:</label>
             <div class="col">
               <InputSelect @bind-Value="imageQuery.SiteNumber" id="SiteNumber" class="form-select">
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
+                @foreach(var siteNumber in SiteNumbers)
+                {
+                  <option value="@siteNumber">@siteNumber</option>
+                }
               </InputSelect>
             </div>
           </div>
@@ -161,7 +160,8 @@ else if (querySubmitted && loading is false)
               <img src="/api/images/@image.Id" class="card-img-top" width="320" height="240" />
               <div class="card-body">
                 <p class="card-text">Time: @image.DateTime</p>
-                <p class="card-text">Site: @image.SiteName</p>
+                <p class="card-text">Site Name: @image.SiteName</p>
+                <p class="card-text">Site Number: @image.SiteNumber</p>
                 <p class="card-text">Camera: @image.Camera</p>
                 @if(image.CameraPosition is not null)
                 {
@@ -234,6 +234,33 @@ else if (querySubmitted && loading is false)
     private int totalImages = 0;
     private int totalPages = 0;
     private string imageSrc = string.Empty;
+
+    private Dictionary<string, List<int>> SiteNameToSiteNumbersMap = new()
+    {
+        { "Eldorado", new List<int>{ 2, 3 }},
+        { "Sheep", new List<int>{ 1, 2, 3, 4 }},
+        { "Snake", new List<int>{ 1, 2, 3 }},
+        { "Spring", new List<int>{ 0, 1, 2, 3, 4 }},
+        { "Rockland", new List<int>{ 1 }}
+    };
+    private List<int> SiteNumbers = new List<int>{ 1 };
+
+    private void OnSiteNameChanged(ChangeEventArgs e)
+    {
+        var selectedSite = e.Value?.ToString();
+        if(!string.IsNullOrEmpty(selectedSite))
+        {
+            if (imageQuery.SiteName != selectedSite)
+            {
+                imageQuery.SiteName = selectedSite;
+            }
+            if (SiteNameToSiteNumbersMap.ContainsKey(selectedSite))
+            {
+                SiteNumbers = SiteNameToSiteNumbersMap[selectedSite];
+                imageQuery.SiteNumber = SiteNumbers.Min();
+            }
+        }
+    }
 
     protected override void OnInitialized()
     {
