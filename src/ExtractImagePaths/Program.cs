@@ -189,13 +189,24 @@ void InsertImagePathsIntoDatabase(List<string> filePaths, ServiceProvider servic
 
             string siteName = siteNames.FirstOrDefault(s => filePath.Contains(s)) ?? string.Empty;
 
+            int siteNumber = 1;
+
+            for(int i=0; i<10; i++)
+            {
+                string s = $"Site {i}";
+                if(filePath.Contains(s))
+                {
+                    siteNumber = i;
+                }
+            }
+
             int camera = filePath.Contains("Camera2") ? 2 : 1;
 
             if(filePath.Contains('\\'))
             {
                 if(string.IsNullOrEmpty(windowsBasePath))
                 {
-                    logger.LogError("Windows file path found. Variable 'windowsBasePath' is not set. Cannot convert the file path to Linux format.");
+                    logger.LogError($"Windows file path found. Variable '{nameof(windowsBasePath)}' is not set. Cannot convert the file path to Linux format.");
                 }
                 else
                 {
@@ -211,7 +222,8 @@ void InsertImagePathsIntoDatabase(List<string> filePaths, ServiceProvider servic
                 FilePath = filePath,
                 DateTime = dateTime,
                 UnixTime = unixTime,
-                Site = siteName,
+                SiteName = siteName,
+                SiteNumber = siteNumber,
                 Camera = camera
             };
 
@@ -230,14 +242,16 @@ void InsertImagePathsIntoDatabase(List<string> filePaths, ServiceProvider servic
                 "File Path: {FilePath}\n\t" +
                 "Unix Time: {UnixTime}\n\t" +
                 "DateTime: {DateTime}\n\t" +
-                "Site: {Site}\n\t" +
+                "SiteName: {SiteName}\n\t" +
+                "SiteNumber: {SiteNumber}\n\t" +
                 "Camera: {Camera}\n\t" +
                 "Camera Position: {CameraPosition}",
                 images[0]!.Name,
                 images[0]!.FilePath,
                 images[0]!.UnixTime,
                 images[0]!.DateTime,
-                images[0]!.Site,
+                images[0]!.SiteName,
+                images[0]!.SiteNumber,
                 images[0]!.Camera,
                 images[0]!.CameraPosition
             );
