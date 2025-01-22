@@ -158,7 +158,8 @@ void InsertImagePathsIntoDatabase(List<string> filePaths, ServiceProvider servic
         "Spring",
         "Conness",
         "Rockland",
-        "Lassen"
+        "Lassen",
+        "Eldorado"
     };
 
     using(var scope = serviceProvider.CreateScope())
