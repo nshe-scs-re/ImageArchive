@@ -60,12 +60,12 @@
           <div class="row py-2">
             <label for="Site" class="col col-form-label">Site Number:</label>
             <div class="col">
-              <InputSelect @bind-Value="imageQuery.SiteNumber" id="SiteNumber" class="form-select">
+              <select value="imageQuery.SiteNumber" @onchange=OnSiteNumberChanged id ="SiteNumber" class="form-select">
                 @foreach(var siteNumber in SiteNumbers)
                 {
                   <option value="@siteNumber">@siteNumber</option>
                 }
-              </InputSelect>
+              </select>
             </div>
           </div>
           <div class="row py-2">
@@ -82,26 +82,10 @@
             <label for="CameraPosition" class="col col-form-label">Camera Position:</label>
             <div class="col">
               <InputSelect @bind-Value="imageQuery.CameraPosition" id="CameraPosition" class="form-select">
-                <option value="1">Position 1</option>
-                <option value="2">Position 2</option>
-                <option value="3">Position 3</option>
-                <option value="4">Position 4</option>
-                <option value="5">Position 5</option>
-                <option value="6">Position 6</option>
-                <option value="7">Position 7</option>
-                <option value="8">Position 8</option>
-                <option value="9">Position 9</option>
-                <option value="10">Position 10</option>
-                <option value="11">Position 11</option>
-                <option value="12">Position 12</option>
-                <option value="13">Position 13</option>
-                <option value="14">Position 14</option>
-                <option value="15">Position 15</option>
-                <option value="16">Position 16</option>
-                <option value="17">Position 17</option>
-                <option value="18">Position 18</option>
-                <option value="19">Position 19</option>
-                <option value="20">Position 20</option>
+                @foreach (var item in cameraPositions)
+                {
+                  <option value="@item.Value">@item.PositionName</option>
+                }
               </InputSelect>
             </div>
           </div>
@@ -137,8 +121,9 @@
                 <p class="card-text">Time: </p>
                 <p class="card-text">Site Name: </p>
                 <p class="card-text">Site Number: </p>
-                <p class="card-text">Camera: </p>
-                <p class="card-text">Camera Position: </p>
+                <p class="card-text">Camera Number: </p>
+                <p class="card-text">Camera Position Number: </p>
+                <p class="card-text">Camera Postion Name: </p>
                 <div class="d-flex justify-content-between align-items-center">
                   <div class="btn-group">
                     <button type="button" class="disabled btn btn-sm btn-light @GetButtonTheme()">View</button>
@@ -167,8 +152,9 @@ else if (querySubmitted && !loading)
                 <p class="card-text">Time: @image.DateTime</p>
                 <p class="card-text">Site Name: @image.SiteName</p>
                 <p class="card-text">Site Number: @image.SiteNumber</p>
-                <p class="card-text">Camera: @image.Camera</p>
-                <p class="card-text">Camera Position: @image.CameraPosition</p>
+                <p class="card-text">Camera Number: @image.CameraNumber</p>
+                <p class="card-text">Camera Position Number: @image.CameraPositionNumber</p>
+                <p class="card-text">Camera Postion Name: @image.CameraPositionName</p>
                 <div class="d-flex justify-content-between align-items-center">
                   <div class="btn-group">
                     <button type="button" class="btn btn-sm btn-light @GetButtonTheme()" @onclick="() => UpdateImageSrc(image.Id)" data-bs-toggle="modal" data-bs-target="#view-image-modal">View</button>
@@ -237,12 +223,14 @@ else if (querySubmitted && !loading)
     private int totalPages = 0;
     private string imageSrc = string.Empty;
 
+    List<CameraPositionEntry> cameraPositions = CameraPositions.Positions.Where(p => p.SiteName == "Rockland" && p.SiteNumber == 1).ToList();
+
     private Dictionary<string, List<int>> SiteNameToSiteNumbersMap = new()
     {
-        { "Eldorado", new List<int>{ 2, 3 }},
+        { "Eldorado", new List<int>{ 3 }},
         { "Sheep", new List<int>{ 1, 2, 3, 4 }},
         { "Snake", new List<int>{ 1, 2, 3 }},
-        { "Spring", new List<int>{ 0, 1, 2, 3, 4 }},
+        { "Spring", new List<int>{ 3, 4 }},
         { "Rockland", new List<int>{ 1 }}
     };
     private List<int> SiteNumbers = new List<int>{ 1 };
@@ -256,12 +244,38 @@ else if (querySubmitted && !loading)
             {
                 imageQuery.SiteName = selectedSite;
             }
+
             if (SiteNameToSiteNumbersMap.ContainsKey(selectedSite))
             {
                 SiteNumbers = SiteNameToSiteNumbersMap[selectedSite];
                 imageQuery.SiteNumber = SiteNumbers.Min();
             }
+
+            cameraPositions = CameraPositions.Positions
+                .Where(p =>
+                  p.SiteName == imageQuery.SiteName && 
+                  p.SiteNumber == imageQuery.SiteNumber)
+                .ToList();
+
+            imageQuery.CameraPosition = cameraPositions.Min(p => p.Value);
         }
+    }
+
+    private void OnSiteNumberChanged(ChangeEventArgs e)
+    {
+        var siteNumberString = e.Value?.ToString();
+        int.TryParse(siteNumberString, out int siteNumber);
+
+        if (imageQuery.SiteNumber != siteNumber)
+        {
+            imageQuery.SiteNumber = siteNumber;
+        }
+
+        cameraPositions = CameraPositions.Positions
+            .Where(p =>
+              p.SiteName == imageQuery.SiteName && 
+              p.SiteNumber == imageQuery.SiteNumber)
+            .ToList();
     }
 
     protected override void OnInitialized()
