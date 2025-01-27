@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using DotNetEnv;
 
-string user = "";
+string user = "whaley";
 
 string envFilePath = $"C:\\Users\\{user}\\source\\secrets\\ExtractImagePaths.env";
 
@@ -40,8 +40,8 @@ if(string.IsNullOrEmpty(dbConnectionString))
     return;
 }
 
-var windowsUserName =  configuration["WINDOWS_USER_NAME"] ?? configuration["WindowsUser:Name"] ;
-var windowsBasePath =  configuration["WINDOWS_USER_BASE_PATH"] ?? configuration["WindowsUser:BasePath"];
+var windowsUserName = configuration["WINDOWS_USER_NAME"] ?? configuration["WindowsUser:Name"];
+var windowsBasePath = configuration["WINDOWS_USER_BASE_PATH"] ?? configuration["WindowsUser:BasePath"];
 if(windowsUserName is not null)
 {
     windowsUserName = Environment.ExpandEnvironmentVariables(windowsUserName);
@@ -128,25 +128,47 @@ if(imagePaths.Count is 0)
 
 InsertImagePathsIntoDatabase(imagePaths, serviceProvider);
 
+//List<string> GetImagePaths(string directoryRootPath)
+//{
+//    List<string> imagePaths = [];
+
+//    List<string> imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".tiff"];
+
+//    foreach(var directory in Directory.GetDirectories(directoryRootPath, "*", SearchOption.AllDirectories))
+//    {
+//        foreach(var extension in imageExtensions)
+//        {
+//            foreach(var file in Directory.GetFiles(directory, $"*{extension}"))
+//            {
+//                imagePaths.Add(file);
+//            }
+//        }
+//    }
+
+//    return imagePaths;
+//}
+
 List<string> GetImagePaths(string directoryRootPath)
 {
-    List<string> imagePaths = [];
+    List<string> imagePaths = new List<string>();
 
-    List<string> imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".tiff"];
+    List<string> imageExtensions = [".jpg", ".jpeg"];
 
-    foreach(var directory in Directory.GetDirectories(directoryRootPath, "*", SearchOption.AllDirectories))
+    foreach(var extension in imageExtensions)
     {
-        foreach(var extension in imageExtensions)
+        try
         {
-            foreach(var file in Directory.GetFiles(directory, $"*{extension}"))
-            {
-                imagePaths.Add(file);
-            }
+            imagePaths.AddRange(Directory.GetFiles(directoryRootPath, $"*{extension}", SearchOption.AllDirectories));
+        }
+        catch(Exception)
+        {
+            throw;
         }
     }
 
     return imagePaths;
 }
+
 
 void InsertImagePathsIntoDatabase(List<string> filePaths, ServiceProvider serviceProvider)
 {
@@ -192,7 +214,7 @@ void InsertImagePathsIntoDatabase(List<string> filePaths, ServiceProvider servic
 
             int siteNumber = 1;
 
-            for(int i=0; i<10; i++)
+            for(int i = 0; i < 10; i++)
             {
                 string s = $"Site {i}";
                 if(filePath.Contains(s))
@@ -201,7 +223,7 @@ void InsertImagePathsIntoDatabase(List<string> filePaths, ServiceProvider servic
                 }
             }
 
-            int camera = filePath.Contains("Camera2") ? 2 : 1;
+            int Number = filePath.Contains("Camera2") ? 2 : 1;
 
             if(filePath.Contains('\\'))
             {
@@ -225,7 +247,7 @@ void InsertImagePathsIntoDatabase(List<string> filePaths, ServiceProvider servic
                 UnixTime = unixTime,
                 SiteName = siteName,
                 SiteNumber = siteNumber,
-                Camera = camera
+                CameraNumber = Number
             };
 
             return (IsValid: true, Image: image);
@@ -245,16 +267,16 @@ void InsertImagePathsIntoDatabase(List<string> filePaths, ServiceProvider servic
                 "DateTime: {DateTime}\n\t" +
                 "SiteName: {SiteName}\n\t" +
                 "SiteNumber: {SiteNumber}\n\t" +
-                "Camera: {Camera}\n\t" +
-                "Camera Position: {CameraPosition}",
+                "CameraNumber: {CameraNumber}\n\t" +
+                "Camera Position: {CameraPositionNumber}",
                 images[0]!.Name,
                 images[0]!.FilePath,
                 images[0]!.UnixTime,
                 images[0]!.DateTime,
                 images[0]!.SiteName,
                 images[0]!.SiteNumber,
-                images[0]!.Camera,
-                images[0]!.CameraPosition
+                images[0]!.CameraNumber,
+                images[0]!.CameraPositionNumber
             );
         }
         else
