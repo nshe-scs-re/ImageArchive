@@ -13,7 +13,8 @@ public class ImageQuery
     public TimeOnly StartTimeOnly { get; set; } = TimeOnly.MinValue;
     public TimeOnly EndTimeOnly { get; set; } = TimeOnly.MaxValue;
     public long? UnixTime { get; set; }
-    public string? Site { get; set; } = "Rockland";
+    public string? SiteName { get; set; } = "Rockland";
+    public int? SiteNumber { get; set; } = 1;
     public int? CameraNumber { get; set; } = 1;
     public int? CameraPosition { get; set; } = 1;
 }
