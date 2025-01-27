@@ -7,7 +7,8 @@ public class Image
     public string FilePath { get; set; }
     public DateTime DateTime { get; set; }
     public long UnixTime { get; set; }
-    public string? Site { get; set; }
+    public string? SiteName { get; set; }
+    public int? SiteNumber { get; set; }
     public int Camera { get; set; }
     public int? CameraPosition { get; set; }
 }
