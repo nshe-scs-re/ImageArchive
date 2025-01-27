@@ -15,6 +15,7 @@ public class Image
     public long UnixTime { get; set; }
     public string? SiteName { get; set; }
     public int? SiteNumber { get; set; }
-    public int Camera { get; set; }
-    public int? CameraPosition { get; set; }
+    public int CameraNumber { get; set; }
+    public int? CameraPositionNumber { get; set; }
+    public string? CameraPositionName { get; set; }
 }
