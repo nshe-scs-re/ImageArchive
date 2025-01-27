@@ -4,7 +4,7 @@ var imageDirectoryRootPath = @"C:\Users\whaley\source\Images";
 
 if(!Directory.Exists(imageDirectoryRootPath))
 {
-    Console.WriteLine($"[ERROR] [Program.cs] [Main]: '{imageDirectoryRootPath}' is an invalid directory path. Exiting...");
+    Console.WriteLine($"[ERROR] [Program.cs] [Main]: '{nameof(imageDirectoryRootPath)}' is an invalid directory path. Exiting...");
     return;
 }
 
@@ -93,6 +93,260 @@ Console.WriteLine($"[INFO] [Program.cs] [Main]: Attempting to save to database..
 
 using(var dbContext = new ImageDbContext())
 {
+    Dictionary<int, string> RocklandNameMap = new Dictionary<int, string>
+    {
+        { 1, "North" },
+        { 2, "North East" },
+        { 3, "East"},
+        { 4, "South East" },
+        { 5, "South" },
+        { 6, "South West" },
+        { 7, "West" },
+        { 8, "North West" },
+        { 9, "Solar Panels"},
+        { 10, "Tower Base"},
+        { 11, "Mason Valley"},
+        { 12, "Sawtooth Ridge"},
+        { 13, "Sweetwater Range"},
+        { 14, "White Mountain Range"},
+        { 15, "Walker River"},
+        { 16, "Corey Peak"},
+        { 17, "Mt Grant"},
+        { 18, "North Aspect"},
+        { 19, "South Aspect"},
+        { 20, "Mt Rose"}
+    };
+
+    Dictionary<int, string> SheepOneNameMap = new Dictionary<int, string>
+    {
+        { 1, "North" },
+        { 2, "North East" },
+        { 3, "East"},
+        { 4, "South East" },
+        { 5, "South" },
+        { 6, "South West" },
+        { 7, "West" },
+        { 8, "North West" },
+        { 9, "Solar Panels"},
+        { 10, "Tower Base"},
+        { 11, "Site Access"},
+        { 12, "Soil Sensors"},
+        { 13, "Precipitation Gage"},
+        { 14, "Angel Peak"},
+        { 15, "Refuge HQ"},
+        { 16, "Vegetation Interspace"}
+    };
+
+    Dictionary<int, string> SheepTwoNameMap = new Dictionary<int, string>
+    {
+        { 1, "North" },
+        { 2, "North East" },
+        { 3, "East"},
+        { 4, "South East" },
+        { 5, "South" },
+        { 6, "South West" },
+        { 7, "West" },
+        { 8, "North West" },
+        { 9, "Solar Panels"},
+        { 10, "Tower Base"},
+        { 11, "Site Access"},
+        { 12, "Soil Sensors"},
+        { 13, "Precipitation Gage"},
+        { 14, "LV Precip Station"},
+        { 15, "Angel Peak"},
+        { 16, "Hayford Peak"},
+        { 17, "Sheep 3&4"},
+        { 18, "Canopy Interspace"}
+    };
+
+    Dictionary<int, string> SheepThreeNameMap = new Dictionary<int, string>
+    {
+        { 1, "North" },
+        { 2, "North East" },
+        { 3, "East"},
+        { 4, "South East" },
+        { 5, "South" },
+        { 6, "South West" },
+        { 7, "West" },
+        { 8, "North West" },
+        { 9, "Solar Panels"},
+        { 10, "Tower Base"},
+        { 11, "Site Access"},
+        { 12, "Soil Sensors"},
+        { 13, "Precipitation Gage"},
+        { 14, "Runoff Collector"},
+        { 15, "NRCS SCAN Site"},
+        { 16, "LV Precip Station"}
+    };
+    Dictionary<int, string> SheepFourNameMap = new Dictionary<int, string>
+    {
+        { 1, "North" },
+        { 2, "North East" },
+        { 3, "East"},
+        { 4, "South East" },
+        { 5, "South" },
+        { 6, "South West" },
+        { 7, "West" },
+        { 8, "North West" },
+        { 9, "Solar Panels"},
+        { 10, "Tower Base"},
+        { 11, "Site Access"},
+        { 12, "Soil Sensors"},
+        { 13, "Precipitation Gage"},
+        { 14, "Rain Gage"},
+        { 15, "Canopy Interspace"},
+        { 16, "Sap Flow Sensors"},
+        { 17, "PIMO Canopy"}
+    };
+    Dictionary<int, string> SpringZeroNameMap = new Dictionary<int, string>
+    {
+        { 1, "North" },
+        { 2, "North East" },
+        { 3, "East"},
+        { 4, "South East" },
+        { 5, "South" },
+        { 6, "South West" },
+        { 7, "West" },
+        { 8, "North West" },
+    };
+    Dictionary<int, string> SpringOneNameMap = new Dictionary<int, string>
+    {
+        { 1, "North" },
+        { 2, "North East" },
+        { 3, "East"},
+        { 4, "South East" },
+        { 5, "South" },
+        { 6, "South West" },
+        { 7, "West" },
+        { 8, "North West" },
+    };
+    Dictionary<int, string> SpringTwoNameMap = new Dictionary<int, string>
+    {
+        { 1, "North" },
+        { 2, "North East" },
+        { 3, "East"},
+        { 4, "South East" },
+        { 5, "South" },
+        { 6, "South West" },
+        { 7, "West" },
+        { 8, "North West" },
+    };
+    Dictionary<int, string> SpringThreeNameMap = new Dictionary<int, string>
+    {
+        { 1, "North" },
+        { 2, "North East" },
+        { 3, "East"},
+        { 4, "South East" },
+        { 5, "South" },
+        { 6, "South West" },
+        { 7, "West" },
+        { 8, "North West" },
+        { 9, "Solar Panels"},
+        { 10, "Tower Base"},
+        { 11, "Site Access"},
+        { 12, "Soil Sensors"},
+        { 13, "Precipitation Gage"},
+        { 14, "Snow Pole 1"},
+        { 15, "Snow Pole 2"},
+        { 16, "Mountain Mahogony Canopy"},
+        { 17, "Spring 1"},
+        { 18, "Cave Mountain"}
+    };
+    Dictionary<int, string> SpringFourNameMap = new Dictionary<int, string>
+    {
+        { 1, "North" },
+        { 2, "North East" },
+        { 3, "East"},
+        { 4, "South East" },
+        { 5, "South" },
+        { 6, "South West" },
+        { 7, "West" },
+        { 8, "North West" },
+        { 9, "Solar Panels"},
+        { 10, "Tower Base"},
+        { 11, "Site Access"},
+        { 12, "Soil Sensors"},
+        { 13, "Precipitation Gage"},
+        { 14, "Snow Pole"},
+        { 15, "Snow Weighing Sensors (Shade)"},
+        { 16, "Snow Weighing Sensors (Sun)"},
+        { 17, "Bristlecone Canopy"},
+        { 18, "Limber Pine Canopy"},
+        { 19, "South Spring Valley"},
+        { 20, "South Schell Creek Range"}
+    };
+
+    Dictionary<int, string> SnakeOneNameMap = new Dictionary<int, string>
+    {
+        { 1, "North" },
+        { 2, "North East" },
+        { 3, "East"},
+        { 4, "South East" },
+        { 5, "South" },
+        { 6, "South West" },
+        { 7, "West" },
+        { 8, "North West" },
+        { 9, "Solar Panels"},
+        { 10, "Tower Base"},
+        { 11, "Site Access"},
+        { 12, "?Tower Base 2"},
+        { 13, "Precipitation Gage"},
+        { 14, "UNLV Data Logger"},
+        { 15, "Great Basin National Park"},
+    };
+    Dictionary<int, string> SnakeTwoNameMap = new Dictionary<int, string>
+    {
+        { 1, "North" },
+        { 2, "North East" },
+        { 3, "East"},
+        { 4, "South East" },
+        { 5, "South" },
+        { 6, "South West" },
+        { 7, "West" },
+        { 8, "North West" },
+        { 9, "Solar Panels"},
+        { 10, "Tower Base"},
+        { 11, "Site Access"},
+        { 12, "Soil Sensors"},
+        { 13, "Precipitation Gage"},
+        { 14, "Great Basin Ranch Exhibit"},
+        { 15, "Spring One"},
+    };
+
+    Dictionary<int, string> SnakeThreeNameMap = new Dictionary<int, string>
+    {
+        { 1, "North" },
+        { 2, "North East" },
+        { 3, "East"},
+        { 4, "South East" },
+        { 5, "South" },
+        { 6, "South West" },
+        { 7, "West" },
+        { 8, "North West" },
+        { 9, "Solar Panels"},
+        { 10, "Tower Base"},
+        { 11, "Site Access"},
+        { 12, "Precipitation Gage"},
+        { 13, "Sap Flow Sensors"},
+        { 14, "Vegetation Interspace"},
+        { 15, "Deciduous Leaves"},
+        { 16, "Soil Sensors"},
+        { 17, "Snow Weighing Sensor"},
+        { 18, "Snow Depth Pole"}
+    };
+
+    Dictionary<int, string> EldoradoThreeNameMap = new Dictionary<int, string>
+    {
+        { 1, "North" },
+        { 2, "North East" },
+        { 3, "East"},
+        { 4, "South East" },
+        { 5, "South" },
+        { 6, "South West" },
+        { 7, "West" },
+        { 8, "North West" },
+    };
+
     try
     {
         var paths = byteMapping.Keys.ToList();
@@ -102,7 +356,87 @@ using(var dbContext = new ImageDbContext())
         {
             if(byteMapping.TryGetValue(image.FilePath, out int cameraPosition))
             {
-                image.CameraPosition = cameraPosition;
+                image.CameraPositionNumber = cameraPosition;
+
+                switch(image.SiteName)
+                {
+                    case "Rockland":
+                        image.CameraPositionName = RocklandNameMap.GetValueOrDefault(cameraPosition);
+                        break;
+                    case "Sheep":
+                        switch(image.SiteNumber)
+                        {
+                            case 1:
+                                image.CameraPositionName = SheepOneNameMap.GetValueOrDefault(cameraPosition);
+                                break;
+                            case 2:
+                                image.CameraPositionName = SheepTwoNameMap.GetValueOrDefault(cameraPosition);
+                                break;
+                            case 3:
+                                image.CameraPositionName = SheepThreeNameMap.GetValueOrDefault(cameraPosition);
+                                break;
+                            case 4:
+                                image.CameraPositionName = SheepFourNameMap.GetValueOrDefault(cameraPosition);
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
+                    case "Spring":
+                        switch(image.SiteNumber)
+                        {
+                            case 0:
+                                image.CameraPositionName = SpringZeroNameMap.GetValueOrDefault(cameraPosition);
+                                break;
+                            case 1:
+                                image.CameraPositionName = SpringOneNameMap.GetValueOrDefault(cameraPosition);
+                                break;
+                            case 2:
+                                image.CameraPositionName = SpringTwoNameMap.GetValueOrDefault(cameraPosition);
+                                break;
+                            case 3:
+                                image.CameraPositionName = SpringThreeNameMap.GetValueOrDefault(cameraPosition);
+                                break;
+                            case 4:
+                                image.CameraPositionName = SpringFourNameMap.GetValueOrDefault(cameraPosition);
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
+                    case "Snake":
+                        switch(image.SiteNumber)
+                        {
+                            case 1:
+                                image.CameraPositionName = SnakeOneNameMap.GetValueOrDefault(cameraPosition);
+                                break;
+                            case 2:
+                                image.CameraPositionName = SnakeTwoNameMap.GetValueOrDefault(cameraPosition);
+                                break;
+                            case 3:
+                                image.CameraPositionName = SnakeThreeNameMap.GetValueOrDefault(cameraPosition);
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
+                    case "Eldorado":
+                        switch(image.SiteNumber)
+                        {
+                            case 1:
+                                break;
+                            case 2:
+                                break;
+                            case 3:
+                                image.CameraPositionName = EldoradoThreeNameMap.GetValueOrDefault(cameraPosition);
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
+                    default:
+                        break;
+                }
             }
             else
             {

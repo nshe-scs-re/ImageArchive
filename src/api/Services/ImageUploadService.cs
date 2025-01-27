@@ -54,7 +54,7 @@ public class ImageUploadService
                 FilePath = filePath,
                 DateTime = DateTime.UtcNow,
                 UnixTime = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds(),
-                Site = site
+                SiteName = site
             };
 
             _context.Images.Add(image);
