@@ -9,6 +9,12 @@ string user = "";
 
 string envFilePath = $"C:\\Users\\{user}\\source\\secrets\\ExtractImagePaths.env";
 
+if(!File.Exists(envFilePath))
+{
+    Console.WriteLine($"[ERROR] [Program.cs] [Main]: Environment file not found at {envFilePath}. Exiting.");
+    return;
+}
+
 DotNetEnv.Env.Load(envFilePath);
 
 var configuration = new ConfigurationBuilder()
@@ -20,17 +26,17 @@ var directoryRootPath = configuration["NEVCAN_DIRECTORY_ROOT_PATH"];
 
 if(string.IsNullOrEmpty(directoryRootPath))
 {
-    Console.WriteLine("ERROR: Variable 'directoryRootPath' not set. Exiting.");
+    Console.WriteLine($"[ERROR] [Program.cs] [Main]: Variable '{nameof(directoryRootPath)}' not set. Exiting.");
     return;
 }
 
 directoryRootPath = Environment.ExpandEnvironmentVariables(directoryRootPath);
 
-var dbConnectionString = configuration["ConnectionStrings:ImageDb"] ?? configuration["DB_CONNECTION_STRING"];
+var dbConnectionString = configuration["DB_CONNECTION_STRING"] ?? configuration["ConnectionStrings:ImageDb"];
 
 if(string.IsNullOrEmpty(dbConnectionString))
 {
-    Console.WriteLine("ERROR: Variable 'dbConnectionString' not set. Exiting.");
+    Console.WriteLine($"[ERROR] [Program.cs] [Main]: Variable '{nameof(dbConnectionString)}' not set. Exiting.");
     return;
 }
 
@@ -40,10 +46,18 @@ if(windowsUserName is not null)
 {
     windowsUserName = Environment.ExpandEnvironmentVariables(windowsUserName);
 }
+else
+{
+    Console.WriteLine($"[WARNING] [Program.cs] [Main]: Variable '{nameof(windowsUserName)}' not set.");
+}
 
 if(windowsBasePath is not null)
 {
     windowsBasePath = Environment.ExpandEnvironmentVariables(windowsBasePath);
+}
+else
+{
+    Console.WriteLine($"[WARNING] [Program.cs] [Main]: Variable '{nameof(windowsBasePath)}' not set.");
 }
 
 var serviceProvider = new ServiceCollection()
@@ -144,7 +158,8 @@ void InsertImagePathsIntoDatabase(List<string> filePaths, ServiceProvider servic
         "Spring",
         "Conness",
         "Rockland",
-        "Lassen"
+        "Lassen",
+        "Eldorado"
     };
 
     using(var scope = serviceProvider.CreateScope())
@@ -175,13 +190,24 @@ void InsertImagePathsIntoDatabase(List<string> filePaths, ServiceProvider servic
 
             string siteName = siteNames.FirstOrDefault(s => filePath.Contains(s)) ?? string.Empty;
 
+            int siteNumber = 1;
+
+            for(int i=0; i<10; i++)
+            {
+                string s = $"Site {i}";
+                if(filePath.Contains(s))
+                {
+                    siteNumber = i;
+                }
+            }
+
             int camera = filePath.Contains("Camera2") ? 2 : 1;
 
             if(filePath.Contains('\\'))
             {
                 if(string.IsNullOrEmpty(windowsBasePath))
                 {
-                    logger.LogError("Windows file path found. Variable 'windowsBasePath' is not set. Cannot convert the file path to Linux format.");
+                    logger.LogError($"Windows file path found. Variable '{nameof(windowsBasePath)}' is not set. Cannot convert the file path to Linux format.");
                 }
                 else
                 {
@@ -197,7 +223,8 @@ void InsertImagePathsIntoDatabase(List<string> filePaths, ServiceProvider servic
                 FilePath = filePath,
                 DateTime = dateTime,
                 UnixTime = unixTime,
-                Site = siteName,
+                SiteName = siteName,
+                SiteNumber = siteNumber,
                 Camera = camera
             };
 
@@ -216,14 +243,16 @@ void InsertImagePathsIntoDatabase(List<string> filePaths, ServiceProvider servic
                 "File Path: {FilePath}\n\t" +
                 "Unix Time: {UnixTime}\n\t" +
                 "DateTime: {DateTime}\n\t" +
-                "Site: {Site}\n\t" +
+                "SiteName: {SiteName}\n\t" +
+                "SiteNumber: {SiteNumber}\n\t" +
                 "Camera: {Camera}\n\t" +
                 "Camera Position: {CameraPosition}",
                 images[0]!.Name,
                 images[0]!.FilePath,
                 images[0]!.UnixTime,
                 images[0]!.DateTime,
-                images[0]!.Site,
+                images[0]!.SiteName,
+                images[0]!.SiteNumber,
                 images[0]!.Camera,
                 images[0]!.CameraPosition
             );
@@ -254,6 +283,6 @@ void InsertImagePathsIntoDatabase(List<string> filePaths, ServiceProvider servic
 
         int count = context.SaveChanges();
 
-        logger.LogInformation("Insertion complete. {addedCount} insertions.", count);
+        logger.LogInformation("Insertion complete. {count} insertions.", count);
     }
 }
