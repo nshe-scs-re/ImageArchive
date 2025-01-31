@@ -2,8 +2,6 @@
 using ExtractImagePaths.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using DotNetEnv;
 
 string user = "whaley";
 
@@ -62,18 +60,10 @@ else
 
 var serviceProvider = new ServiceCollection()
     .AddSqlServer<ImageDbContext>(dbConnectionString)
-    .AddLogging(configure =>
-    {
-        configure.AddConsole();
-        configure.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.Warning);
-    })
-    .Configure<LoggerFilterOptions>(options => options.MinLevel = LogLevel.Information)
     .BuildServiceProvider();
 
-var logger = serviceProvider.GetService<ILogger<Program>>();
-
-logger.LogInformation("Environment is set to: {environment}.", configuration["ASPNETCORE_ENVIRONMENT"]);
-logger.LogInformation("Directory root path is set to: {directoryRootPath}.", directoryRootPath);
+Console.WriteLine($"[INFO] [Program.cs] [Main]: Environment is set to: {configuration["ASPNETCORE_ENVIRONMENT"]}.");
+Console.WriteLine($"[INFO] [Program.cs] [Main]: Directory root path is set to: {directoryRootPath}.");
 
 using(var scope = serviceProvider.CreateScope())
 {
@@ -81,107 +71,79 @@ using(var scope = serviceProvider.CreateScope())
 
     if(context.Database.CanConnect())
     {
-        logger.LogInformation("Database connection success!");
+        Console.WriteLine($"[INFO] [Program.cs] [Main]: Database connection success!");
     }
     else
     {
-        logger.LogError("Could not connect to database. Exiting application.");
+        Console.WriteLine("[ERROR] [Program.cs] [Main]: Could not connect to database. Exiting application.");
         return;
     }
 }
 
 try
 {
-    logger.LogInformation("Root directory is set to: {directoryRootPath}", directoryRootPath);
+    Console.WriteLine($"[INFO] [Program.cs] [Main]: Root directory is set to: {directoryRootPath}");
 
     if(Directory.Exists(directoryRootPath))
     {
-        logger.LogInformation("Root directory exists. Finding subdirectories...");
+        Console.WriteLine($"[INFO] [Program.cs] [Main]: Root directory exists. Finding subdirectories...");
 
         string[] directories = Directory.GetDirectories(directoryRootPath);
 
-        logger.LogInformation("Found {directories.Length} subdirectories:\n\t{listOfDirectories}", directories.Length, string.Join("\n\t", directories));
+        Console.WriteLine($"[INFO] [Program.cs] [Main]: Found {directories.Length} subdirectories:\n\t{string.Join("\n\t", directories)}");
     }
     else
     {
-        logger.LogInformation("{directoryRootPath} does not exist. Exiting.", directoryRootPath);
+        Console.WriteLine($"[ERROR] [Program.cs] [Main]: {directoryRootPath} does not exist. Exiting.", directoryRootPath);
         return;
     }
 }
 catch(Exception ex)
 {
-    logger.LogError("{ex.Message}", ex.Message);
+    Console.WriteLine("{ex.Message}", ex.Message);
     return;
 }
 
-logger.LogInformation("Finding image paths...");
+Console.WriteLine($"[INFO] [Program.cs] [Main]: Finding image paths...");
 
 var imagePaths = GetImagePaths(directoryRootPath);
 
-logger.LogInformation("Found {imagePaths.Count} image paths.", imagePaths.Count);
+Console.WriteLine($"[INFO] [Program.cs] [Main]: Found {imagePaths.Count} image paths.", imagePaths.Count);
 
 if(imagePaths.Count is 0)
 {
-    logger.LogError("No image paths found. Exiting application.");
+    Console.WriteLine("[INFO] [Program.cs] [Main]: No image paths found. Exiting application.");
     return;
 }
 
 InsertImagePathsIntoDatabase(imagePaths, serviceProvider);
 
-//List<string> GetImagePaths(string directoryRootPath)
-//{
-//    List<string> imagePaths = [];
-
-//    List<string> imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".tiff"];
-
-//    foreach(var directory in Directory.GetDirectories(directoryRootPath, "*", SearchOption.AllDirectories))
-//    {
-//        foreach(var extension in imageExtensions)
-//        {
-//            foreach(var file in Directory.GetFiles(directory, $"*{extension}"))
-//            {
-//                imagePaths.Add(file);
-//            }
-//        }
-//    }
-
-//    return imagePaths;
-//}
-
 List<string> GetImagePaths(string directoryRootPath)
 {
-    List<string> imagePaths = new List<string>();
+    List<string> imagePaths = new();
 
-    List<string> imageExtensions = [".jpg", ".jpeg"];
+    List<string> imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".tiff"];
 
-    foreach(var extension in imageExtensions)
-    {
-        try
-        {
-            imagePaths.AddRange(Directory.GetFiles(directoryRootPath, $"*{extension}", SearchOption.AllDirectories));
-        }
-        catch(Exception)
-        {
-            throw;
-        }
-    }
+    Directory.EnumerateFiles(directoryRootPath, "*.*", SearchOption.AllDirectories)
+        .Where(file => imageExtensions.Contains(Path.GetExtension(file).ToLower()))
+        .ToList()
+        .ForEach(imagePaths.Add);
 
     return imagePaths;
 }
-
 
 void InsertImagePathsIntoDatabase(List<string> filePaths, ServiceProvider serviceProvider)
 {
     List<string> siteNames = new List<string>
     {
-        "Sheep",
-        "Snake",
-        "Sagehen",
-        "Spring",
-        "Conness",
-        "Rockland",
-        "Lassen",
-        "Eldorado"
+        "sheep",
+        "snake",
+        "sagehen",
+        "spring",
+        "conness",
+        "rockland",
+        "lassen",
+        "eldorado"
     };
 
     using(var scope = serviceProvider.CreateScope())
@@ -196,7 +158,7 @@ void InsertImagePathsIntoDatabase(List<string> filePaths, ServiceProvider servic
 
             if(nameWithoutExtension.Length <= 2)
             {
-                logger.LogWarning("Skipping file with short name: {imagePath}", filePath);
+                Console.WriteLine($"[INFO] [Program.cs] [Main]: Skipping file with short name: {filePath}");
                 return (IsValid: false, Image: null as Image);
             }
 
@@ -204,7 +166,7 @@ void InsertImagePathsIntoDatabase(List<string> filePaths, ServiceProvider servic
 
             if(!long.TryParse(unixTimeString, out long unixTime))
             {
-                logger.LogWarning("Skipping file with invalid Unix time: {imagePath}", filePath);
+                Console.WriteLine($"[INFO] [Program.cs] [Main]: Skipping file with invalid Unix time: {filePath}");
                 return (IsValid: false, Image: null as Image);
             }
 
@@ -216,24 +178,19 @@ void InsertImagePathsIntoDatabase(List<string> filePaths, ServiceProvider servic
 
             for(int i = 0; i < 10; i++)
             {
-                string s = $"Site {i}";
+                string s = $"site_{i}";
                 if(filePath.Contains(s))
                 {
                     siteNumber = i;
                 }
             }
 
-            int Number = filePath.Contains("Camera2") ? 2 : 1;
+            int Number = filePath.Contains("Camera2") ? 2 : 1; //TODO: Potentially remove
 
             if(filePath.Contains('\\'))
             {
-                if(string.IsNullOrEmpty(windowsBasePath))
+                if(!string.IsNullOrEmpty(windowsBasePath))
                 {
-                    logger.LogError($"Windows file path found. Variable '{nameof(windowsBasePath)}' is not set. Cannot convert the file path to Linux format.");
-                }
-                else
-                {
-                    logger.LogDebug("Windows file path found. Converting Windows file path to Linux file path.");
                     filePath = filePath.Replace(windowsBasePath, "/app/");
                     filePath = filePath.Replace('\\', '/');
                 }
@@ -259,29 +216,21 @@ void InsertImagePathsIntoDatabase(List<string> filePaths, ServiceProvider servic
 
         if(images.Count != 0)
         {
-            logger.LogInformation(
-                "Example insertion:\n\t" +
-                "Name: {Name}\n\t" +
-                "File Path: {FilePath}\n\t" +
-                "Unix Time: {UnixTime}\n\t" +
-                "DateTime: {DateTime}\n\t" +
-                "SiteName: {SiteName}\n\t" +
-                "SiteNumber: {SiteNumber}\n\t" +
-                "CameraNumber: {CameraNumber}\n\t" +
-                "Camera Position: {CameraPositionNumber}",
-                images[0]!.Name,
-                images[0]!.FilePath,
-                images[0]!.UnixTime,
-                images[0]!.DateTime,
-                images[0]!.SiteName,
-                images[0]!.SiteNumber,
-                images[0]!.CameraNumber,
-                images[0]!.CameraPositionNumber
-            );
+            Console.WriteLine($"""
+                "Example insertion:"
+                "Name: {images[0]!.Name}"
+                "File Path: {images[0]!.FilePath}"
+                "Unix Time: {images[0]!.UnixTime}"
+                "DateTime: {images[0]!.DateTime}"
+                "SiteName: {images[0]!.SiteName}"
+                "SiteNumber: {images[0]!.SiteNumber}"
+                "CameraNumber: {images[0]!.CameraNumber}"
+                "Camera Position: {images[0]!.CameraPositionNumber}"
+            """);
         }
         else
         {
-            logger.LogError("No images available. Exiting...");
+            Console.WriteLine("[INFO] [Program.cs] [Main]: No images available. Exiting...");
             return;
         }
 
@@ -291,13 +240,13 @@ void InsertImagePathsIntoDatabase(List<string> filePaths, ServiceProvider servic
 
         while(choice is not "Y" and not "N")
         {
-            logger.LogError("Invalid input. Please enter Y or N:");
+            Console.WriteLine("Invalid input. Please enter Y or N:");
             choice = Console.ReadLine()!.Trim().ToUpper();
         }
 
         if(choice == "N")
         {
-            logger.LogInformation("Exiting...");
+            Console.WriteLine($"Exiting...");
             return;
         }
 
@@ -305,6 +254,6 @@ void InsertImagePathsIntoDatabase(List<string> filePaths, ServiceProvider servic
 
         int count = context.SaveChanges();
 
-        logger.LogInformation("Insertion complete. {count} insertions.", count);
+        Console.WriteLine($"[INFO] [Program.cs] [Main]: Insertion complete. {count} insertions.");
     }
 }
