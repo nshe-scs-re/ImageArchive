@@ -1,6 +1,6 @@
-﻿var rootDirectoryPath = @"";
+﻿var rootDirectoryPath = @"C:\Users\whaley\source\Images";
 
-var invalidDirectoryPath = @"";
+var invalidDirectoryPath = @"C:\Users\whaley\source\invalid";
 
 if(!Directory.Exists(rootDirectoryPath))
 {
@@ -25,6 +25,12 @@ var invalidFiles = new List<string>();
 
 Console.WriteLine("[INFO] [Program.cs] [Main]: Searching for invalid files...");
 var invalidFilecount = DetectInvalidFiles(filePaths);
+
+if(invalidFilecount == 0)
+{
+    Console.WriteLine("[INFO] [Program.cs] [Main]: No invalid files found. Exiting...");
+    return;
+}
 
 while(true)
 {
@@ -128,18 +134,35 @@ int DetectInvalidFiles(List<string> filePaths)
 
     foreach(var filePath in filePaths)
     {
-        if(!acceptedFileExtensions.Contains(Path.GetExtension(filePath)))
+        var fileExtension = Path.GetExtension(filePath);
+        if(!acceptedFileExtensions.Contains(fileExtension))
         {
-            try
-            {
-                invalidFiles.Add(filePath);
-                invalidFilecount++;
-                continue;
-            }
-            catch(Exception)
-            {
-                throw;
-            }
+            Console.WriteLine($"[INFO] [Program.cs] [Main]: File marked invalid because of extension: {filePath}");
+            invalidFiles.Add(filePath);
+            invalidFilecount++;
+            continue;
+        }
+
+        string fileName = Path.GetFileName(filePath);
+
+        string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
+
+        if(fileNameWithoutExtension.Length <= 2)
+        {
+            Console.WriteLine($"[INFO] [Program.cs] [Main]: File with short name marked invalid: {filePath}");
+            invalidFiles.Add(filePath);
+            invalidFilecount++;
+            continue;
+        }
+
+        string unixTimeString = fileNameWithoutExtension[..^2];
+
+        if(!long.TryParse(unixTimeString, out long unixTime))
+        {
+            Console.WriteLine($"[INFO] [Program.cs] [Main]: File with invalid Unix time marked invalid: {filePath}");
+            invalidFiles.Add(filePath);
+            invalidFilecount++;
+            continue;
         }
 
         try
@@ -150,6 +173,7 @@ int DetectInvalidFiles(List<string> filePaths)
                 {
                     if(fileStream.Length < 2)
                     {
+                        Console.WriteLine($"[INFO] [Program.cs] [Main]: File marked invalid: {filePath}");
                         invalidFiles.Add(filePath);
                         invalidFilecount++;
                         continue;
@@ -161,6 +185,7 @@ int DetectInvalidFiles(List<string> filePaths)
 
                     if(segmentMarker != 0xFFD9) // JPEG EOI marker (0xFFD9)
                     {
+                        Console.WriteLine($"[INFO] [Program.cs] [Main]: File marked invalid: {filePath}");
                         invalidFiles.Add(filePath);
                         invalidFilecount++;
                         continue;
@@ -172,6 +197,7 @@ int DetectInvalidFiles(List<string> filePaths)
 
                     if(firstHeader != 0xFFD8) // JPEG SOI marker (0xFFD8)
                     {
+                        Console.WriteLine($"[INFO] [Program.cs] [Main]: File marked invalid: {filePath}");
                         invalidFiles.Add(filePath);
                         invalidFilecount++;
                         continue;
@@ -181,7 +207,7 @@ int DetectInvalidFiles(List<string> filePaths)
         }
         catch(Exception)
         {
-            Console.WriteLine($"[ERROR] [Program.cs] [Main]: An error occurred while reading file at '{filePath}'.");
+            Console.WriteLine($"[ERROR] [Program.cs] [Main]: An error occurred while reading file: {filePath}.");
             throw;
         }
     }
@@ -194,12 +220,13 @@ void MoveInvalidFile(string absoluteFilePath, string invalidFileDirectoryPath)
 
     if(!Path.IsPathFullyQualified(absoluteFilePath))
     {
-        Console.WriteLine($"[ERROR] [Program.cs] [MoveInvalidFile]: '{absoluteFilePath}' is not a fully qualified file path.");
+        Console.WriteLine($"[ERROR] [Program.cs] [MoveInvalidFile]: Not a fully qualified file path: {absoluteFilePath}");
         return;
     }
 
     if(!Directory.Exists(invalidFileDirectoryPath))
     {
+        Console.WriteLine($"[INFO] [Program.cs] [MoveInvalidFile]: Creating directory at path: {invalidFileDirectoryPath}");
         Directory.CreateDirectory(invalidFileDirectoryPath);
     }
 
@@ -214,6 +241,7 @@ void MoveInvalidFile(string absoluteFilePath, string invalidFileDirectoryPath)
     }
     catch(Exception)
     {
+        Console.WriteLine($"[ERROR] [Program.cs] [MoveInvalidFile]: An error occurred while moving file: {absoluteFilePath}");
         throw;
     }
 }
@@ -223,12 +251,13 @@ void CopyInvalidFile(string absoluteFilePath, string invalidFileDirectoryPath)
 
     if(!Path.IsPathFullyQualified(absoluteFilePath))
     {
-        Console.WriteLine($"[ERROR] [Program.cs] [CopyInvalidFile]: '{absoluteFilePath}' is not a fully qualified file path.");
+        Console.WriteLine($"[ERROR] [Program.cs] [CopyInvalidFile]: Not a fully qualified file path: {absoluteFilePath}");
         return;
     }
 
     if(!Directory.Exists(invalidFileDirectoryPath))
     {
+        Console.WriteLine($"[INFO] [Program.cs] [MoveInvalidFile]: Creating directory at path: {invalidFileDirectoryPath}");
         Directory.CreateDirectory(invalidFileDirectoryPath);
     }
 
@@ -243,6 +272,7 @@ void CopyInvalidFile(string absoluteFilePath, string invalidFileDirectoryPath)
     }
     catch(Exception)
     {
+        Console.WriteLine($"[ERROR] [Program.cs] [CopyInvalidFile]: An error occurred while copying file: {absoluteFilePath}");
         throw;
     }
 }
@@ -262,6 +292,7 @@ void DeleteInvalidFile(string absoluteFilePath)
     }
     catch(Exception)
     {
+        Console.WriteLine($"[ERROR] [Program.cs] [CopyInvalidFile]: An error occurred while deleting file: {absoluteFilePath}");
         throw;
     }
 }
