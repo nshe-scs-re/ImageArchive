@@ -25,36 +25,38 @@ public class ImageUploadService
     }
 
     //TODO: check the IFormFile Config to make sure that it cooperates with everything else --  I was having issues with other IFormFile. Seems to work tho
-    public async Task<string> SaveImageAsync(IFormFile file, int camera, int? cameraPosition, string? site)
+    public async Task<string> SaveImageAsync(IFormFile file, int camera, int? cameraPosition, string? site, int? siteNumber, string? cameraPositionName)
     {
         try
         {
-            //TODO: Validate file size
             // Validate file type
             var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
             var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
-            if (!allowedExtensions.Contains(extension))
+            if(!allowedExtensions.Contains(extension))
             {
                 throw new InvalidOperationException("Invalid file type.");
             }
             var fileName = Path.GetFileNameWithoutExtension(file.FileName);
-            //var extension = Path.GetExtension(file.FileName);
             var uniqueFileName = $"{fileName}_{Guid.NewGuid()}{extension}";
             var filePath = Path.Combine(_storagePath, uniqueFileName);
 
-            await using (var fileStream = new FileStream(filePath, FileMode.Create))
+            await using(var fileStream = new FileStream(filePath, FileMode.Create))
             {
                 await file.CopyToAsync(fileStream);
             }
 
-            //Save image metadata to the database
+            // Save image metadata to the database
             var image = new Image
             {
                 Name = fileName,
                 FilePath = filePath,
                 DateTime = DateTime.UtcNow,
                 UnixTime = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds(),
-                Site = site
+                SiteName = site,
+                SiteNumber = siteNumber,
+                CameraNumber = camera,
+                CameraPositionNumber = cameraPosition,
+                CameraPositionName = cameraPositionName
             };
 
             _context.Images.Add(image);
