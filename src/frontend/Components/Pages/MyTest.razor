@@ -50,6 +50,10 @@
                     </select>
                 </div>
                 <div class="mb-3">
+                    <label for="siteNumber" class="form-label">Site Number</label>
+                    <input type="number" class="form-control" id="siteNumber" @bind="siteNumber" />
+                </div>
+                <div class="mb-3">
                     <label for="cameraPosition" class="form-label">Camera Position</label>
                     <select class="form-select" id="cameraPosition" @bind="cameraPosition">
                         <option value="">Select a camera position</option>
@@ -58,6 +62,10 @@
                             <option value="@position">@position</option>
                         }
                     </select>
+                </div>
+                <div class="mb-3">
+                    <label for="cameraPositionName" class="form-label">Camera Position Name</label>
+                    <input type="text" class="form-control" id="cameraPositionName" @bind="cameraPositionName" />
                 </div>
                 <div class="mb-3">
                     <label for="cameraNumber" class="form-label">Camera Number</label>
@@ -73,7 +81,7 @@
                     <label for="photoTime" class="form-label">Time of Photo Taken (PST)</label>
                     <input type="datetime-local" class="form-control" id="photoTime" @bind="photoTime" />
                 </div>
-                <InputFile OnChange="UploadSingle" id="fileInputElement" multiple accept=".gif,.png,.jpg,.jpeg" />
+                <InputFile OnChange="HandleFileSelected" id="fileInputElement" multiple accept=".gif,.png,.jpg,.jpeg" />
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" @onclick="OnHideModalClick">Close</button>
@@ -102,6 +110,10 @@
                     </select>
                 </div>
                 <div class="mb-3">
+                    <label for="batchSiteNumber" class="form-label">Site Number</label>
+                    <input type="number" class="form-control" id="batchSiteNumber" @bind="batchSiteNumber" />
+                </div>
+                <div class="mb-3">
                     <label for="batchCameraPosition" class="form-label">Camera Position</label>
                     <select class="form-select" id="batchCameraPosition" @bind="batchCameraPosition">
                         <option value="">Select a camera position</option>
@@ -110,6 +122,10 @@
                             <option value="@position">@position</option>
                         }
                     </select>
+                </div>
+                <div class="mb-3">
+                    <label for="batchCameraPositionName" class="form-label">Camera Position Name</label>
+                    <input type="text" class="form-control" id="batchCameraPositionName" @bind="batchCameraPositionName" />
                 </div>
                 <div class="mb-3">
                     <label for="batchCameraNumber" class="form-label">Camera Number</label>
@@ -135,7 +151,6 @@
     </div>
 </div>
 
-
 @if(errors.Count > 0)
 {
     <h2>Error(s)</h2>
@@ -155,19 +170,25 @@
     private List<IBrowserFile> selectedFiles = new List<IBrowserFile>();
     private List<IBrowserFile> batchSelectedFiles = new List<IBrowserFile>();
     private string siteName = string.Empty;
+    private int? siteNumber;
     private string cameraPosition = string.Empty;
+    private string cameraPositionName = string.Empty;
     private string cameraNumber = string.Empty;
     private DateTime? photoTime;
     private string batchSiteName = string.Empty;
+    private int? batchSiteNumber;
     private string batchCameraPosition = string.Empty;
+    private string batchCameraPositionName = string.Empty;
     private string batchCameraNumber = string.Empty;
     private DateTime? batchPhotoTime;
-    private bool CanUpload => !string.IsNullOrEmpty(siteName) && !string.IsNullOrEmpty(cameraPosition) && !string.IsNullOrEmpty(cameraNumber) && photoTime.HasValue;
-    private bool CanBatchUpload => !string.IsNullOrEmpty(batchSiteName) && !string.IsNullOrEmpty(batchCameraPosition) && !string.IsNullOrEmpty(batchCameraNumber) && batchPhotoTime.HasValue && batchSelectedFiles.Count > 0;
+    private bool CanUpload => !string.IsNullOrEmpty(siteName) && siteNumber.HasValue && !string.IsNullOrEmpty(cameraPosition) && !string.IsNullOrEmpty(cameraNumber) && photoTime.HasValue;
+    private bool CanBatchUpload => !string.IsNullOrEmpty(batchSiteName) && batchSiteNumber.HasValue && !string.IsNullOrEmpty(batchCameraPosition) && !string.IsNullOrEmpty(batchCameraNumber) && batchPhotoTime.HasValue && batchSelectedFiles.Count > 0;
 
     private List<string> siteNames = new() { "Rockland", "Sheep", "Snake", "Spring" };
     private List<string> cameraPositions = new() { "Position 1", "Position 2", "Position 3" };
     private List<string> cameraNumbers = new() { "Camera 1", "Camera 2", "Camera 3" };
+    private List<string> cameraPostitionNames = new() { "Position 1", "Position 2", "Position 3" };
+    private List<string> siteNumbers = new() { "1", "2", "3" };
 
     private Task OnShowModalClick()
     {
@@ -235,6 +256,12 @@
             throw;
         }
     }
+    private void HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        errors.Clear();
+        selectedFiles = e.GetMultipleFiles().ToList();
+    }
+
     private void HandleBatchFileSelection(InputFileChangeEventArgs e)
     {
         errors.Clear();

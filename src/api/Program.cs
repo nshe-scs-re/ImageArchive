@@ -290,8 +290,15 @@ app.MapPost("/api/upload/single", async (HttpRequest request, ImageUploadService
         }
 
         string? site = form["site"];
+        int? siteNumber = null;
+        if(int.TryParse(form["siteNumber"], out int parsedSiteNumber))
+        {
+            siteNumber = parsedSiteNumber;
+        }
 
-        var savedFileName = await imageService.SaveImageAsync(file, camera, cameraPosition, site);
+        string? cameraPositionName = form["cameraPositionName"];
+
+        var savedFileName = await imageService.SaveImageAsync(file, camera, cameraPosition, site, siteNumber, cameraPositionName);
         var fileUrl = $"/uploads/{savedFileName}";
         return Results.Ok(new { Message = "Upload successful!", ImageUrl = fileUrl, FileName = savedFileName });
     }
@@ -299,11 +306,6 @@ app.MapPost("/api/upload/single", async (HttpRequest request, ImageUploadService
     {
         return Results.Problem("An error occurred while processing the file upload: " + ex.Message);
     }
-
-    //Console.WriteLine("Upload endpoint hit.");
-    //var request = await context.Request.ReadFromJsonAsync<UploadPractice>();
-   // Console.WriteLine($"{request.Name}{request.dateTime}{request.Description}");
-   // return Results.Ok("My endpoint works");
 });
 
 app.MapPost("/api/upload/multiple", async (HttpRequest request, ImageUploadService imageService) =>
@@ -329,18 +331,25 @@ app.MapPost("/api/upload/multiple", async (HttpRequest request, ImageUploadServi
         }
 
         string? site = form["site"];
+        int? siteNumber = null;
+        if(int.TryParse(form["siteNumber"], out int parsedSiteNumber))
+        {
+            siteNumber = parsedSiteNumber;
+        }
+
+        string? cameraPositionName = form["cameraPositionName"];
 
         List<string> savedFileNames = new List<string>();
 
         foreach(var file in files)
         {
-            var savedFileName = await imageService.SaveImageAsync(file, camera, cameraPosition, site);
+            var savedFileName = await imageService.SaveImageAsync(file, camera, cameraPosition, site, siteNumber, cameraPositionName);
             savedFileNames.Add(savedFileName);
         }
 
         return Results.Ok(new { Message = "Upload successful!", FileNames = savedFileNames });
     }
-    catch(Exception ex) 
+    catch(Exception ex)
     {
         return Results.Problem("An error occurred while processing the file upload: " + ex.Message);
     }
