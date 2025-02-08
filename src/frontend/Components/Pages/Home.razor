@@ -48,12 +48,24 @@
           <div class="row py-2">
             <label for="Site" class="col col-form-label">Site Name:</label>
             <div class="col">
-              <InputSelect @bind-Value="imageQuery.Site" id="Site" class="form-select">
+              <select value=@imageQuery.SiteName @onchange=OnSiteNameChanged id="SiteName" class="form-select">
                 <option value="Rockland">Rockland</option>
                 <option value="Sheep">Sheep</option>
                 <option value="Snake">Snake</option>
                 <option value="Spring">Spring</option>
-              </InputSelect>
+                <option value="Eldorado">Eldorado</option>
+              </select>
+            </div>
+          </div>
+          <div class="row py-2">
+            <label for="Site" class="col col-form-label">Site Number:</label>
+            <div class="col">
+              <select value="imageQuery.SiteNumber" @onchange=OnSiteNumberChanged id ="SiteNumber" class="form-select">
+                @foreach(var siteNumber in SiteNumbers)
+                {
+                  <option value="@siteNumber">@siteNumber</option>
+                }
+              </select>
             </div>
           </div>
           <div class="row py-2">
@@ -70,9 +82,10 @@
             <label for="CameraPosition" class="col col-form-label">Camera Position:</label>
             <div class="col">
               <InputSelect @bind-Value="imageQuery.CameraPosition" id="CameraPosition" class="form-select">
-                <option value="1">Position 1</option>
-                <option value="2">Position 2</option>
-                <option value="3">Position 3</option>
+                @foreach (var item in cameraPositions)
+                {
+                  <option value="@item.Value">@item.PositionName</option>
+                }
               </InputSelect>
             </div>
           </div>
@@ -94,7 +107,7 @@
   </div>
 </div>
 
-@if (querySubmitted && loading is true)
+@if (querySubmitted && loading)
 {
   <div class="my-3 py-3 album rounded @GetTheme()">
     <div class="container">
@@ -105,10 +118,16 @@
             <div class="card shadow-sm @GetTheme()">
               <img src="/placeholder.jpg" class="card-img-top" width="320" height="240" />
               <div class="card-body">
-                <p class="card-text">Information about image</p>
+                <p class="card-text">Time: </p>
+                <p class="card-text">Site Name: </p>
+                <p class="card-text">Site Number: </p>
+                <p class="card-text">Camera Number: </p>
+                <p class="card-text">Camera Position Number: </p>
+                <p class="card-text">Camera Postion Name: </p>
                 <div class="d-flex justify-content-between align-items-center">
                   <div class="btn-group">
-                    <button type="button" class="btn btn-sm btn-light @GetButtonTheme()">View</button>
+                    <button type="button" class="disabled btn btn-sm btn-light @GetButtonTheme()">View</button>
+                    <button type="button" class="disabled btn btn-sm btn-light @GetButtonTheme()">Download</button>
                   </div>
                 </div>
               </div>
@@ -119,7 +138,7 @@
     </div>
   </div>
 }
-else if (querySubmitted && loading is false)
+else if (querySubmitted && !loading)
 {
   <div class="my-3 py-3 album rounded @GetTheme()">
     <div class="container">
@@ -130,11 +149,16 @@ else if (querySubmitted && loading is false)
             <div class="card shadow-sm @GetTheme()">
               <img src="/api/images/@image.Id" class="card-img-top" width="320" height="240" />
               <div class="card-body">
-                <p class="card-text">Information about image</p>
+                <p class="card-text">Time: @image.DateTime</p>
+                <p class="card-text">Site Name: @image.SiteName</p>
+                <p class="card-text">Site Number: @image.SiteNumber</p>
+                <p class="card-text">Camera Number: @image.CameraNumber</p>
+                <p class="card-text">Camera Position Number: @image.CameraPositionNumber</p>
+                <p class="card-text">Camera Postion Name: @image.CameraPositionName</p>
                 <div class="d-flex justify-content-between align-items-center">
                   <div class="btn-group">
-                    <button type="button" class="btn btn-sm btn-light @GetButtonTheme()">View</button>
-                    <button type="button" class="btn btn-sm btn-light @GetButtonTheme()" @onclick="() => DownloadImage(image.Id)">Download</button>
+                    <button type="button" class="btn btn-sm btn-light @GetButtonTheme()" @onclick="() => UpdateImageSrc(image.Id)" data-bs-toggle="modal" data-bs-target="#view-image-modal">View</button>
+                    <button type="button" class="btn btn-sm btn-light @GetButtonTheme()" @onclick="() => DownloadImage(image)">Download</button>
                   </div>
                 </div>
               </div>
@@ -174,6 +198,19 @@ else if (querySubmitted && loading is false)
   </div>
 }
 
+<div class="modal fade" id="view-image-modal" tabindex="-1">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img src="@imageSrc"/>
+      </div>
+    </div>
+  </div>
+</div>
+
 @code
 {
     private ImageQuery imageQuery = new();
@@ -184,6 +221,62 @@ else if (querySubmitted && loading is false)
     private int pageSize = 9;
     private int totalImages = 0;
     private int totalPages = 0;
+    private string imageSrc = string.Empty;
+
+    List<CameraPositionEntry> cameraPositions = CameraPositions.Positions.Where(p => p.SiteName == "Rockland" && p.SiteNumber == 1).ToList();
+
+    private Dictionary<string, List<int>> SiteNameToSiteNumbersMap = new()
+    {
+        { "Eldorado", new List<int>{ 3 }},
+        { "Sheep", new List<int>{ 1, 2, 3, 4 }},
+        { "Snake", new List<int>{ 1, 2, 3 }},
+        { "Spring", new List<int>{ 3, 4 }},
+        { "Rockland", new List<int>{ 1 }}
+    };
+    private List<int> SiteNumbers = new List<int>{ 1 };
+
+    private void OnSiteNameChanged(ChangeEventArgs e)
+    {
+        var selectedSite = e.Value?.ToString();
+        if(!string.IsNullOrEmpty(selectedSite))
+        {
+            if (imageQuery.SiteName != selectedSite)
+            {
+                imageQuery.SiteName = selectedSite;
+            }
+
+            if (SiteNameToSiteNumbersMap.ContainsKey(selectedSite))
+            {
+                SiteNumbers = SiteNameToSiteNumbersMap[selectedSite];
+                imageQuery.SiteNumber = SiteNumbers.Min();
+            }
+
+            cameraPositions = CameraPositions.Positions
+                .Where(p =>
+                  p.SiteName == imageQuery.SiteName && 
+                  p.SiteNumber == imageQuery.SiteNumber)
+                .ToList();
+
+            imageQuery.CameraPosition = cameraPositions.Min(p => p.Value);
+        }
+    }
+
+    private void OnSiteNumberChanged(ChangeEventArgs e)
+    {
+        var siteNumberString = e.Value?.ToString();
+        int.TryParse(siteNumberString, out int siteNumber);
+
+        if (imageQuery.SiteNumber != siteNumber)
+        {
+            imageQuery.SiteNumber = siteNumber;
+        }
+
+        cameraPositions = CameraPositions.Positions
+            .Where(p =>
+              p.SiteName == imageQuery.SiteName && 
+              p.SiteNumber == imageQuery.SiteNumber)
+            .ToList();
+    }
 
     protected override void OnInitialized()
     {
@@ -195,13 +288,13 @@ else if (querySubmitted && loading is false)
         imageQuery.StartDateTime = new DateTime(DateOnly.FromDateTime(imageQuery.StartDateTime), imageQuery.StartTimeOnly);
         imageQuery.EndDateTime = new DateTime(DateOnly.FromDateTime(imageQuery.EndDateTime), imageQuery.EndTimeOnly);
 
+        querySubmitted = true;
         loading = true;
 
-        var response = await HttpService.GetImagesByPageAsync(imageQuery.StartDateTime, imageQuery.EndDateTime, pageIndex, pageSize, imageQuery.Site);
+        var response = await HttpService.GetImagesByPageAsync(imageQuery.StartDateTime, imageQuery.EndDateTime, pageIndex, pageSize, imageQuery.SiteName, imageQuery.SiteNumber, imageQuery.CameraPosition);
 
         if(response is not null)
         {
-            querySubmitted = true;
             if (response.IsSuccessStatusCode)
             {
                 var responseContent = await response.Content.ReadFromJsonAsync<PaginationResponse>();
@@ -277,10 +370,15 @@ else if (querySubmitted && loading is false)
         }
     }
     
-    private async Task DownloadImage(long Id)
+    private async Task DownloadImage(Image image)
     {
-        var url = $"/api/images/{Id}";
+        var url = $"/api/images/{image.Id}";
 
-        await JSRuntime.InvokeVoidAsync("download", url, $"{Id}.jpg");
+        await JSRuntime.InvokeVoidAsync("download", url, $"{image.UnixTime}.jpg");
+    }
+
+    private void UpdateImageSrc(long Id)
+    {
+        imageSrc = $"/api/images/{Id}";
     }
 }
