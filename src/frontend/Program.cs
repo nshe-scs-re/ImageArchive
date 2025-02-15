@@ -1,4 +1,5 @@
 using Auth0.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Identity;
 using frontend.Components;
 using frontend.Models;
 using frontend.Services;
@@ -29,6 +30,10 @@ builder.Services.AddHttpClient("HttpClient", httpClient =>
     }
 });
 
+builder.Services.AddRazorPages();
+builder.Services.AddServerSideBlazor();
+builder.Services.AddScoped<RoleService>();
+
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped<HttpService>();
@@ -38,6 +43,13 @@ builder.Services.AddScoped<TokenProvider>();
 builder.Services.AddScoped<ThemeService>();
 
 var app = builder.Build();
+
+using(var scope = app.Services.CreateScope())
+{
+    var roleService = scope.ServiceProvider.GetRequiredService<RoleService>();
+    await roleService.InitializeRolesAsync(); // Initialize roles
+}
+
 
 if(app.Environment.IsDevelopment())
 {
@@ -122,5 +134,16 @@ app.MapGet("/Account/Logout", async (HttpContext httpContext) =>
     await httpContext.SignOutAsync(Auth0Constants.AuthenticationScheme, authenticationProperties);
     await httpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 });
+
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+
+app.UseRouting();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapBlazorHub();
+app.MapFallbackToPage("/_Host");
 
 app.Run();
