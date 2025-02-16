@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using api.Data;
 using api.Models;
 using api.Services;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
@@ -27,7 +28,9 @@ namespace APIUnitTests
 
         public ApiEndpointTests(WebApplicationFactory<Program> factory)
         {
-            _client = factory.CreateClient();
+            var baseUrl = $"http://127.0.0.1:8080";
+            _client = new HttpClient { BaseAddress = new Uri(baseUrl)};
+            Console.WriteLine($"[INFO] [UnitTest1.cs] [ApiEndpointTests]: {nameof(_client)} base address is {_client.BaseAddress}");
             _serviceProvider = factory.Services;
             _logger = factory.Services.GetRequiredService<ILogger<ApiEndpointTests>>();
         }
@@ -154,12 +157,12 @@ namespace APIUnitTests
             try
             {
                 var dbContext = await GetServiceAsync<ImageDbContext>();
-                dbContext.Images.Add(new Image { Name = "TestImage", DateTime = DateTime.UtcNow });
+                dbContext.Images.Add(new api.Models.Image { Name = "TestImage", DateTime = DateTime.UtcNow });
                 await dbContext.SaveChangesAsync();
 
                 var response = await _client.GetAsync("/api/images/all");
                 response.EnsureSuccessStatusCode();
-                var images = await response.Content.ReadFromJsonAsync<List<Image>>();
+                var images = await response.Content.ReadFromJsonAsync<List<api.Models.Image>>();
                 Assert.NotNull(images);
                 Assert.NotEmpty(images);
             }
