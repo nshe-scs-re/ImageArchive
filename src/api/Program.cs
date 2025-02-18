@@ -261,7 +261,8 @@ app.MapGet("/api/images/{id}", async (ImageDbContext dbContext, long id) =>
     catch(Exception exception)
     {
         Console.WriteLine($"ERROR [Program.cs] [/api/images/id]: Exception message: {exception.Message}");
-        return Results.Problem(exception.Message);
+        //return Results.Problem(exception.Message);
+        return Results.Problem("not found");
     }
 })
 .WithSummary("Retrieves a single image based on a given id value.")
@@ -345,5 +346,5 @@ app.MapPost("/api/upload/multiple", async (HttpRequest request, ImageUploadServi
         return Results.Problem("An error occurred while processing the file upload: " + ex.Message);
     }
 });
-
 app.Run();
+public partial class Program { }
