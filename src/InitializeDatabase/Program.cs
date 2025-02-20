@@ -10,7 +10,7 @@ internal class Program
     {
         var configuration = LoadConfiguration();
 
-        var services = LoadServices(configuration);
+        using var services = LoadServices(configuration);
 
         string imageDirectoryBasePath = GetImageDirectoryBasePath();
 
