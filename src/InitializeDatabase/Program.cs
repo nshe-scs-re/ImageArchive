@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 
 namespace InitializeDatabase;
@@ -10,16 +11,13 @@ internal class Program
     {
         var configuration = LoadConfiguration();
 
-        using var services = LoadServices(configuration);
+        using var serviceProvider = LoadServices(configuration);
 
         var imageDirectoryBasePath = GetImageDirectoryBasePath();
 
         var imageFilePaths = GetImageFilePaths(imageDirectoryBasePath);
 
-        using(var scope = services.CreateScope())
-        {
-            var dbContext = scope.ServiceProvider.GetRequiredService<ImageDbContext>();
-        }
+        InsertIntoDatabase(imageFilePaths, serviceProvider);
     }
 
     static ServiceProvider LoadServices(IConfigurationRoot configuration)
@@ -55,14 +53,96 @@ internal class Program
         var extensions = new List<string> { ".jpg", ".jpeg" };
         var files = new ConcurrentBag<string>();
 
-        Parallel.ForEach(Directory.GetFiles(basePath, "*", SearchOption.AllDirectories), file =>
+        Parallel.ForEach(Directory.EnumerateFiles(basePath, "*", SearchOption.AllDirectories), file =>
         {
-            if(extensions.Contains(Path.GetExtension(file).ToLowerInvariant()))
+            if(extensions.Contains(Path.GetExtension(file).ToLower()))
             {
                 files.Add(file);
             }
         });
 
         return files.ToList();
+    }
+
+    static void InsertIntoDatabase(List<string> filePaths, ServiceProvider serviceProvider)
+    {
+        List<string> siteNames = new List<string>
+        {
+            "sheep",
+            "snake",
+            "spring",
+            "rockland",
+            "eldorado"
+        };
+
+        List<string> siteNumbers = new List<string>
+        {
+            "site_0",
+            "site_1",
+            "site_2",
+            "site_3",
+            "site_4",
+            "site_5",
+        };
+
+        using var scope = serviceProvider.CreateScope();
+        using var context = scope.ServiceProvider.GetRequiredService<ImageDbContext>();
+
+        var imageFiles = filePaths.Select(filePath =>
+        {
+            string fileName = Path.GetFileNameWithoutExtension(filePath);
+
+            if(fileName.Length <= 2)
+            {
+                Console.WriteLine($"[INFO] [InitializeDatabase] [InsertImagePathsIntoDatabase]: Skipping file with short name: {filePath}");
+                return (IsValid: false, Image: null as Image);
+            }
+
+            if(!long.TryParse(fileName[..^2], out long unixTime))
+            {
+                Console.WriteLine($"[INFO] [InitializeDatabase] [InsertImagePathsIntoDatabase]: Skipping file with invalid Unix time: {filePath}");
+                return (IsValid: false, Image: null as Image);
+            }
+
+            DateTime dateTime = DateTimeOffset.FromUnixTimeSeconds(unixTime).DateTime;
+
+            var siteName = siteNames.FirstOrDefault(s => filePath.Contains(s, StringComparison.OrdinalIgnoreCase));
+
+            var siteNumberString = siteNumbers.FirstOrDefault(s => filePath.Contains(s, StringComparison.OrdinalIgnoreCase));
+
+            var siteNumberInteger = siteNumberString is null ? 1 : int.Parse(siteNumberString[^1].ToString());
+
+            var image = new Image
+            {
+                FilePath = filePath,
+                UnixTime = unixTime,
+                DateTime = dateTime,
+                SiteName = siteName,
+                SiteNumber = siteNumberInteger,
+            };
+
+            return (IsValid: true, Image: image);
+
+        })
+        .Where(result => result.IsValid)
+        .Select(result => result.Image)
+        .ToList();
+
+        if(imageFiles.Count == 0)
+        {
+            Console.WriteLine("[INFO] [InitializeDatabase] [InsertImagePathsIntoDatabase]: No images available. Exiting...");
+            return;
+        }
+
+        try
+        {
+            context.Images.AddRange(imageFiles!);
+            int count = context.SaveChanges();
+            Console.WriteLine($"[INFO] [InitializeDatabase] [InsertImagePathsIntoDatabase]: Database insertion complete. {count} entries.");
+        }
+        catch(Exception)
+        {
+            throw;
+        }
     }
 }
