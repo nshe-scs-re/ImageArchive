@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Concurrent;
 
 namespace InitializeDatabase;
@@ -8,9 +10,22 @@ internal class Program
     {
         var configuration = LoadConfiguration();
 
+        var services = LoadServices(configuration);
+
         string imageDirectoryBasePath = GetImageDirectoryBasePath();
 
         var imageFilePaths = GetImageFilePaths(imageDirectoryBasePath);
+    }
+
+    static ServiceProvider LoadServices(IConfigurationRoot configuration)
+    {
+        return new ServiceCollection()
+            .AddSingleton<IConfiguration>(configuration)
+            .AddDbContext<ImageDbContext>(options =>
+            {
+                options.UseSqlServer(configuration.GetConnectionString("ImageDb"));
+            })
+            .BuildServiceProvider();
     }
 
     static IConfigurationRoot LoadConfiguration()
