@@ -12,9 +12,14 @@ internal class Program
 
         using var services = LoadServices(configuration);
 
-        string imageDirectoryBasePath = GetImageDirectoryBasePath();
+        var imageDirectoryBasePath = GetImageDirectoryBasePath();
 
         var imageFilePaths = GetImageFilePaths(imageDirectoryBasePath);
+
+        using(var scope = services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<ImageDbContext>();
+        }
     }
 
     static ServiceProvider LoadServices(IConfigurationRoot configuration)
