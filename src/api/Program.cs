@@ -267,46 +267,6 @@ app.MapGet("/api/images/{id}", async (ImageDbContext dbContext, long id) =>
 .WithSummary("Retrieves a single image based on a given id value.")
 .Produces<FileResult>(200, "image/jpeg");
 
-app.MapPost("/api/upload/single", async (HttpRequest request, ImageUploadService imageService) =>
-{
-    try
-    {
-        var form = await request.ReadFormAsync();
-        var file = form.Files["file"];
-        if(file == null || file.Length == 0)
-        {
-            return Results.BadRequest("No file uploaded or file is empty.");
-        }
-
-        if(!int.TryParse(form["camera"], out int camera))
-        {
-            return Results.BadRequest("Invalid camera value.");
-        }
-
-        int? cameraPosition = null;
-        if(int.TryParse(form["cameraPosition"], out int parsedCameraPosition))
-        {
-            cameraPosition = parsedCameraPosition;
-        }
-
-        string? site = form["site"];
-        int? siteNumber = null;
-        if(int.TryParse(form["siteNumber"], out int parsedSiteNumber))
-        {
-            siteNumber = parsedSiteNumber;
-        }
-
-        string? cameraPositionName = form["cameraPositionName"];
-
-        var savedFileName = await imageService.SaveImageAsync(file, camera, cameraPosition, site, siteNumber, cameraPositionName);
-        var fileUrl = $"/uploads/{savedFileName}";
-        return Results.Ok(new { Message = "Upload successful!", ImageUrl = fileUrl, FileName = savedFileName });
-    }
-    catch(Exception ex)
-    {
-        return Results.Problem("An error occurred while processing the file upload: " + ex.Message);
-    }
-});
 
 app.MapPost("/api/upload/multiple", async (HttpRequest request, ImageUploadService imageService) =>
 {
