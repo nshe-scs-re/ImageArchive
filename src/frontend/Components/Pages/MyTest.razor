@@ -68,6 +68,8 @@
                 </div>
 
                 <InputFile OnChange="HandleFileSelected" id="fileInputElement" multiple accept=".gif,.png,.jpg,.jpeg" class="@(string.IsNullOrEmpty(cameraPosition) ? "disabled-field" : "")" />
+
+                
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" @onclick="OnHideModalClick">Close</button>
@@ -108,7 +110,8 @@
     private int cameraNumber;
     private int cameraPositionNumber;
     private DateTime? photoTime;
-    private bool CanUpload => !string.IsNullOrEmpty(siteName) && siteNumber.HasValue && !string.IsNullOrEmpty(cameraPosition) && cameraNumber > 0 && photoTime.HasValue;
+
+    private bool CanUpload => !string.IsNullOrEmpty(siteName) && siteNumber.HasValue && !string.IsNullOrEmpty(cameraPosition) && cameraPositionNumber >= 0 && selectedFiles.Any();
 
     private List<string> siteNames = new();
     private Dictionary<string, List<int>> siteNumbers = new();
@@ -229,6 +232,8 @@
 
                 Console.WriteLine($"File name: {fileName}");
                 Console.WriteLine($"File size: {fileSize} bytes");
+                //TODO: extract time from photo's metadata at time taken/created?
+                //Console.WriteLine($"Photo time: {photoTime}");
                 Console.WriteLine($"File contents: {fileContents}");
                 if (response.IsSuccessStatusCode)
                 {
@@ -259,42 +264,9 @@
         selectedFiles.AddRange(files);
     }
 
-    private async Task UploadBatchFiles()
-    {
-        if (selectedFiles.Count == 0)
-        {
-            errors.Add("No files selected for upload.");
-            return;
-        }
+    
 
-        try
-        {
-            foreach (var file in selectedFiles)
-            {
-                var fileName = file.Name;
-                var fileSize = file.Size;
 
-                using var stream = file.OpenReadStream();
-                using var reader = new StreamReader(stream);
-                var fileContents = await reader.ReadToEndAsync();
-
-                Console.WriteLine($"File name: {fileName}");
-                Console.WriteLine($"File size: {fileSize} bytes");
-                Console.WriteLine($"File contents: {fileContents}");
-            }
-
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Message: {ex.Message}");
-            errors.Add($"Error: {ex.Message}");
-        }
-        finally
-        {
-            selectedFiles.Clear();
-            await OnHideModalClick();
-        }
-    }
 
     private async Task UploadFiles() 
     {
