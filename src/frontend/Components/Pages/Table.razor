@@ -27,7 +27,6 @@
 <div class="grid">
   <QuickGrid Items="@images.AsQueryable()" Pagination="@pagination"  Class="table table-bordered table-striped table-hover">
     <PropertyColumn Property="@(i => i.Id)" Sortable="true" Align="Align.Right" Title="Id"></PropertyColumn>
-    <PropertyColumn Property="@(i => i.Name)" Sortable="true" Align="Align.Right" Title="Name"></PropertyColumn>
     <PropertyColumn Property="@(i => i.FilePath)" Sortable="true" Align="Align.Right" Title="File Path"></PropertyColumn>
     <PropertyColumn Property="@(i => i.DateTime)" Sortable="true" Align="Align.Right" Title="Date Time"></PropertyColumn>
     <PropertyColumn Property="@(i => i.UnixTime)" Sortable="true" Align="Align.Right" Title="Unix Time"></PropertyColumn>

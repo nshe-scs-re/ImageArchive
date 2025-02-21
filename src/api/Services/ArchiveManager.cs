@@ -67,7 +67,7 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
 
                     Parallel.ForEach(images, (image) =>
                     {
-                        int year = image.DateTime.Year;
+                        int year = image.DateTime.Value.Year;
                         string month = $"{image.DateTime:MMM}";
                         string day = $"{image.DateTime:dd}";
 
