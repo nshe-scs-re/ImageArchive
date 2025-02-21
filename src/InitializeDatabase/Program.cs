@@ -64,6 +64,82 @@ internal class Program
         return files.ToList();
     }
 
+    static void ParseHeaders(List<string> filePaths)
+    {
+        var byteMapping = new Dictionary<string, int>();
+
+        foreach(var filePath in filePaths)
+        {
+            using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+            using var binaryRead = new BinaryReader(fileStream);
+
+            while(fileStream.Position < fileStream.Length)
+            {
+                if(fileStream.Length < (fileStream.Position + 4))
+                {
+                    break; // Length must be at least 4 bytes
+                }
+
+                ushort segmentMarker = ConvertToBigEndian16(binaryRead.ReadUInt16()); // 2 bytes
+                ushort segmentLength = ConvertToBigEndian16(binaryRead.ReadUInt16()); // 2 bytes minimum
+
+                if(segmentLength < 2)
+                {
+                    Console.WriteLine($"[WARNING] [Program.cs] [ParseHeaders]: Skipping file at path '{filePath}'");
+                    break; // Invalid segment length
+                }
+
+                if(fileStream.Length < (fileStream.Position + segmentLength - 2))
+                {
+                    Console.WriteLine($"[WARNING] [Program.cs] [ParseHeaders]: Skipping file at path '{filePath}'");
+                    break; // Avoid reading passed EOF
+                }
+
+                // APP0 marker (0xFFE0)
+                if(segmentMarker != 0xFFE0)
+                {
+                    fileStream.Position += (segmentLength - 2);
+                    continue;
+                }
+                
+                byte[] app0_header = binaryRead.ReadBytes(segmentLength - 2);
+
+                if(app0_header.Length < 29)
+                {
+                    Console.WriteLine($"[WARNING] [Program.cs] [ParseHeaders]: APP0 header is too short. Skipping file at path '{filePath}'");
+                    break;
+                }
+
+                byte byte_27 = app0_header[26]; // zero-based array
+                byte byte_29 = app0_header[28]; // zero-based array
+
+                if(byte_27 != byte_29)
+                {
+                    Console.WriteLine($"[WARNING] [Program.cs] [ParseHeaders]: Byte 27 and Byte 29 do not match. Skipping file at path '{filePath}'");
+                    break;
+                }
+
+                int byte_27_decimal_value = byte_27;
+
+                if(!byteMapping.TryAdd(filePath, byte_27_decimal_value))
+                {
+                    Console.WriteLine($"[WARNING] [Program.cs] [ParseHeaders]: Could not add image with path '{filePath}' to byte mapping.");
+                }
+            }
+        }
+    }
+
+    static ushort ConvertToBigEndian16(ushort value)
+    {
+        ushort originalMsb = (ushort)((value >> 8) & 0xFF);
+        ushort originalLsb = (ushort)(value & 0xFF);
+
+        ushort newMsb = (ushort)(originalLsb << 8);
+        ushort newLsb = originalMsb;
+
+        return (ushort)(newMsb | newLsb);
+    }
+
     static void InsertIntoDatabase(List<string> filePaths, ServiceProvider serviceProvider)
     {
         List<string> siteNames = new List<string>
