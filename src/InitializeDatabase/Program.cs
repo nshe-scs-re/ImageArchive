@@ -195,7 +195,7 @@ internal class Program
 
             var image = new Image
             {
-                FilePath = filePath,
+                FilePath = ConvertSingleWindowsPathToLinuxPath(filePath),
                 UnixTime = unixTime,
                 DateTime = dateTime,
                 SiteName = siteName,
@@ -255,6 +255,19 @@ internal class Program
         return Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development"
             ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "source", "images")
             : "/app/images";
+    }
+
+    static string ConvertSingleWindowsPathToLinuxPath(string filePath)
+    {
+        string basePath = GetImageDirectoryBasePath();
+
+        if(basePath == "/app/images")
+        {
+            return filePath;
+        }
+        string linuxBasePath = @"/app/images";
+
+        return filePath.Replace(basePath, linuxBasePath).Replace('\\', '/');
     }
 
     static List<string> GetImageFilePaths(string basePath)
