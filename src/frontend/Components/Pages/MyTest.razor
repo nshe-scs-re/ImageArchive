@@ -2,7 +2,6 @@
 @inject HttpService HttpService
 @inject IConfiguration config
 
-
 <h3>Upload</h3>
 
 <!-- Current Date and Time -->
@@ -66,10 +65,13 @@
                     <label for="cameraPositionNumber" class="form-label">Camera Position Number</label>
                     <input type="text" class="form-control" id="cameraPositionNumber" @bind="cameraPositionNumber" readonly />
                 </div>
+                                <!-- Date-Time Picker -->
+                <div class="mb-3">
+                    <label for="photoDateTime" class="form-label">Photo Date and Time</label>
+                    <input type="datetime-local" id="photoDateTime" @bind="photoDateTime" class="form-control" />
+                </div>
 
-                <InputFile OnChange="HandleFileSelected" id="fileInputElement" multiple accept=".gif,.png,.jpg,.jpeg" class="@(string.IsNullOrEmpty(cameraPosition) ? "disabled-field" : "")" />
-
-                
+                <InputFile OnChange="HandleFileSelected" id="fileInputElement" multiple accept=".jpg,.jpeg" class="@(string.IsNullOrEmpty(cameraPosition) ? "disabled-field" : "")" />
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" @onclick="OnHideModalClick">Close</button>
@@ -78,6 +80,7 @@
         </div>
     </div>
 </div>
+
 
 <style>
     .disabled-field {
@@ -109,7 +112,7 @@
     private string cameraPositionName = string.Empty;
     private int cameraNumber;
     private int cameraPositionNumber;
-    private DateTime? photoTime;
+    private DateTime? photoDateTime;
 
     private bool CanUpload => !string.IsNullOrEmpty(siteName) && siteNumber.HasValue && !string.IsNullOrEmpty(cameraPosition) && cameraPositionNumber >= 0 && selectedFiles.Any();
 
@@ -233,7 +236,7 @@
                 Console.WriteLine($"File name: {fileName}");
                 Console.WriteLine($"File size: {fileSize} bytes");
                 //TODO: extract time from photo's metadata at time taken/created?
-                //Console.WriteLine($"Photo time: {photoTime}");
+                //Console.WriteLine($"Photo time: {photoDateTime}");
                 Console.WriteLine($"File contents: {fileContents}");
                 if (response.IsSuccessStatusCode)
                 {
@@ -263,10 +266,6 @@
         }
         selectedFiles.AddRange(files);
     }
-
-    
-
-
 
     private async Task UploadFiles() 
     {

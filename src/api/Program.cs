@@ -303,7 +303,7 @@ app.MapPost("/api/upload/multiple", async (HttpRequest request, ImageUploadServi
 
         foreach(var file in files)
         {
-            var savedFileName = await imageService.SaveImageAsync(file, camera, cameraPosition, site, siteNumber, cameraPositionName);
+            var savedFileName = await imageService.SaveImageAsync(file, cameraPosition, site, siteNumber, cameraPositionName);
             savedFileNames.Add(savedFileName);
         }
 

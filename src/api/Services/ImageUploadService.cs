@@ -25,12 +25,12 @@ public class ImageUploadService
     }
 
     //TODO: check the IFormFile Config to make sure that it cooperates with everything else --  I was having issues with other IFormFile. Seems to work tho
-    public async Task<string> SaveImageAsync(IFormFile file, int camera, int? cameraPosition, string? site, int? siteNumber, string? cameraPositionName)
+    public async Task<string> SaveImageAsync(IFormFile file, int? cameraPosition, string? site, int? siteNumber, string? cameraPositionName)
     {
         try
         {
             // Validate file type
-            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+            var allowedExtensions = new[] { ".jpg", ".jpeg" };
             var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
             if(!allowedExtensions.Contains(extension))
             {
@@ -45,16 +45,15 @@ public class ImageUploadService
                 await file.CopyToAsync(fileStream);
             }
 
-            // Save image metadata to the database
+            //TODO: Image class will change. Change this accordingly
+            //Save image metadata to the database
             var image = new Image
             {
-                Name = fileName,
                 FilePath = filePath,
                 DateTime = DateTime.UtcNow,
                 UnixTime = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds(),
                 SiteName = site,
                 SiteNumber = siteNumber,
-                CameraNumber = camera,
                 CameraPositionNumber = cameraPosition,
                 CameraPositionName = cameraPositionName
             };
