@@ -33,13 +33,13 @@ internal class Program
         {
             if(!Path.IsPathFullyQualified(filePath))
             {
-                Console.WriteLine("[WARNING] [Program.cs] [ParseHeaders]: Invalid file path. Skipping.");
+                Console.WriteLine("[WARNING] [Program.cs] [ParseHeaders]: Invalid file path. Skipping file.");
                 continue;
             }
 
             if(!File.Exists(filePath))
             {
-                Console.WriteLine("[WARNING] [Program.cs] [ParseHeaders]: Invalid file path. Skipping.");
+                Console.WriteLine("[WARNING] [Program.cs] [ParseHeaders]: Invalid file path. Skipping file.");
                 continue;
             }
 
@@ -48,7 +48,7 @@ internal class Program
 
             if(fileStream.Length < 2)
             {
-                Console.WriteLine($"[WARNING] [Program.cs] [ParseHeaders]: File too small to be a valid JPEG file. Skipping.");
+                Console.WriteLine($"[WARNING] [Program.cs] [ParseHeaders]: File too small to be a valid JPEG file. Skipping file at path '{filePath}'");
                 continue;
             }
 
@@ -56,7 +56,7 @@ internal class Program
 
             if(firstHeader != 0xFFD8) // JPEG SOI marker (0xFFD8)
             {
-                Console.WriteLine($"[WARNING] [Program.cs] [ParseHeaders]: Unexpected SOI marker: 0x{firstHeader:X4} Skipping...");
+                Console.WriteLine($"[WARNING] [Program.cs] [ParseHeaders]: Unexpected SOI marker: 0x{firstHeader:X4}. Skipping file at path '{filePath}'");
                 continue;
             }
 
@@ -66,7 +66,7 @@ internal class Program
 
             if(segmentMarker != 0xFFD9) // JPEG EOI marker (0xFFD9)
             {
-                Console.WriteLine($"[WARNING] [Program.cs] [ParseHeaders]: Unexpected EOI marker: 0x{segmentMarker:X4} Skipping..");
+                Console.WriteLine($"[WARNING] [Program.cs] [ParseHeaders]: Unexpected EOI marker: 0x{segmentMarker:X4}. Skipping file at path '{filePath}'");
                 continue;
             }
 
@@ -174,13 +174,13 @@ internal class Program
 
             if(fileName.Length <= 2)
             {
-                Console.WriteLine($"[INFO] [InitializeDatabase] [InsertImagePathsIntoDatabase]: Skipping file with short name: {filePath}");
+                Console.WriteLine($"[INFO] [InitializeDatabase] [InsertImagePathsIntoDatabase]: Name is too short. Skipping file at path '{filePath}'");
                 return (IsValid: false, Image: null as Image);
             }
 
             if(!long.TryParse(fileName[..^2], out long unixTime))
             {
-                Console.WriteLine($"[INFO] [InitializeDatabase] [InsertImagePathsIntoDatabase]: Skipping file with invalid Unix time: {filePath}");
+                Console.WriteLine($"[INFO] [InitializeDatabase] [InsertImagePathsIntoDatabase]: Invalid Unix time. Skipping file at path '{filePath}'");
                 return (IsValid: false, Image: null as Image);
             }
 
@@ -224,7 +224,7 @@ internal class Program
 
         if(imageFiles.Count == 0)
         {
-            Console.WriteLine("[INFO] [InitializeDatabase] [InsertImagePathsIntoDatabase]: No images available. Exiting...");
+            Console.WriteLine("[INFO] [InitializeDatabase] [InsertImagePathsIntoDatabase]: No images available. Exiting application...");
             return;
         }
 
@@ -232,7 +232,7 @@ internal class Program
         {
             context.Images.AddRange(imageFiles!);
             int count = context.SaveChanges();
-            Console.WriteLine($"[INFO] [InitializeDatabase] [InsertImagePathsIntoDatabase]: Database insertion complete. {count} entries.");
+            Console.WriteLine($"[INFO] [InitializeDatabase] [InsertImagePathsIntoDatabase]: Database insertion complete. {count} database entries.");
         }
         catch(Exception)
         {
