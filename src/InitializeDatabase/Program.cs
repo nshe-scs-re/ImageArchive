@@ -168,7 +168,7 @@ internal class Program
         using var scope = serviceProvider.CreateScope();
         using var context = scope.ServiceProvider.GetRequiredService<ImageDbContext>();
 
-        var imageFiles = filePaths.Select(filePath =>
+        var imageFiles = filePaths.AsParallel().Select(filePath =>
         {
             string fileName = Path.GetFileNameWithoutExtension(filePath);
 
