@@ -190,7 +190,7 @@ internal class Program
 
             var siteNumberString = siteNumbers.FirstOrDefault(s => filePath.Contains(s, StringComparison.OrdinalIgnoreCase));
 
-            var siteNumber = siteNumberString is null ? 1 : int.Parse(siteNumberString[^1].ToString());
+            var siteNumber = siteNumberString is null ? -1 : int.Parse(siteNumberString[^1].ToString());
 
             if(!byteMap.TryGetValue(filePath, out int cameraPositionNumber))
             {
