@@ -227,7 +227,8 @@
 
         try
         { 
-            var response = await HttpService.UploadImageAsync("api/upload/multiple", selectedFiles);
+            var response = await HttpService.UploadImageAsync(selectedFiles);
+
             foreach (var file in files)
             {
                 var fileName = file.Name;

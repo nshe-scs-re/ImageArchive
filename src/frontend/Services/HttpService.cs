@@ -77,21 +77,8 @@ public class HttpService
         return await httpClient.PostAsJsonAsync("api/archive/request", request);
     }
 
-    public async Task<HttpResponseMessage> UploadImageAsync(string url, List<IBrowserFile> files)
+    public async Task<HttpResponseMessage> UploadImageAsync(List<IBrowserFile> files)
     {
-        //most commented lines are remains from testing
-        //var startDate = DateTime.Now.AddDays(-7);
-        //var endDate = DateTime.Now;
-
-        //This is practice with a random request object
-        //UploadPractice request = new()
-        //{
-        //    Name = "blah",
-        //    dateTime = startDate,
-        //    Description = "This is blah"
-
-        //};
-
         var httpClient = CreateClient();
 
         using var content = new MultipartFormDataContent();
@@ -102,7 +89,7 @@ public class HttpService
             content.Add(fileContent, "files", file.Name);
         }
 
-        var response = await httpClient.PostAsync(url, content);
+        var response = await httpClient.PostAsync("/api/upload/multiple", content);
         response.EnsureSuccessStatusCode();
         return response;
     }

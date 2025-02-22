@@ -281,29 +281,38 @@ app.MapPost("/api/upload/multiple", async (HttpRequest request, ImageUploadServi
             return Results.BadRequest("No files uploaded or files are empty.");
         }
 
-        int? cameraPosition = null;
-        if(int.TryParse(form["cameraPosition"], out int parsedCameraPosition))
+        //int? cameraPosition = null;
+        if(!int.TryParse(form["cameraPosition"], out int cameraPosition))
         {
-            cameraPosition = parsedCameraPosition;
+            return Results.BadRequest("Invalid image camera position.");
         }
 
         string? siteName = form["site"];
-        int? siteNumber = null;
-        if(int.TryParse(form["siteNumber"], out int parsedSiteNumber))
+
+        if(siteName == null)
         {
-            siteNumber = parsedSiteNumber;
+            return Results.BadRequest("Invalid image site.");
+        }
+
+        //int? siteNumber = null;
+        if (!int.TryParse(form["siteNumber"], out int siteNumber))
+        {
+            return Results.BadRequest("Invalid image site number.");
         }
 
         string? cameraPositionName = form["cameraPositionName"];
 
-        
+        if(cameraPositionName == null)
+        {
+            return Results.BadRequest("Invalid image camera position name.");
+        }
 
         var imageJson = form["image"];
         if(string.IsNullOrEmpty(imageJson))
         {
             return Results.BadRequest("Image metadata is missing.");
         }
-
+        //where the code starts breaking
         var image = JsonSerializer.Deserialize<Image>(imageJson);
         if(image == null)
         {
