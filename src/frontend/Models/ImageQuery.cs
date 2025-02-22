@@ -6,7 +6,6 @@
 public class ImageQuery
 {
     public long? Id { get; set; }
-    public string? Name { get; set; }
     public string? FilePath { get; set; }
     public DateTime StartDateTime { get; set; } = DateTime.UnixEpoch;
     public DateTime EndDateTime { get; set; } = DateTime.Now;
@@ -15,6 +14,5 @@ public class ImageQuery
     public long? UnixTime { get; set; }
     public string? SiteName { get; set; } = "Rockland";
     public int? SiteNumber { get; set; } = 1;
-    public int? CameraNumber { get; set; } = 1;
     public int? CameraPosition { get; set; } = 1;
 }

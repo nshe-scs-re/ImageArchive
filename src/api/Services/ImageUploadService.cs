@@ -50,7 +50,6 @@ public class ImageUploadService
             //Save image metadata to the database
             var image = new Image
             {
-                Name = fileName,
                 FilePath = filePath,
                 DateTime = DateTime.UtcNow,
                 UnixTime = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds(),
