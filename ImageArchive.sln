@@ -9,13 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "frontend", "src\frontend\fr
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{CBEC8347-1728-48BB-BCA3-8313368B881E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExtractImagePaths", "src\ExtractImagePaths\ExtractImagePaths.csproj", "{DD07AB50-6729-4AAC-94A1-5C87B4A0FB48}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParseJpegHeaders", "src\ParseJpegHeaders\ParseJpegHeaders.csproj", "{7D933367-9F58-4124-AFAB-B0DC8A183831}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HandleInvalidFiles", "src\HandleInvalidFiles\HandleInvalidFiles.csproj", "{D1DCCA41-ABA0-4E78-B81F-0F7A65737580}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "APIUnitTests", "src\APIUnitTests\APIUnitTests.csproj", "{2EB6703D-7B91-4D31-976E-AA0C7634A55D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InitializeDatabase", "src\InitializeDatabase\InitializeDatabase.csproj", "{F3E4111F-77B9-47BB-B9E3-CC8DAC91E4AA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,22 +31,14 @@ Global
 		{CBEC8347-1728-48BB-BCA3-8313368B881E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CBEC8347-1728-48BB-BCA3-8313368B881E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CBEC8347-1728-48BB-BCA3-8313368B881E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DD07AB50-6729-4AAC-94A1-5C87B4A0FB48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DD07AB50-6729-4AAC-94A1-5C87B4A0FB48}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DD07AB50-6729-4AAC-94A1-5C87B4A0FB48}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DD07AB50-6729-4AAC-94A1-5C87B4A0FB48}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7D933367-9F58-4124-AFAB-B0DC8A183831}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7D933367-9F58-4124-AFAB-B0DC8A183831}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7D933367-9F58-4124-AFAB-B0DC8A183831}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7D933367-9F58-4124-AFAB-B0DC8A183831}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D1DCCA41-ABA0-4E78-B81F-0F7A65737580}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D1DCCA41-ABA0-4E78-B81F-0F7A65737580}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D1DCCA41-ABA0-4E78-B81F-0F7A65737580}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D1DCCA41-ABA0-4E78-B81F-0F7A65737580}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2EB6703D-7B91-4D31-976E-AA0C7634A55D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2EB6703D-7B91-4D31-976E-AA0C7634A55D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2EB6703D-7B91-4D31-976E-AA0C7634A55D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2EB6703D-7B91-4D31-976E-AA0C7634A55D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3E4111F-77B9-47BB-B9E3-CC8DAC91E4AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3E4111F-77B9-47BB-B9E3-CC8DAC91E4AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3E4111F-77B9-47BB-B9E3-CC8DAC91E4AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3E4111F-77B9-47BB-B9E3-CC8DAC91E4AA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

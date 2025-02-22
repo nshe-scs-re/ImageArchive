@@ -69,16 +69,6 @@
             </div>
           </div>
           <div class="row py-2">
-            <label for="CameraNumber" class="col col-form-label">Camera Number:</label>
-            <div class="col">
-              <InputSelect @bind-Value="imageQuery.CameraNumber" id="CameraNumber" class="form-select">
-                <option value="1">Camera 1</option>
-                <option value="2">Camera 2</option>
-                <option value="3">Camera 3</option>
-              </InputSelect>
-            </div>
-          </div>
-          <div class="row py-2">
             <label for="CameraPosition" class="col col-form-label">Camera Position:</label>
             <div class="col">
               <InputSelect @bind-Value="imageQuery.CameraPosition" id="CameraPosition" class="form-select">
@@ -152,7 +142,6 @@ else if (querySubmitted && !loading)
                 <p class="card-text">Time: @image.DateTime</p>
                 <p class="card-text">Site Name: @image.SiteName</p>
                 <p class="card-text">Site Number: @image.SiteNumber</p>
-                <p class="card-text">Camera Number: @image.CameraNumber</p>
                 <p class="card-text">Camera Position Number: @image.CameraPositionNumber</p>
                 <p class="card-text">Camera Postion Name: @image.CameraPositionName</p>
                 <div class="d-flex justify-content-between align-items-center">
