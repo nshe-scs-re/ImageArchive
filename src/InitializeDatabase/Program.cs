@@ -192,6 +192,11 @@ internal class Program
 
             var siteNumber = siteNumberString is null ? -1 : int.Parse(siteNumberString[^1].ToString());
 
+            if(siteNumber == -1)
+            {
+                Console.WriteLine($"[WARNING] [Program.cs] [InsertIntoDatabase]: Variable '{nameof(siteNumber)}' has been assigned an error value as '{nameof(siteNumberString)}' is null.");
+            }
+
             if(!byteMap.TryGetValue(filePath, out int cameraPositionNumber))
             {
                 return (IsValid: false, Image: null as Image);
