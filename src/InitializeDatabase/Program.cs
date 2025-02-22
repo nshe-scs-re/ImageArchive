@@ -27,20 +27,20 @@ internal class Program
 
     static Dictionary<string, int> ParseHeaders(List<string> filePaths)
     {
-        var byteMapping = new Dictionary<string, int>();
+        var byteMapping = new ConcurrentDictionary<string, int>();
 
-        foreach(var filePath in filePaths)
+        Parallel.ForEach(filePaths, filePath =>
         {
             if(!Path.IsPathFullyQualified(filePath))
             {
                 Console.WriteLine("[WARNING] [Program.cs] [ParseHeaders]: Invalid file path. Skipping file.");
-                continue;
+                return;
             }
 
             if(!File.Exists(filePath))
             {
                 Console.WriteLine("[WARNING] [Program.cs] [ParseHeaders]: Invalid file path. Skipping file.");
-                continue;
+                return;
             }
 
             using FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
@@ -49,7 +49,7 @@ internal class Program
             if(fileStream.Length < 2)
             {
                 Console.WriteLine($"[WARNING] [Program.cs] [ParseHeaders]: File too small to be a valid JPEG file. Skipping file at path '{filePath}'");
-                continue;
+                return;
             }
 
             var firstHeader = ConvertToBigEndian16(binaryReader.ReadUInt16());
@@ -57,7 +57,7 @@ internal class Program
             if(firstHeader != 0xFFD8) // JPEG SOI marker (0xFFD8)
             {
                 Console.WriteLine($"[WARNING] [Program.cs] [ParseHeaders]: Unexpected SOI marker: 0x{firstHeader:X4}. Skipping file at path '{filePath}'");
-                continue;
+                return;
             }
 
             fileStream.Position = fileStream.Length - 2;
@@ -67,7 +67,7 @@ internal class Program
             if(segmentMarker != 0xFFD9) // JPEG EOI marker (0xFFD9)
             {
                 Console.WriteLine($"[WARNING] [Program.cs] [ParseHeaders]: Unexpected EOI marker: 0x{segmentMarker:X4}. Skipping file at path '{filePath}'");
-                continue;
+                return;
             }
 
             fileStream.Position = 2;
@@ -100,7 +100,7 @@ internal class Program
                     fileStream.Position += (segmentLength - 2);
                     continue;
                 }
-                
+
                 byte[] app0_header = binaryReader.ReadBytes(segmentLength - 2);
 
                 if(app0_header.Length < 29)
@@ -126,9 +126,9 @@ internal class Program
 
                 break; // Move to next file after reading APP0 header
             }
-        }
+        });
 
-        return byteMapping;
+        return new Dictionary<string, int>(byteMapping);
     }
 
     static ushort ConvertToBigEndian16(ushort value)
