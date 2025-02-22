@@ -1,9 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
-using System.IO;
 
 namespace InitializeDatabase;
 internal class Program
@@ -14,6 +12,12 @@ internal class Program
 
         using var serviceProvider = LoadServices(configuration);
 
+        using(var scope = serviceProvider.CreateScope())
+        {
+            using var context = scope.ServiceProvider.GetRequiredService<ImageDbContext>();
+            context.Database.Migrate();
+        }
+
         var imageDirectoryBasePath = GetImageDirectoryBasePath();
 
         var imageFilePaths = GetImageFilePaths(imageDirectoryBasePath);
@@ -23,20 +27,20 @@ internal class Program
 
     static Dictionary<string, int> ParseHeaders(List<string> filePaths)
     {
-        var byteMapping = new Dictionary<string, int>();
+        var byteMapping = new ConcurrentDictionary<string, int>();
 
-        foreach(var filePath in filePaths)
+        Parallel.ForEach(filePaths, filePath =>
         {
             if(!Path.IsPathFullyQualified(filePath))
             {
-                Console.WriteLine("[WARNING] [Program.cs] [ParseHeaders]: Invalid file path. Skipping.");
-                continue;
+                Console.WriteLine("[WARNING] [Program.cs] [ParseHeaders]: Invalid file path. Skipping file.");
+                return;
             }
 
             if(!File.Exists(filePath))
             {
-                Console.WriteLine("[WARNING] [Program.cs] [ParseHeaders]: Invalid file path. Skipping.");
-                continue;
+                Console.WriteLine("[WARNING] [Program.cs] [ParseHeaders]: Invalid file path. Skipping file.");
+                return;
             }
 
             using FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
@@ -44,16 +48,16 @@ internal class Program
 
             if(fileStream.Length < 2)
             {
-                Console.WriteLine($"[WARNING] [Program.cs] [ParseHeaders]: File too small to be a valid JPEG file. Skipping.");
-                continue;
+                Console.WriteLine($"[WARNING] [Program.cs] [ParseHeaders]: File too small to be a valid JPEG file. Skipping file at path '{filePath}'");
+                return;
             }
 
             var firstHeader = ConvertToBigEndian16(binaryReader.ReadUInt16());
 
             if(firstHeader != 0xFFD8) // JPEG SOI marker (0xFFD8)
             {
-                Console.WriteLine($"[WARNING] [Program.cs] [ParseHeaders]: Unexpected SOI marker: 0x{firstHeader:X4} Skipping...");
-                continue;
+                Console.WriteLine($"[WARNING] [Program.cs] [ParseHeaders]: Unexpected SOI marker: 0x{firstHeader:X4}. Skipping file at path '{filePath}'");
+                return;
             }
 
             fileStream.Position = fileStream.Length - 2;
@@ -62,8 +66,8 @@ internal class Program
 
             if(segmentMarker != 0xFFD9) // JPEG EOI marker (0xFFD9)
             {
-                Console.WriteLine($"[WARNING] [Program.cs] [ParseHeaders]: Unexpected EOI marker: 0x{segmentMarker:X4} Skipping..");
-                continue;
+                Console.WriteLine($"[WARNING] [Program.cs] [ParseHeaders]: Unexpected EOI marker: 0x{segmentMarker:X4}. Skipping file at path '{filePath}'");
+                return;
             }
 
             fileStream.Position = 2;
@@ -96,7 +100,7 @@ internal class Program
                     fileStream.Position += (segmentLength - 2);
                     continue;
                 }
-                
+
                 byte[] app0_header = binaryReader.ReadBytes(segmentLength - 2);
 
                 if(app0_header.Length < 29)
@@ -122,9 +126,9 @@ internal class Program
 
                 break; // Move to next file after reading APP0 header
             }
-        }
+        });
 
-        return byteMapping;
+        return new Dictionary<string, int>(byteMapping);
     }
 
     static ushort ConvertToBigEndian16(ushort value)
@@ -159,22 +163,24 @@ internal class Program
             "site_5",
         };
 
+        var basePath = GetImageDirectoryBasePath();
+
         using var scope = serviceProvider.CreateScope();
         using var context = scope.ServiceProvider.GetRequiredService<ImageDbContext>();
 
-        var imageFiles = filePaths.Select(filePath =>
+        var imageFiles = filePaths.AsParallel().Select(filePath =>
         {
             string fileName = Path.GetFileNameWithoutExtension(filePath);
 
             if(fileName.Length <= 2)
             {
-                Console.WriteLine($"[INFO] [InitializeDatabase] [InsertImagePathsIntoDatabase]: Skipping file with short name: {filePath}");
+                Console.WriteLine($"[INFO] [InitializeDatabase] [InsertImagePathsIntoDatabase]: Name is too short. Skipping file at path '{filePath}'");
                 return (IsValid: false, Image: null as Image);
             }
 
             if(!long.TryParse(fileName[..^2], out long unixTime))
             {
-                Console.WriteLine($"[INFO] [InitializeDatabase] [InsertImagePathsIntoDatabase]: Skipping file with invalid Unix time: {filePath}");
+                Console.WriteLine($"[INFO] [InitializeDatabase] [InsertImagePathsIntoDatabase]: Invalid Unix time. Skipping file at path '{filePath}'");
                 return (IsValid: false, Image: null as Image);
             }
 
@@ -184,7 +190,12 @@ internal class Program
 
             var siteNumberString = siteNumbers.FirstOrDefault(s => filePath.Contains(s, StringComparison.OrdinalIgnoreCase));
 
-            var siteNumber = siteNumberString is null ? 1 : int.Parse(siteNumberString[^1].ToString());
+            var siteNumber = siteNumberString is null ? -1 : int.Parse(siteNumberString[^1].ToString());
+
+            if(siteNumber == -1)
+            {
+                Console.WriteLine($"[WARNING] [Program.cs] [InsertIntoDatabase]: Variable '{nameof(siteNumber)}' has been assigned an error value as '{nameof(siteNumberString)}' is null.");
+            }
 
             if(!byteMap.TryGetValue(filePath, out int cameraPositionNumber))
             {
@@ -195,7 +206,7 @@ internal class Program
 
             var image = new Image
             {
-                FilePath = ConvertSingleWindowsPathToLinuxPath(filePath),
+                FilePath = ConvertSingleWindowsPathToLinuxPath(basePath, filePath),
                 UnixTime = unixTime,
                 DateTime = dateTime,
                 SiteName = siteName,
@@ -213,7 +224,7 @@ internal class Program
 
         if(imageFiles.Count == 0)
         {
-            Console.WriteLine("[INFO] [InitializeDatabase] [InsertImagePathsIntoDatabase]: No images available. Exiting...");
+            Console.WriteLine("[INFO] [InitializeDatabase] [InsertImagePathsIntoDatabase]: No images available. Exiting application...");
             return;
         }
 
@@ -221,7 +232,7 @@ internal class Program
         {
             context.Images.AddRange(imageFiles!);
             int count = context.SaveChanges();
-            Console.WriteLine($"[INFO] [InitializeDatabase] [InsertImagePathsIntoDatabase]: Database insertion complete. {count} entries.");
+            Console.WriteLine($"[INFO] [InitializeDatabase] [InsertImagePathsIntoDatabase]: Database insertion complete. {count} database entries.");
         }
         catch(Exception)
         {
@@ -257,15 +268,14 @@ internal class Program
             : "/app/images";
     }
 
-    static string ConvertSingleWindowsPathToLinuxPath(string filePath)
+    static string ConvertSingleWindowsPathToLinuxPath(string basePath, string filePath)
     {
-        string basePath = GetImageDirectoryBasePath();
+        string linuxBasePath = "/app/images";
 
-        if(basePath == "/app/images")
+        if(basePath == linuxBasePath)
         {
-            return filePath;
+            return filePath; 
         }
-        string linuxBasePath = @"/app/images";
 
         return filePath.Replace(basePath, linuxBasePath).Replace('\\', '/');
     }
