@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using api.Models;
 using api.Data;
-using Azure.Identity; 
+using Azure.Identity;
 
 public class ImageUploadService
 {
@@ -18,14 +18,14 @@ public class ImageUploadService
         //TODO: investigate why it doesn't save to DB, but uploading to the uploads folder in wwwroot works
         _storagePath = Path.Combine("wwwroot", "uploads");
 
-        if (!Directory.Exists(_storagePath))
+        if(!Directory.Exists(_storagePath))
         {
             Directory.CreateDirectory(_storagePath);
         }
     }
 
     //TODO: check the IFormFile Config to make sure that it cooperates with everything else --  I was having issues with other IFormFile. Seems to work tho
-    public async Task<string> SaveImageAsync(IFormFile file, int? cameraPosition, string? site, int? siteNumber, string? cameraPositionName)
+    public async Task<string> SaveImageAsync(IFormFile file, Image image)
     {
         try
         {
@@ -36,6 +36,8 @@ public class ImageUploadService
             {
                 throw new InvalidOperationException("Invalid file type.");
             }
+
+            // Generate a unique file name
             var fileName = Path.GetFileNameWithoutExtension(file.FileName);
             var uniqueFileName = $"{fileName}_{Guid.NewGuid()}{extension}";
             var filePath = Path.Combine(_storagePath, uniqueFileName);
@@ -45,26 +47,17 @@ public class ImageUploadService
                 await file.CopyToAsync(fileStream);
             }
 
-            //TODO: Image class will change. Change this accordingly
-            //Save image metadata to the database
-            var image = new Image
-            {
-                FilePath = filePath,
-                DateTime = DateTime.UtcNow,
-                UnixTime = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds(),
-                SiteName = site,
-                SiteNumber = siteNumber,
-                CameraPositionNumber = cameraPosition,
-                CameraPositionName = cameraPositionName
-            };
+            // Update image metadata
+            image.FilePath = filePath;
+            image.UnixTime = new DateTimeOffset(image.DateTime ?? DateTime.UtcNow).ToUnixTimeSeconds();
 
             _context.Images.Add(image);
             await _context.SaveChangesAsync();
             return uniqueFileName;
         }
-        catch (Exception ex)
+        catch(Exception ex)
         {
-            Console.WriteLine($"ERROR [ImageUploadService.cs] [SaveImageAsync]: Exception message: {ex.Message}");
+            Console.WriteLine($"[ERROR] [ImageUploadService.cs] [SaveImageAsync]: Exception message: {ex.Message}");
             throw;
         }
     }

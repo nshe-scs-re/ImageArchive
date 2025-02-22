@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -280,18 +281,13 @@ app.MapPost("/api/upload/multiple", async (HttpRequest request, ImageUploadServi
             return Results.BadRequest("No files uploaded or files are empty.");
         }
 
-        if(!int.TryParse(form["camera"], out int camera))
-        {
-            return Results.BadRequest("Invalid camera value.");
-        }
-
         int? cameraPosition = null;
         if(int.TryParse(form["cameraPosition"], out int parsedCameraPosition))
         {
             cameraPosition = parsedCameraPosition;
         }
 
-        string? site = form["site"];
+        string? siteName = form["site"];
         int? siteNumber = null;
         if(int.TryParse(form["siteNumber"], out int parsedSiteNumber))
         {
@@ -300,11 +296,23 @@ app.MapPost("/api/upload/multiple", async (HttpRequest request, ImageUploadServi
 
         string? cameraPositionName = form["cameraPositionName"];
 
-        List<string> savedFileNames = new List<string>();
+        
 
+        var imageJson = form["image"];
+        if(string.IsNullOrEmpty(imageJson))
+        {
+            return Results.BadRequest("Image metadata is missing.");
+        }
+
+        var image = JsonSerializer.Deserialize<Image>(imageJson);
+        if(image == null)
+        {
+            return Results.BadRequest("Invalid image metadata.");
+        }
+        List<string> savedFileNames = new List<string>();
         foreach(var file in files)
         {
-            var savedFileName = await imageService.SaveImageAsync(file, cameraPosition, site, siteNumber, cameraPositionName);
+            var savedFileName = await imageService.SaveImageAsync(file, image);
             savedFileNames.Add(savedFileName);
         }
 

@@ -35,22 +35,23 @@
                         }
                     </select>
                 </div>
-                <div class="mb-3 @(string.IsNullOrEmpty(siteName) ? "disabled-field" : "")">
+                <div class="mb-3 @(string.IsNullOrEmpty(image.SiteName) ? "disabled-field" : "")">
                     <label for="siteNumber" class="form-label">Site Number</label>
-                    <select class="form-select" id="siteNumber" @onchange="OnSiteNumberChanged" disabled="@(string.IsNullOrEmpty(siteName))">
+                    <select class="form-select" id="siteNumber" @onchange="OnSiteNumberChanged" disabled="@(string.IsNullOrEmpty(image.SiteName))">
                         <option value="">Select a site number</option>
-                        @if (siteNumbers != null && siteNumbers.ContainsKey(siteName))
+                        @if (siteNumbers != null && !string.IsNullOrEmpty(image.SiteName) && siteNumbers.ContainsKey(image.SiteName))
+
                         {
-                            @foreach (var number in siteNumbers[siteName])
+                            @foreach (var number in siteNumbers[image.SiteName])
                             {
                                 <option value="@number">@number</option>
                             }
                         }
                     </select>
                 </div>
-                <div class="mb-3 @(siteNumber == null ? "disabled-field" : "")">
+                <div class="mb-3 @(image.SiteNumber == null ? "disabled-field" : "")">
                     <label for="cameraPosition" class="form-label">Camera Position</label>
-                    <select class="form-select" id="cameraPosition" @onchange="OnCameraPositionChanged" disabled="@(siteNumber == null)">
+                    <select class="form-select" id="cameraPosition" @onchange="OnCameraPositionChanged" disabled="@(image.SiteNumber == null)">
                         <option value="">Select a camera position</option>
                         @if (cameraPositions != null)
                         {
@@ -61,17 +62,17 @@
                         }
                     </select>
                 </div>
-                <div class="mb-3 @(string.IsNullOrEmpty(cameraPosition) ? "disabled-field" : "")">
+                <div class="mb-3 @(string.IsNullOrEmpty(image.CameraPositionName) ? "disabled-field" : "")">
                     <label for="cameraPositionNumber" class="form-label">Camera Position Number</label>
-                    <input type="text" class="form-control" id="cameraPositionNumber" @bind="cameraPositionNumber" readonly />
+                    <input type="text" class="form-control" id="cameraPositionNumber" @bind="image.CameraPositionNumber" readonly />
                 </div>
-                                <!-- Date-Time Picker -->
+                <!-- Date-Time Picker -->
                 <div class="mb-3">
                     <label for="photoDateTime" class="form-label">Photo Date and Time</label>
-                    <input type="datetime-local" id="photoDateTime" @bind="photoDateTime" class="form-control" />
+                    <input type="datetime-local" id="photoDateTime" @onchange="OnDateTimeChanged" class="form-control" />
                 </div>
 
-                <InputFile OnChange="HandleFileSelected" id="fileInputElement" multiple accept=".jpg,.jpeg" class="@(string.IsNullOrEmpty(cameraPosition) ? "disabled-field" : "")" />
+                <InputFile OnChange="HandleFileSelected" id="fileInputElement" multiple accept=".jpg,.jpeg" class="@(string.IsNullOrEmpty(image.CameraPositionName) ? "disabled-field" : "")" />
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" @onclick="OnHideModalClick">Close</button>
@@ -102,19 +103,13 @@
 
 @code{
     private bool isModalVisible = false;
-    private bool isBatchModalVisible = false;
     private int maxAllowedFiles = 5;
     private List<string> errors = new();
     private List<IBrowserFile> selectedFiles = new List<IBrowserFile>();
-    private string siteName = string.Empty;
-    private int? siteNumber;
-    private string cameraPosition = string.Empty;
-    private string cameraPositionName = string.Empty;
-    private int cameraNumber;
-    private int cameraPositionNumber;
-    private DateTime? photoDateTime;
 
-    private bool CanUpload => !string.IsNullOrEmpty(siteName) && siteNumber.HasValue && !string.IsNullOrEmpty(cameraPosition) && cameraPositionNumber >= 0 && selectedFiles.Any();
+    private Image image = new Image();
+
+    private bool CanUpload => !string.IsNullOrEmpty(image.SiteName) && image.SiteNumber.HasValue && !string.IsNullOrEmpty(image.CameraPositionName) && image.CameraPositionNumber >= 0 && selectedFiles.Any();
 
     private List<string> siteNames = new();
     private Dictionary<string, List<int>> siteNumbers = new();
@@ -124,7 +119,7 @@
     private Dictionary<string, List<int>> SiteNameToSiteNumbersMap = new()
     {
         { "Eldorado", new List<int>{ 3 }},
-        { "Sheep", new List<int>{ 1, 2, 3, 4 }},
+        { "Sheep", new List<int>{ 0, 1, 2, 3, 4 }},
         { "Snake", new List<int>{ 1, 2, 3 }},
         { "Spring", new List<int>{ 3, 4 }},
         { "Rockland", new List<int>{ 1 }}
@@ -146,18 +141,27 @@
 
     private void OnSiteNameChanged(ChangeEventArgs e)
     {
-        siteName = e.Value?.ToString() ?? string.Empty;
-        siteNumber = null;
-        cameraPosition = string.Empty;
-        cameraPositionNumber = 0;
+        image.SiteName = e.Value?.ToString() ?? string.Empty;
+        image.SiteNumber = null;
+        image.CameraPositionName = string.Empty;
+        image.CameraPositionNumber = 0;
         cameraPositions.Clear();
-        if (!string.IsNullOrEmpty(siteName) && siteNumbers.ContainsKey(siteName))
+        if (!string.IsNullOrEmpty(image.SiteName) && siteNumbers.ContainsKey(image.SiteName))
         {
-            siteNumbers[siteName] = CameraPositions.Positions
-                .Where(p => p.SiteName == siteName)
+            siteNumbers[image.SiteName] = CameraPositions.Positions
+                .Where(p => p.SiteName == image.SiteName)
                 .Select(p => p.SiteNumber)
                 .Distinct()
                 .ToList();
+        }
+    }
+
+    private void OnDateTimeChanged(ChangeEventArgs e)
+    {
+        if (DateTime.TryParse(e.Value?.ToString(), out var userDateTime))
+        {
+            image.DateTime = userDateTime;
+            image.UnixTime = new DateTimeOffset(userDateTime).ToUnixTimeSeconds();
         }
     }
 
@@ -165,30 +169,30 @@
     {
         if (int.TryParse(e.Value?.ToString(), out var number))
         {
-            siteNumber = number;
-            cameraPosition = string.Empty;
-            cameraPositionNumber = 0;
+            image.SiteNumber = number;
+            image.CameraPositionName = string.Empty;
+            image.CameraPositionNumber = 0;
             cameraPositions = CameraPositions.Positions
-                .Where(p => p.SiteName == siteName && p.SiteNumber == siteNumber)
+                .Where(p => p.SiteName == image.SiteName && p.SiteNumber == image.SiteNumber)
                 .ToList();
         }
         else
         {
-            siteNumber = null;
-            cameraPosition = string.Empty;
-            cameraPositionNumber = 0;
+            image.SiteNumber = null;
+            image.CameraPositionName = string.Empty;
+            image.CameraPositionNumber = 0;
         }
     }
 
     private void OnCameraPositionChanged(ChangeEventArgs e)
     {
-        cameraPosition = e.Value?.ToString() ?? string.Empty;
-        if (!string.IsNullOrEmpty(cameraPosition))
+        image.CameraPositionName = e.Value?.ToString() ?? string.Empty;
+        if (!string.IsNullOrEmpty(image.CameraPositionName))
         {
-            var selectedPosition = cameraPositions.FirstOrDefault(p => p.Value.ToString() == cameraPosition);
+            var selectedPosition = cameraPositions.FirstOrDefault(p => p.Value.ToString() == image.CameraPositionName);
             if (selectedPosition != null)
             {
-                cameraPositionNumber = selectedPosition.Value;
+                image.CameraPositionNumber = selectedPosition.Value;
             }
         }
     }
@@ -208,9 +212,9 @@
 
     private List<string> GetCameraNumbers()
     {
-        if (siteNumbers != null && siteNumbers.ContainsKey(siteName) && siteNumbers[siteName].Contains(siteNumber.GetValueOrDefault()))
+        if (siteNumbers != null && !string.IsNullOrEmpty(image.SiteName) && siteNumbers.ContainsKey(image.SiteName) && siteNumbers[image.SiteName].Contains(image.SiteNumber.GetValueOrDefault()))
         {
-            return siteNumbers[siteName].Select(sn => sn.ToString()).ToList();
+            return siteNumbers[image.SiteName].Select(sn => sn.ToString()).ToList();
         }
         return new List<string>();
     }
@@ -233,18 +237,17 @@
                 using var reader = new StreamReader(stream);
                 var fileContents = await reader.ReadToEndAsync();
 
-                Console.WriteLine($"File name: {fileName}");
-                Console.WriteLine($"File size: {fileSize} bytes");
+                Console.WriteLine($"[INFO] [ImageUploadService.cs] [SaveImageAsync]: File name: {fileName}");
+                Console.WriteLine($"[INFO] [ImageUploadService.cs] [SaveImageAsync]: File size: {fileSize} bytes");
                 //TODO: extract time from photo's metadata at time taken/created?
-                //Console.WriteLine($"Photo time: {photoDateTime}");
-                Console.WriteLine($"File contents: {fileContents}");
+                Console.WriteLine($"[INFO] [ImageUploadService.cs] [SaveImageAsync]: Photo time: {image.DateTime}");
                 if (response.IsSuccessStatusCode)
                 {
                     await OnHideModalClick();
                 }
                 else
                 {
-                    errors.Add("Error uploading file.");
+                    errors.Add("[ERROR] [ImageUploadService.cs] [SaveImageAsync]: Error uploading file.");
                 }
             }
         }
