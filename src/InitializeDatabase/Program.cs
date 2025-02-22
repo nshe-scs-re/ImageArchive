@@ -163,6 +163,8 @@ internal class Program
             "site_5",
         };
 
+        var basePath = GetImageDirectoryBasePath();
+
         using var scope = serviceProvider.CreateScope();
         using var context = scope.ServiceProvider.GetRequiredService<ImageDbContext>();
 
@@ -199,7 +201,7 @@ internal class Program
 
             var image = new Image
             {
-                FilePath = ConvertSingleWindowsPathToLinuxPath(filePath),
+                FilePath = ConvertSingleWindowsPathToLinuxPath(basePath, filePath),
                 UnixTime = unixTime,
                 DateTime = dateTime,
                 SiteName = siteName,
@@ -261,15 +263,14 @@ internal class Program
             : "/app/images";
     }
 
-    static string ConvertSingleWindowsPathToLinuxPath(string filePath)
+    static string ConvertSingleWindowsPathToLinuxPath(string basePath, string filePath)
     {
-        string basePath = GetImageDirectoryBasePath();
+        string linuxBasePath = "/app/images";
 
-        if(basePath == "/app/images")
+        if(basePath == linuxBasePath)
         {
-            return filePath;
+            return filePath; 
         }
-        string linuxBasePath = @"/app/images";
 
         return filePath.Replace(basePath, linuxBasePath).Replace('\\', '/');
     }
