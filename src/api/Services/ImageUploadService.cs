@@ -39,25 +39,30 @@ public class ImageUploadService
                 throw new InvalidOperationException("Invalid file type.");
             }
 
-            // Generate a unique file name
-            var fileName = Path.GetFileNameWithoutExtension(file.FileName);
-            var uniqueFileName = $"{fileName}_{Guid.NewGuid()}{extension}";
-            var filePath = Path.Combine(_storagePath, uniqueFileName);
+            item.UnixTime = new DateTimeOffset(item.DateTime).ToUnixTimeSeconds();
+
+            var filePath = Path.Combine(_storagePath, item.UnixTime.ToString());
 
             await using(var fileStream = new FileStream(filePath, FileMode.Create))
             {
                 await file.CopyToAsync(fileStream);
             }
 
-            // TODO: Implement database changes
-            // Update image metadata
-            //image.FilePath = filePath;
-            //image.UnixTime = new DateTimeOffset(image.DateTime ?? DateTime.UtcNow).ToUnixTimeSeconds();
+            var image = new Image
+            {
+                FilePath = filePath,
+                UnixTime = item.UnixTime,
+                DateTime = item.DateTime,
+                SiteName = item.SiteName,
+                SiteNumber = item.SiteNumber,
+                CameraPositionNumber = item.CameraPositionNumber,
+                CameraPositionName = item.CameraPositionName
+            };
 
-            //_context.Images.Add(image);
-            //await _context.SaveChangesAsync();
+            _context.Images.Add(image);
+            await _context.SaveChangesAsync();
 
-            return uniqueFileName;
+            return filePath;
         }
         catch(Exception ex)
         {
