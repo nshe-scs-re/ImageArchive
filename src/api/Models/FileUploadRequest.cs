@@ -8,6 +8,7 @@ public class FileUploadItem
     public IFormFile File { get; set; }
     [Required]
     public DateTime DateTime { get; set; }
+    public long UnixTime { get; set; }
 
     [Required]
     public string SiteName { get; set; }
