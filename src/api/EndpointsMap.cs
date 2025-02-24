@@ -59,11 +59,11 @@ public static class EndpointsMap
                 fileUploadItem.CameraPositionName = cameraPositionName!;
             }
 
-            await imageService.SaveImageAsync(fileUploadItem);
+            var filePath = await imageService.SaveImageAsync(fileUploadItem);
 
             //Console.WriteLine(fileUploadItem);
 
-            return Results.Ok();
+            return Results.Created();
         });
 
         builder.MapGet("/api/db-verify", async (ImageDbContext dbContext) =>
