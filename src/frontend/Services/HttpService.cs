@@ -2,10 +2,8 @@
 using Microsoft.AspNetCore.Antiforgery;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Components.Forms;
-using System;
+using System.Net;
+using System.Globalization;
 namespace frontend.Services; 
 
 public class HttpService
@@ -13,18 +11,47 @@ public class HttpService
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IAntiforgery _antiforgery;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly CookieContainer _cookieContainer;
 
-    public HttpService(IHttpClientFactory httpClientFactory, IAntiforgery antiforgery, IHttpContextAccessor httpContextAccessor)
+    public HttpService(IHttpClientFactory httpClientFactory, IAntiforgery antiforgery, IHttpContextAccessor httpContextAccessor, CookieContainer cookieContainer)
     {
         _httpClientFactory = httpClientFactory;
         _antiforgery = antiforgery;
         _httpContextAccessor = httpContextAccessor;
+        _cookieContainer = cookieContainer;
     }
 
-    public HttpClient CreateClient()
+    public HttpClient CreateForwardClient(Uri? baseAddress = null)
     {
-        var client = _httpClientFactory.CreateClient("HttpClient");
+        
+        var client = _httpClientFactory.CreateClient("ForwardingClient");
+
+        if(baseAddress != null)
+        {
+            client.BaseAddress = baseAddress;
+        }
+
+        //AddAntiForgeryCookie(client);
+
+        //AddAntiForgeryToken(client);
+
+        return client;
+    }
+
+    public HttpClient CreateProxyClient(Uri? baseAddress = null)
+    {
+
+        var client = _httpClientFactory.CreateClient("ProxyClient");
+
+        if(baseAddress != null)
+        {
+            client.BaseAddress = baseAddress;
+        }
+
+        AddAntiForgeryCookie(client);
+
         AddAntiForgeryToken(client);
+
         return client;
     }
 
@@ -56,12 +83,24 @@ public class HttpService
     public void AddAntiForgeryToken(HttpClient client)
     {
         var httpContext = _httpContextAccessor.HttpContext;
-        if(httpContext is not null)
+
+        if(httpContext == null)
         {
+            Console.WriteLine($"[ERROR] [HttpService] [AddAntiForgeryToken]: {nameof(httpContext)} is null.");
+            return;
+        }
+
             var tokens = _antiforgery.GetAndStoreTokens(httpContext);
-            if (tokens.RequestToken is not null && tokens.HeaderName is not null)
+
+        if (tokens.RequestToken is null || tokens.HeaderName is null)
             {
+            Console.WriteLine($"[ERROR] [HttpService] [AddAntiForgeryToken]: Antiforgery token fields null.");
+        }
+
                 client.DefaultRequestHeaders.Add(tokens.HeaderName, tokens.RequestToken);
+
+        //Console.WriteLine($"[INFO] [HttpService] [AddAntiForgeryToken]: {nameof(tokens.HeaderName)}: {tokens.HeaderName}");
+        //Console.WriteLine($"[INFO] [HttpService] [AddAntiForgeryToken]: {nameof(tokens.RequestToken)}: {tokens.RequestToken}");
             }
         }
     }
