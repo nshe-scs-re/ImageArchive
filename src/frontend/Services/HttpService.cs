@@ -28,6 +28,31 @@ public class HttpService
         return client;
     }
 
+    public void AddAntiForgeryCookie(HttpClient client)
+    {
+        var httpContext = _httpContextAccessor.HttpContext;
+
+        if(httpContext == null)
+        {
+            Console.WriteLine($"[ERROR] [HttpService] [AddAntiForgeryCookie]: {nameof(httpContext)} is null.");
+            return;
+        }
+
+        var antiCookie = httpContext.Request.Cookies
+            .FirstOrDefault(c => c.Key.StartsWith(".AspNetCore.Antiforgery."));
+
+        if(!string.IsNullOrEmpty(antiCookie.Value) && client.BaseAddress != null)
+        {
+            _cookieContainer.Add(client.BaseAddress, new Cookie(antiCookie.Key, antiCookie.Value));
+            //Console.WriteLine($"[INFO] [HttpService] [AddAntiForgeryCookie]: Added antiforgery cookie: {antiCookie.Key}");
+        }
+
+        //foreach(var cookie in httpContext.Request.Cookies)
+        //{
+        //    Console.WriteLine($"[INFO] [HttpService] [AddAntiForgeryToken]: Cookie Key: {cookie.Key}");
+        //}
+    }
+
     public void AddAntiForgeryToken(HttpClient client)
     {
         var httpContext = _httpContextAccessor.HttpContext;
