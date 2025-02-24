@@ -59,8 +59,10 @@ public static class EndpointsMap
                 fileUploadItem.CameraPositionName = cameraPositionName!;
             }
 
-            Console.WriteLine(fileUploadItem);
-            
+            await imageService.SaveImageAsync(fileUploadItem);
+
+            //Console.WriteLine(fileUploadItem);
+
             return Results.Ok();
         });
 

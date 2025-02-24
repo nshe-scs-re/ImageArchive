@@ -25,10 +25,12 @@ public class ImageUploadService
     }
 
     //TODO: check the IFormFile Config to make sure that it cooperates with everything else --  I was having issues with other IFormFile. Seems to work tho
-    public async Task<string> SaveImageAsync(IFormFile file, Image image)
+    public async Task<string> SaveImageAsync(FileUploadItem item)
     {
         try
         {
+            var file = item.File;
+
             // Validate file type
             var allowedExtensions = new[] { ".jpg", ".jpeg" };
             var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
@@ -47,12 +49,14 @@ public class ImageUploadService
                 await file.CopyToAsync(fileStream);
             }
 
+            // TODO: Implement database changes
             // Update image metadata
-            image.FilePath = filePath;
-            image.UnixTime = new DateTimeOffset(image.DateTime ?? DateTime.UtcNow).ToUnixTimeSeconds();
+            //image.FilePath = filePath;
+            //image.UnixTime = new DateTimeOffset(image.DateTime ?? DateTime.UtcNow).ToUnixTimeSeconds();
 
-            _context.Images.Add(image);
-            await _context.SaveChangesAsync();
+            //_context.Images.Add(image);
+            //await _context.SaveChangesAsync();
+
             return uniqueFileName;
         }
         catch(Exception ex)
