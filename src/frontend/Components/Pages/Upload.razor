@@ -1,0 +1,247 @@
+﻿@page "/upload"
+@inject HttpService HttpService
+@inject ThemeService ThemeService
+
+<PageTitle>Upload</PageTitle>
+
+<div class="container-fluid  my-3 @GetTheme()">
+    <h3 class="text-center fw-bold py-3 h1 custom-theme-light fs-1">Upload Development Page</h3>
+
+    <!-- Current Date and Time -->
+    <section class="text-center py-3">
+        <h4>Current Date and Time</h4>
+        <p>@DateTime.Now.ToString("F")</p>
+    </section>
+
+    <!-- File Section -->
+    <section class="text-center py-3">
+        <button class="btn btn-primary" @onclick="ShowModal">Upload File(s)</button>
+    </section>
+
+    <!-- File Upload Modal -->
+    <div class="modal" tabindex="-1" style="display:@(isModalVisible ? "block" : "none")">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Upload Files</h5>
+                    <button type="button" class="btn-close" @onclick="HideModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="UploadFormContainer" class="col mx-auto">
+                        <EditForm Model="uploadModel" OnValidSubmit="HandleSubmit">
+                            <DataAnnotationsValidator/>
+                            <ValidationSummary/>
+                            <div class="row py-2">
+                                <label for="id_SiteName" class="form-label">Site Name</label>
+                                <select class="form-select" id="id_SiteName" value=@uploadModel.SiteName @onchange="OnSiteNameChanged">
+                                    <option value="">Select a site</option>
+                                    @foreach (var site in siteNames)
+                                    {
+                                        <option value="@site">@site</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="row py-2 @(string.IsNullOrEmpty(uploadModel.SiteName) ? "disabled" : "")">
+                                <label for="id_SiteNumber" class="form-label">Site Number</label>
+                                <select class="form-select" id="id_SiteNumber" @onchange="OnSiteNumberChanged" disabled="@(string.IsNullOrEmpty(uploadModel.SiteName))">
+                                    <option value="">Select a site number</option>
+                                    @if (siteNumbers != null && !string.IsNullOrEmpty(uploadModel.SiteName) && siteNumbers.ContainsKey(uploadModel.SiteName))
+
+                                    {
+                                        @foreach (var siteNumber in siteNumbers[uploadModel.SiteName]) 
+                                        { 
+                                            <option value="@siteNumber">@siteNumber</option> 
+                                        } 
+                                    } 
+                                </select> 
+                            </div>
+                            <div class="row py-2 @(uploadModel.SiteNumber == null ? "disabled" : "")">
+                                <label for="id_CameraPosition" class="form-label">Camera Position</label>
+                                <select class="form-select" id="id_CameraPosition" @onchange="OnCameraPositionChanged" disabled="@(uploadModel.SiteNumber == null)">
+                                    <option value="">Select a camera position</option>
+                                    @if (cameraPositions != null)
+                                    {
+                                        @foreach (var cameraPosition in cameraPositions)
+                                        {
+                                            <option value="@cameraPosition.Value">@cameraPosition.PositionName</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="row py-2 @(string.IsNullOrEmpty(uploadModel.CameraPositionName) ? "disabled" : "")" hidden>
+                                <label for="id_CameraPositionNumber" class="form-label">Camera Position Number</label>
+                                <input type="text" class="form-control" id="id_CameraPositionNumber" @bind="uploadModel.CameraPositionNumber" readonly />
+                            </div>
+                            <div class="row py-2">
+                                <label for="id_DateTime" class="form-label">Photo Date and Time</label>
+                                <input type="datetime-local" id="id_DateTime" @onchange="OnDateTimeChanged" class="form-control" />
+                            </div>
+                            <div class="row py-2">
+                                <label for="fileInputElement">Files:</label>
+                                <InputFile OnChange="HandleFileSelected" id="fileInputElement" multiple accept=".jpg,.jpeg" class="@(string.IsNullOrEmpty(uploadModel.CameraPositionName) ? "disabled" : "")" />
+                            </div>
+                            <button type="submit" class="btn btn-primary" disabled="@(!CanUpload)">Upload</button>
+                        </EditForm>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="HideModal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@if(errors.Count > 0)
+{
+    <h2>Error(s)</h2>
+    <ul class="text-danger">
+        @foreach (var error in errors)
+        {
+            <li>@error</li>
+        }
+    </ul>
+}
+
+@code{
+    public FileUploadItem uploadModel = new FileUploadItem();
+    private bool isModalVisible = false;
+    private int maxAllowedFiles = 5;
+    private List<string> errors = new();
+    private List<IBrowserFile> selectedFiles = new List<IBrowserFile>();
+    private bool CanUpload =>
+      !string.IsNullOrEmpty(uploadModel.SiteName)
+      && uploadModel.SiteNumber.HasValue
+      && !string.IsNullOrEmpty(uploadModel.CameraPositionName)
+      && uploadModel.CameraPositionNumber >= 0;
+    private List<string> siteNames = new();
+    private Dictionary<string, List<int>> siteNumbers = new();
+    private List<CameraPositionEntry> cameraPositions = CameraPositions.Positions.Where(p => p.SiteName == "Rockland" && p.SiteNumber == 1).ToList();
+    private Dictionary<string, List<int>> SiteNameToSiteNumbersMap = new()
+    {
+        { "Eldorado", new List<int>{ 3 }},
+        { "Sheep", new List<int>{ 0, 1, 2, 3, 4 }},
+        { "Snake", new List<int>{ 1, 2, 3 }},
+        { "Spring", new List<int>{ 3, 4 }},
+        { "Rockland", new List<int>{ 1 }}
+    };
+    private List<int> SiteNumbers = new List<int> { 1 };
+
+    protected override void OnInitialized()
+    {
+        LoadSiteData();
+    }
+
+    private void LoadSiteData()
+    {
+        siteNames = CameraPositions.Positions.Select(p => p.SiteName).Distinct().ToList();
+        siteNumbers = CameraPositions.Positions
+            .GroupBy(p => p.SiteName)
+            .ToDictionary(g => g.Key, g => g.Select(p => p.SiteNumber).Distinct().ToList());
+    }
+
+    private void OnSiteNameChanged(ChangeEventArgs e)
+    {
+        uploadModel.SiteName = e.Value?.ToString() ?? string.Empty;
+        uploadModel.SiteNumber = null;
+        uploadModel.CameraPositionName = string.Empty;
+        uploadModel.CameraPositionNumber = 0;
+        cameraPositions.Clear();
+        if (!string.IsNullOrEmpty(uploadModel.SiteName) && siteNumbers.ContainsKey(uploadModel.SiteName))
+        {
+            siteNumbers[uploadModel.SiteName] = CameraPositions.Positions
+                .Where(p => p.SiteName == uploadModel.SiteName)
+                .Select(p => p.SiteNumber)
+                .Distinct()
+                .ToList();
+        }
+    }
+
+    private void OnDateTimeChanged(ChangeEventArgs e)
+    {
+        if (DateTime.TryParse(e.Value?.ToString(), out var userDateTime))
+        {
+            uploadModel.DateTime = userDateTime;
+            uploadModel.UnixTime = new DateTimeOffset(userDateTime).ToUnixTimeSeconds();
+        }
+    }
+
+    private void OnSiteNumberChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var number))
+        {
+            uploadModel.SiteNumber = number;
+            uploadModel.CameraPositionName = string.Empty;
+            uploadModel.CameraPositionNumber = 0;
+            cameraPositions = CameraPositions.Positions
+                .Where(p => p.SiteName == uploadModel.SiteName && p.SiteNumber == uploadModel.SiteNumber)
+                .ToList();
+        }
+        else
+        {
+            uploadModel.SiteNumber = null;
+            uploadModel.CameraPositionName = string.Empty;
+            uploadModel.CameraPositionNumber = 0;
+        }
+    }
+
+    private void OnCameraPositionChanged(ChangeEventArgs e)
+    {
+        uploadModel.CameraPositionName = e.Value?.ToString() ?? string.Empty;
+        if (!string.IsNullOrEmpty(uploadModel.CameraPositionName))
+        {
+            var selectedPosition = cameraPositions.FirstOrDefault(p => p.Value.ToString() == uploadModel.CameraPositionName);
+            if (selectedPosition != null)
+            {
+                uploadModel.CameraPositionNumber = selectedPosition.Value;
+            }
+        }
+    }
+
+
+    private Task ShowModal()
+    {
+        isModalVisible = true;
+        return Task.CompletedTask;
+    }
+
+    private Task HideModal()
+    {
+        isModalVisible = false;
+        return Task.CompletedTask;
+    }
+
+    private List<string> GetCameraNumbers()
+    {
+        if (siteNumbers != null && !string.IsNullOrEmpty(uploadModel.SiteName) && siteNumbers.ContainsKey(uploadModel.SiteName) && siteNumbers[uploadModel.SiteName].Contains(uploadModel.SiteNumber.GetValueOrDefault()))
+        {
+            return siteNumbers[uploadModel.SiteName].Select(sn => sn.ToString()).ToList();
+        }
+        return new List<string>();
+    }
+
+    private void HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        uploadModel.File = e.File;
+    }
+
+    private async Task HandleSubmit()
+    {
+        await HideModal();
+
+        var response = await HttpService.PostFileAsync(uploadModel);
+
+        if (response.IsSuccessStatusCode)
+        {
+            // Update view with success message
+        }
+        else
+        {
+            errors.Add($"HTTP Response status code: {response.StatusCode.ToString()}");
+        }
+    }
+
+    private string GetTheme()
+    {
+        return ThemeService.State ? "bg-body-tertiary" : "custom-color-bg-dm-secondary";
+    }
+}
