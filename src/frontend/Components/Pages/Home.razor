@@ -366,6 +366,77 @@ else if (querySubmitted && !loading)
         await JSRuntime.InvokeVoidAsync("download", url, $"{image.UnixTime}.jpg");
     }
 
+    private async Task DownloadAllImages()
+    {
+        try
+        {
+            // Step 1: Send a request to start the archive process
+            var response = await HttpService.PostArchiveRequestAsync(archiveRequest);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.WriteLine("Failed to request archive.");
+                return;
+            }
+
+            var content = await response.Content.ReadFromJsonAsync<ArchiveRequest>();
+
+            if (content is not null)
+            {
+                Console.WriteLine(content.Status);
+                Console.WriteLine(content.Id);
+            }
+            else
+            {
+                Console.WriteLine("Invalid response received from archive request.");
+                return;
+            }
+
+            Guid jobId = content.Id;
+            Console.WriteLine($"Archive job started with ID: {jobId}");
+
+            //Step 2: Poll the status until the job is completed
+            bool isCompleted = false;
+
+            while (!isCompleted)
+            {
+                await Task.Delay(5000);// Poll every 5 seconds
+
+                var statusResponse = await HttpService.GetArchiveStatusAsync(content.Id);
+                if (statusResponse == null)
+                {
+                    Console.WriteLine("Failed to retrieve archive status.");
+                    return;
+                }
+
+                var statusRequestContent = await statusResponse.Content.ReadFromJsonAsync<ArchiveRequest>();
+
+                Console.WriteLine($"Current Archive Status: {statusRequestContent.Status}");
+
+                if (statusRequestContent.Status == ArchiveStatus.Completed)
+                {
+                    isCompleted = true;
+                }
+                else if (statusRequestContent.Status == ArchiveStatus.Failed)
+                {
+                    Console.WriteLine("Archive request failed.");
+                    return;
+                }
+            }
+
+            //Step 3: Download the archive when it's ready
+            var downloadUrl = $"/api/archive/download/{jobId}";
+            Console.WriteLine($"Downloading ZIP from: {downloadUrl}");
+
+            await JSRuntime.InvokeVoidAsync("download", downloadUrl, $"{jobId}.zip");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ERROR: {ex.Message}, {ex.Source}");
+        }
+    }
+
+
     private void UpdateImageSrc(long Id)
     {
         imageSrc = $"/api/images/{Id}";
