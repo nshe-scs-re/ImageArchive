@@ -5,21 +5,32 @@
 <PageTitle>Upload</PageTitle>
 
 <div class="container-fluid  my-3 @GetTheme()">
-    <h3 class="text-center fw-bold py-3 h1 custom-theme-light fs-1">Upload Development Page</h3>
+  <h3 class="text-center fw-bold py-3 h1 custom-theme-light fs-1">Upload Development Page</h3>
 
-    <!-- Current Date and Time -->
-    <section class="text-center py-3">
-        <h4>Current Date and Time</h4>
-        <p>@DateTime.Now.ToString("F")</p>
-    </section>
+  @if(image != null)
+  {
+  <div class="container">
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3 justify-content-center">
+      <div class="col d-flex justify-content-center">
+        <div class="card shadow-sm @GetTheme()">
+          <img src="/proxy/images/@image.Id" class="card-img-top" width="320" height="240" />
+          <div class="card-body">
+            <p class="card-text">Time: @image.DateTime</p>
+            <p class="card-text">Site Name: @image.SiteName</p>
+            <p class="card-text">Site Number: @image.SiteNumber</p>
+            <p class="card-text">Camera Position Number: @image.CameraPositionNumber</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
 
-    <!-- File Section -->
-    <section class="text-center py-3">
-        <button class="btn btn-primary" @onclick="ShowModal">Upload File(s)</button>
-    </section>
+  <section class="text-center py-3">
+    <button class="btn btn-primary" @onclick="ShowModal">Upload File(s)</button>
+  </section>
 
-    <!-- File Upload Modal -->
-    <div class="modal" tabindex="-1" style="display:@(isModalVisible ? "block" : "none")">
+  <div class="modal" tabindex="-1" style="display:@(isModalVisible ? "block" : "none")">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -125,6 +136,7 @@
         { "Rockland", new List<int>{ 1 }}
     };
     private List<int> SiteNumbers = new List<int> { 1 };
+    private Image image = null as Image;
 
     protected override void OnInitialized()
     {
@@ -232,7 +244,7 @@
 
         if (response.IsSuccessStatusCode)
         {
-            // Update view with success message
+           image = await response.Content.ReadFromJsonAsync<Image>();
         }
         else
         {
