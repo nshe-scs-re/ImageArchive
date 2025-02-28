@@ -26,12 +26,12 @@ services:
     profiles: [dev]
     # platform: linux/amd64
     image: ${DOCKER_REGISTRY-}image-archive-api
-    # pull_policy: build
+    pull_policy: build
     build:
       context: src/api
       dockerfile: Dockerfile
-      # args:
-      #   - --no-cache
+      args:
+        - --no-cache
     depends_on:
       - dev_db
     secrets:
@@ -57,12 +57,12 @@ services:
     profiles: [dev]
     # platform: linux/amd64
     image: ${DOCKER_REGISTRY-}image-archive
-    # pull_policy: build
+    pull_policy: build
     build:
       context: src/frontend
       dockerfile: Dockerfile
-      # args:
-      #   - --no-cache
+      args:
+        - --no-cache
     depends_on:
       - dev_api
     secrets:
