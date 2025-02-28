@@ -13,8 +13,6 @@ public static class EndpointsMap
     {
         builder.MapPost("/api/upload", async (HttpRequest request, ImageUploadService imageService) =>
         {
-            //Console.WriteLine($"[INFO] [api Program.cs] [/api/upload]: {nameof(request.ContentType)}: {request.ContentType}");
-            
             if(!request.HasFormContentType)
             {
                 return Results.BadRequest();
@@ -59,11 +57,9 @@ public static class EndpointsMap
                 fileUploadItem.CameraPositionName = cameraPositionName!;
             }
 
-            var filePath = await imageService.SaveImageAsync(fileUploadItem);
+            var image = await imageService.SaveImageAsync(fileUploadItem);
 
-            //Console.WriteLine(fileUploadItem);
-
-            return Results.Created();
+            return Results.Ok(image);
         });
 
         builder.MapGet("/api/db-verify", async (ImageDbContext dbContext) =>
