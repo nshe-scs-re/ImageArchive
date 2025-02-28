@@ -1,11 +1,9 @@
 using Auth0.AspNetCore.Authentication;
+using frontend;
 using frontend.Components;
 using frontend.Models;
 using frontend.Services;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Mvc;
-using System;
+using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,7 +15,10 @@ builder.Services.AddAuth0WebAppAuthentication(options =>
 
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
-builder.Services.AddHttpClient("HttpClient", httpClient =>
+var cookieContainer = new CookieContainer();
+builder.Services.AddSingleton(cookieContainer);
+
+builder.Services.AddHttpClient("ForwardingClient", httpClient =>
 {
     if(builder.Environment.IsDevelopment())
     {
@@ -27,6 +28,26 @@ builder.Services.AddHttpClient("HttpClient", httpClient =>
     {
         httpClient.BaseAddress = new Uri("https://10.176.244.112/");
     }
+});
+
+builder.Services.AddHttpClient("ProxyClient", httpClient =>
+{
+    if(builder.Environment.IsDevelopment())
+    {
+        httpClient.BaseAddress = new Uri("http://localhost/");
+    }
+    else
+    {
+        httpClient.BaseAddress = new Uri("https://10.176.244.111/");
+    }
+})
+.ConfigurePrimaryHttpMessageHandler(() => 
+{
+    return new HttpClientHandler 
+    {
+        UseCookies = true,
+        CookieContainer = cookieContainer
+    };
 });
 
 builder.Services.AddHttpContextAccessor();
@@ -60,67 +81,6 @@ app.UseAuthorization();
 
 app.UseAntiforgery();
 
-app.MapGet("/api/images/{id}", async (HttpService HttpService, long id) =>
-{
-    try
-    {
-        var response = await HttpService.GetImagesByIdAsync(id);
-
-        if(!response.IsSuccessStatusCode)
-        {
-            return Results.NotFound();
-        }
-
-        var stream = await response.Content.ReadAsStreamAsync();
-
-        return Results.Stream(stream, "image/jpeg");
-    }
-    catch(Exception exception)
-    {
-        Console.WriteLine($"ERROR [Program.cs] [/api/images/{id}]: Exception message: {exception.Message}");
-        return Results.Problem($"Error fetching image: {exception.Message}");
-    }
-});
-
-app.MapGet("/api/archive/download/{jobId}", async (HttpService HttpService, Guid jobId) =>
-{
-    try
-    {
-        var response = await HttpService.GetArchiveDownloadAsync(jobId);
-
-        if(!response.IsSuccessStatusCode)
-        {
-            return Results.NotFound();
-        }
-
-        var stream = await response.Content.ReadAsStreamAsync();
-
-        return Results.Stream(stream, "application/zip", $"{jobId}.zip");
-    }
-    catch(Exception exception)
-    {
-        Console.WriteLine($"ERROR [Program.cs] [/api/archive/download/{jobId}]: Exception message: {exception.Message}");
-        return Results.Problem(exception.Message);
-    }
-});
-
-app.MapGet("/Account/Login", async (HttpContext httpContext, string returnUrl = "/") =>
-{
-    var authenticationProperties = new LoginAuthenticationPropertiesBuilder()
-            .WithRedirectUri(returnUrl)
-            .Build();
-
-    await httpContext.ChallengeAsync(Auth0Constants.AuthenticationScheme, authenticationProperties);
-});
-
-app.MapGet("/Account/Logout", async (HttpContext httpContext) =>
-{
-    var authenticationProperties = new LogoutAuthenticationPropertiesBuilder()
-            .WithRedirectUri("/")
-            .Build();
-
-    await httpContext.SignOutAsync(Auth0Constants.AuthenticationScheme, authenticationProperties);
-    await httpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-});
+app.MapEndpoints();
 
 app.Run();
