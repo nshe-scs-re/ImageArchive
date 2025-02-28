@@ -137,7 +137,7 @@ else if (querySubmitted && !loading)
         {
           <div class="col">
             <div class="card shadow-sm @GetTheme()">
-              <img src="/api/images/@image.Id" class="card-img-top" width="320" height="240" />
+              <img src="/proxy/images/@image.Id" class="card-img-top" width="320" height="240" />
               <div class="card-body">
                 <p class="card-text">Time: @image.DateTime</p>
                 <p class="card-text">Site Name: @image.SiteName</p>
@@ -216,7 +216,7 @@ else if (querySubmitted && !loading)
 
     private Dictionary<string, List<int>> SiteNameToSiteNumbersMap = new()
     {
-        { "Eldorado", new List<int>{ 3 }},
+        { "Eldorado", new List<int>{ 2, 3 }},
         { "Sheep", new List<int>{ 1, 2, 3, 4 }},
         { "Snake", new List<int>{ 1, 2, 3 }},
         { "Spring", new List<int>{ 3, 4 }},
@@ -361,13 +361,13 @@ else if (querySubmitted && !loading)
     
     private async Task DownloadImage(Image image)
     {
-        var url = $"/api/images/{image.Id}";
+        var url = $"/proxy/images/{image.Id}";
 
         await JSRuntime.InvokeVoidAsync("download", url, $"{image.UnixTime}.jpg");
     }
 
     private void UpdateImageSrc(long Id)
     {
-        imageSrc = $"/api/images/{Id}";
+        imageSrc = $"/proxy/images/{Id}";
     }
 }
