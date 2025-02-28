@@ -229,6 +229,15 @@ public class CameraPositions
         new CameraPositionEntry { SiteName = "Eldorado", SiteNumber = 3, PositionName = "South West", Value = 6 },
         new CameraPositionEntry { SiteName = "Eldorado", SiteNumber = 3, PositionName = "West", Value = 7 },
         new CameraPositionEntry { SiteName = "Eldorado", SiteNumber = 3, PositionName = "North West", Value = 8 },
+
+        new CameraPositionEntry { SiteName = "Eldorado", SiteNumber = 2, PositionName = "North", Value = 1 },
+        new CameraPositionEntry { SiteName = "Eldorado", SiteNumber = 2, PositionName = "North East", Value = 2 },
+        new CameraPositionEntry { SiteName = "Eldorado", SiteNumber = 2, PositionName = "East", Value = 3 },
+        new CameraPositionEntry { SiteName = "Eldorado", SiteNumber = 2, PositionName = "South East", Value = 4 },
+        new CameraPositionEntry { SiteName = "Eldorado", SiteNumber = 2, PositionName = "South", Value = 5 },
+        new CameraPositionEntry { SiteName = "Eldorado", SiteNumber = 2, PositionName = "South West", Value = 6 },
+        new CameraPositionEntry { SiteName = "Eldorado", SiteNumber = 2, PositionName = "West", Value = 7 },
+        new CameraPositionEntry { SiteName = "Eldorado", SiteNumber = 2, PositionName = "North West", Value = 8 },
     };
 }
 
