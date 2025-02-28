@@ -274,8 +274,15 @@ else if (querySubmitted && !loading)
 
     private async Task GetImagesByPageAsync()
     {
+
         imageQuery.StartDateTime = new DateTime(DateOnly.FromDateTime(imageQuery.StartDateTime), imageQuery.StartTimeOnly);
         imageQuery.EndDateTime = new DateTime(DateOnly.FromDateTime(imageQuery.EndDateTime), imageQuery.EndTimeOnly);
+
+        archiveRequest = new ArchiveRequest
+        {
+          StartDate = imageQuery.StartDateTime,
+          EndDate = imageQuery.EndDateTime
+        };
 
         querySubmitted = true;
         loading = true;
