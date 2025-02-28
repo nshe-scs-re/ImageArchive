@@ -42,6 +42,8 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
     {
         Stopwatch stopwatch = Stopwatch.StartNew();
 
+        Console.WriteLine($"[INFO] [ArchiveManager] [CreateArchiveAsync]: Archive process started.");
+
         request.Status = ArchiveStatus.Processing;
 
         using(IServiceScope DbScope = DbScopeFactory.CreateScope())
@@ -52,8 +54,15 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
             List<Image> images = await dbContext.Images
                 .Where(i => i.DateTime >= request.StartDate && i.DateTime <= request.EndDate)
                 .ToListAsync();
-                
+
+            var baseDirectory = Path.Combine(Directory.GetCurrentDirectory(), "Archives");
+
             string zipFilePath = Path.Combine(Directory.GetCurrentDirectory(), "Archives", $"{request.Id}.zip");
+
+            if(!Directory.Exists(baseDirectory))
+            {
+                Directory.CreateDirectory(baseDirectory);
+            }
 
             request.FilePath = zipFilePath;
 
@@ -114,7 +123,7 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
 
             stopwatch.Stop();
 
-            Console.WriteLine($"DEBUG: Archiving complete. Elapsed Time: {stopwatch.Elapsed}");
+            Console.WriteLine($"[INFO] [ArchiveManager] [CreateArchiveAsync]: Archiving process complete. Elapsed Time: {stopwatch.Elapsed}");
 
             request.Status = ArchiveStatus.Completed;
         }
