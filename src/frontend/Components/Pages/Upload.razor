@@ -68,13 +68,13 @@
                             </div>
                             <div class="row py-2 @(uploadModel.SiteNumber == null ? "disabled" : "")">
                                 <label for="id_CameraPosition" class="form-label">Camera Position</label>
-                                <select class="form-select" id="id_CameraPosition" @onchange="OnCameraPositionChanged" disabled="@(uploadModel.SiteNumber == null)">
+                                <select class="form-select" id="id_CameraPosition" @onchange="OnCameraPositionNumberChanged" disabled="@(uploadModel.SiteNumber == null)">
                                     <option value="">Select a camera position</option>
                                     @if (cameraPositions != null)
                                     {
-                                        @foreach (var cameraPosition in cameraPositions)
+                                        @foreach (var kvp in cameraPositions)
                                         {
-                                            <option value="@cameraPosition.Value">@cameraPosition.PositionName</option>
+                                          <option value="@kvp.Key">@kvp.Value</option>
                                         }
                                     }
                                 </select>
@@ -124,48 +124,27 @@
       && uploadModel.SiteNumber.HasValue
       && !string.IsNullOrEmpty(uploadModel.CameraPositionName)
       && uploadModel.CameraPositionNumber >= 0;
-    private List<string> siteNames = new();
-    private Dictionary<string, List<int>> siteNumbers = new();
-    private List<CameraPositionEntry> cameraPositions = CameraPositions.Positions.Where(p => p.SiteName == "Rockland" && p.SiteNumber == 1).ToList();
-    private Dictionary<string, List<int>> SiteNameToSiteNumbersMap = new()
-    {
-        { "Eldorado", new List<int>{ 3 }},
-        { "Sheep", new List<int>{ 0, 1, 2, 3, 4 }},
-        { "Snake", new List<int>{ 1, 2, 3 }},
-        { "Spring", new List<int>{ 3, 4 }},
-        { "Rockland", new List<int>{ 1 }}
-    };
-    private List<int> SiteNumbers = new List<int> { 1 };
+    private List<string> siteNames = CameraPositionMap.GetSiteNames();
+    private Dictionary<string, List<int>> siteNumbers = CameraPositionMap.GetAllSiteNumbers();
+    private Dictionary<int, string> cameraPositions = new();
     private Image image = null as Image;
 
-    protected override void OnInitialized()
-    {
-        LoadSiteData();
-    }
+    protected override void OnInitialized(){}
 
-    private void LoadSiteData()
+    private void ResetCameraPosition()
     {
-        siteNames = CameraPositions.Positions.Select(p => p.SiteName).Distinct().ToList();
-        siteNumbers = CameraPositions.Positions
-            .GroupBy(p => p.SiteName)
-            .ToDictionary(g => g.Key, g => g.Select(p => p.SiteNumber).Distinct().ToList());
+        uploadModel.CameraPositionName = string.Empty;
+        uploadModel.CameraPositionNumber = 0;
     }
 
     private void OnSiteNameChanged(ChangeEventArgs e)
     {
         uploadModel.SiteName = e.Value?.ToString() ?? string.Empty;
         uploadModel.SiteNumber = null;
-        uploadModel.CameraPositionName = string.Empty;
-        uploadModel.CameraPositionNumber = 0;
+        ResetCameraPosition();
         cameraPositions.Clear();
-        if (!string.IsNullOrEmpty(uploadModel.SiteName) && siteNumbers.ContainsKey(uploadModel.SiteName))
-        {
-            siteNumbers[uploadModel.SiteName] = CameraPositions.Positions
-                .Where(p => p.SiteName == uploadModel.SiteName)
-                .Select(p => p.SiteNumber)
-                .Distinct()
-                .ToList();
-        }
+
+        siteNumbers[uploadModel.SiteName] = CameraPositionMap.GetSubSiteNumbers(uploadModel.SiteName);
     }
 
     private void OnDateTimeChanged(ChangeEventArgs e)
@@ -182,33 +161,29 @@
         if (int.TryParse(e.Value?.ToString(), out var number))
         {
             uploadModel.SiteNumber = number;
-            uploadModel.CameraPositionName = string.Empty;
-            uploadModel.CameraPositionNumber = 0;
-            cameraPositions = CameraPositions.Positions
-                .Where(p => p.SiteName == uploadModel.SiteName && p.SiteNumber == uploadModel.SiteNumber)
-                .ToList();
+            ResetCameraPosition();
+            cameraPositions = CameraPositionMap.GetCameraPositions(uploadModel.SiteName, number);
         }
         else
         {
             uploadModel.SiteNumber = null;
-            uploadModel.CameraPositionName = string.Empty;
-            uploadModel.CameraPositionNumber = 0;
+            ResetCameraPosition();
         }
     }
 
-    private void OnCameraPositionChanged(ChangeEventArgs e)
+    private void OnCameraPositionNumberChanged(ChangeEventArgs e)
     {
-        uploadModel.CameraPositionName = e.Value?.ToString() ?? string.Empty;
-        if (!string.IsNullOrEmpty(uploadModel.CameraPositionName))
+        if (int.TryParse(e.Value?.ToString(), out var positionNumber) && cameraPositions.TryGetValue(positionNumber, out var positionName))
         {
-            var selectedPosition = cameraPositions.FirstOrDefault(p => p.Value.ToString() == uploadModel.CameraPositionName);
-            if (selectedPosition != null)
-            {
-                uploadModel.CameraPositionNumber = selectedPosition.Value;
-            }
+            uploadModel.CameraPositionNumber = positionNumber;
+            uploadModel.CameraPositionName = positionName;
+        }
+        else
+        {
+            uploadModel.CameraPositionNumber = 0;
+            uploadModel.CameraPositionName = string.Empty;
         }
     }
-
 
     private Task ShowModal()
     {
