@@ -7,7 +7,6 @@ namespace api.Models;
 /// </summary>
 public class Image
 {
-    [Key]
     public long Id { get; set; }
     public string? FilePath { get; set; }
     public long? UnixTime { get; set; }
