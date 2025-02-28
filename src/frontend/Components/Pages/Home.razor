@@ -185,6 +185,14 @@ else if (querySubmitted && !loading)
       </li>
     </ul>
   </div>
+
+  //if block wrapped around this
+    <!-- Download All Button -->
+    <div class="text-center mt-3">
+        <button type="button" class="btn btn-primary" @onclick="DownloadAllImages">
+            <i class="bi bi-download"></i> Download All
+        </button>
+    </div>
 }
 
 <div class="modal fade" id="view-image-modal" tabindex="-1">
@@ -211,6 +219,8 @@ else if (querySubmitted && !loading)
     private int totalImages = 0;
     private int totalPages = 0;
     private string imageSrc = string.Empty;
+
+    private ArchiveRequest archiveRequest = new ArchiveRequest();
 
     List<CameraPositionEntry> cameraPositions = CameraPositions.Positions.Where(p => p.SiteName == "Rockland" && p.SiteNumber == 1).ToList();
 
@@ -365,7 +375,7 @@ else if (querySubmitted && !loading)
             throw;
         }
     }
-    
+
     private async Task DownloadImage(Image image)
     {
         var url = $"/api/images/{image.Id}";
