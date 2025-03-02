@@ -175,6 +175,12 @@ else if (querySubmitted && !loading)
       </li>
     </ul>
   </div>
+
+  <div class="text-center mt-3">
+    <button type="button" class="btn btn-primary" @onclick="DownloadAllImages">
+      <i class="bi bi-download"></i> Download All
+    </button>
+  </div>
 }
 
 <div class="modal fade" id="view-image-modal" tabindex="-1">
@@ -200,11 +206,10 @@ else if (querySubmitted && !loading)
     private int totalImages = 0;
     private int totalPages = 0;
     private string imageSrc = string.Empty;
-
+    private ArchiveRequest archiveRequest = new ArchiveRequest();
     private ImageQuery imageQuery = new();
     private Dictionary<string, List<int>> siteNumbers = CameraPositionMap.GetAllSiteNumbers();
     private Dictionary<int, string> cameraPositions = new();
-
 
     private string? SiteName
     {
@@ -261,8 +266,15 @@ else if (querySubmitted && !loading)
 
     private async Task GetImagesByPageAsync()
     {
+
         imageQuery.StartDateTime = new DateTime(DateOnly.FromDateTime(imageQuery.StartDateTime), imageQuery.StartTimeOnly);
         imageQuery.EndDateTime = new DateTime(DateOnly.FromDateTime(imageQuery.EndDateTime), imageQuery.EndTimeOnly);
+
+        archiveRequest = new ArchiveRequest
+        {
+          StartDate = imageQuery.StartDateTime,
+          EndDate = imageQuery.EndDateTime
+        };
 
         querySubmitted = true;
         loading = true;
@@ -345,12 +357,82 @@ else if (querySubmitted && !loading)
             throw;
         }
     }
-    
+
     private async Task DownloadImage(Image image)
     {
         var url = $"/proxy/images/{image.Id}";
 
         await JSRuntime.InvokeVoidAsync("download", url, $"{image.UnixTime}.jpg");
+    }
+
+    private async Task DownloadAllImages()
+    {
+        try
+        {
+            // Step 1: Send a request to start the archive process
+            var response = await HttpService.PostArchiveRequestAsync(archiveRequest);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.WriteLine("Failed to request archive.");
+                return;
+            }
+
+            var content = await response.Content.ReadFromJsonAsync<ArchiveRequest>();
+
+            if (content is not null)
+            {
+                Console.WriteLine(content.Status);
+                Console.WriteLine(content.Id);
+            }
+            else
+            {
+                Console.WriteLine("Invalid response received from archive request.");
+                return;
+            }
+
+            Guid jobId = content.Id;
+            Console.WriteLine($"Archive job started with ID: {jobId}");
+
+            //Step 2: Poll the status until the job is completed
+            bool isCompleted = false;
+
+            while (!isCompleted)
+            {
+                await Task.Delay(5000);// Poll every 5 seconds
+
+                var statusResponse = await HttpService.GetArchiveStatusAsync(content.Id);
+                if (statusResponse == null)
+                {
+                    Console.WriteLine("Failed to retrieve archive status.");
+                    return;
+                }
+
+                var statusRequestContent = await statusResponse.Content.ReadFromJsonAsync<ArchiveRequest>();
+
+                Console.WriteLine($"Current Archive Status: {statusRequestContent.Status}");
+
+                if (statusRequestContent.Status == ArchiveStatus.Completed)
+                {
+                    isCompleted = true;
+                }
+                else if (statusRequestContent.Status == ArchiveStatus.Failed)
+                {
+                    Console.WriteLine("Archive request failed.");
+                    return;
+                }
+            }
+
+            //Step 3: Download the archive when it's ready
+            var downloadUrl = $"/proxy/archive/download/{jobId}";
+            Console.WriteLine($"Downloading ZIP from: {downloadUrl}");
+
+            await JSRuntime.InvokeVoidAsync("download", downloadUrl, $"{jobId}.zip");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ERROR: {ex.Message}, {ex.Source}");
+        }
     }
 
     private void UpdateImageSrc(long Id)
