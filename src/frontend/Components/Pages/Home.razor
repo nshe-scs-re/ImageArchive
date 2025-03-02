@@ -424,7 +424,7 @@ else if (querySubmitted && !loading)
             }
 
             //Step 3: Download the archive when it's ready
-            var downloadUrl = $"/api/archive/download/{jobId}";
+            var downloadUrl = $"/proxy/archive/download/{jobId}";
             Console.WriteLine($"Downloading ZIP from: {downloadUrl}");
 
             await JSRuntime.InvokeVoidAsync("download", downloadUrl, $"{jobId}.zip");
