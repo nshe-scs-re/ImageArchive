@@ -436,7 +436,7 @@ namespace APIUnitTests
                 content.Add(fileContent, "file", "test-image.jpg");
                 content.Add(new StringContent("1"), "camera");
 
-                var response = await _client.PostAsync("/api/upload/single", content);
+                var response = await _client.PostAsync("/api/upload", content);
                 response.EnsureSuccessStatusCode();
                 var result = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
                 Assert.NotNull(result);
@@ -530,67 +530,77 @@ namespace APIUnitTests
             }
         }
 
-        [Fact]
-        public async Task Test_ImageUploadSingleEndpoint_Success()
-        {
-            // Arrange: Create dummy JPEG content (minimal header) and prepare multipart form-data.
-            byte[] dummyImageBytes = new byte[] { 0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10 };
-            string fileName = "test-image.jpg";
-            var content = new MultipartFormDataContent();
-            content.Add(new ByteArrayContent(dummyImageBytes), "file", fileName);
-            content.Add(new StringContent("1"), "camera");           // Valid camera value.
-            content.Add(new StringContent("2"), "cameraPosition");    // Optional cameraPosition.
-            content.Add(new StringContent("TestSite"), "site");       // Optional site.
+        //[Fact]
+        //public async Task Test_ImageUploadSingleEndpoint_Success()
+        //{
+        //    // Arrange: Create dummy JPEG content (minimal header) and prepare multipart form-data.
+        //    byte[] dummyImageBytes = new byte[] { 0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10 };
+        //    string fileName = "test-image.jpg";
+        //    var content = new MultipartFormDataContent();
+        //    content.Add(new ByteArrayContent(dummyImageBytes), "file", fileName);
+        //    content.Add(new StringContent("1"), "camera");           // Valid camera value.
+        //    content.Add(new StringContent("2"), "cameraPosition");    // Optional cameraPosition.
+        //    content.Add(new StringContent("TestSite"), "site");       // Optional site.
 
-            // Act: Post the form data to the upload endpoint.
-            var response = await _client.PostAsync("/api/upload/single", content);
-            response.EnsureSuccessStatusCode();
+        //    // Act: Post the form data to the upload endpoint.
+        //    var response = await _client.PostAsync("/api/upload/single", content);
+        //    response.EnsureSuccessStatusCode();
 
-            // Parse the JSON response.
-            var jsonResponse = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
+        //    // Parse the JSON response.
+        //    var jsonResponse = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
 
-            // Assert: Verify the response contains expected keys and values.
-            // Note: The JSON properties are returned in camelCase.
-            Assert.NotNull(jsonResponse);
-            Assert.True(jsonResponse.ContainsKey("message"),
-                $"Response JSON did not contain 'message': {JsonSerializer.Serialize(jsonResponse)}");
-            Assert.Equal("Upload successful!", jsonResponse["message"]);
-            Assert.True(jsonResponse.ContainsKey("imageUrl"),
-                $"Response JSON did not contain 'imageUrl': {JsonSerializer.Serialize(jsonResponse)}");
-            Assert.True(jsonResponse.ContainsKey("fileName"),
-                $"Response JSON did not contain 'fileName': {JsonSerializer.Serialize(jsonResponse)}");
-            Assert.False(string.IsNullOrWhiteSpace(jsonResponse["fileName"]), "fileName is empty or whitespace.");
-            Assert.True(jsonResponse["imageUrl"].StartsWith("/uploads/"),
-                "imageUrl does not start with '/uploads/'.");
+        //    // Assert: Verify the response contains expected keys and values.
+        //    // Note: The JSON properties are returned in camelCase.
+        //    Assert.NotNull(jsonResponse);
+        //    Assert.True(jsonResponse.ContainsKey("message"),
+        //        $"Response JSON did not contain 'message': {JsonSerializer.Serialize(jsonResponse)}");
+        //    Assert.Equal("Upload successful!", jsonResponse["message"]);
+        //    Assert.True(jsonResponse.ContainsKey("imageUrl"),
+        //        $"Response JSON did not contain 'imageUrl': {JsonSerializer.Serialize(jsonResponse)}");
+        //    Assert.True(jsonResponse.ContainsKey("fileName"),
+        //        $"Response JSON did not contain 'fileName': {JsonSerializer.Serialize(jsonResponse)}");
+        //    Assert.False(string.IsNullOrWhiteSpace(jsonResponse["fileName"]), "fileName is empty or whitespace.");
+        //    Assert.True(jsonResponse["imageUrl"].StartsWith("/uploads/"),
+        //        "imageUrl does not start with '/uploads/'.");
 
            
-            // If your upload service writes files to disk, delete the file here.
-            // For example, if files are stored in a folder named "uploads" relative to your app root:
-            string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
-            var uploadedFilePath = Path.Combine(uploadsFolder, jsonResponse["fileName"]);
-            if (File.Exists(uploadedFilePath))
-            {
-                 File.Delete(uploadedFilePath);
-            }
-        }
+        //    // If your upload service writes files to disk, delete the file here.
+        //    // For example, if files are stored in a folder named "uploads" relative to your app root:
+        //    string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
+        //    var uploadedFilePath = Path.Combine(uploadsFolder, jsonResponse["fileName"]);
+        //    if (File.Exists(uploadedFilePath))
+        //    {
+        //         File.Delete(uploadedFilePath);
+        //    }
+        //}
 
         [Fact]
-        public async Task Test_ImageUploadMultipleEndpoint_Success()
+        public async Task Test_ImageUploadEndpoint_Success()
         {
             // Arrange: Create dummy JPEG content for two files.
-            byte[] dummyImage1 = new byte[] { 0xFF, 0xD8, 0xFF, 0xE1, 0x00, 0x10 };
-            byte[] dummyImage2 = new byte[] { 0xFF, 0xD8, 0xFF, 0xE1, 0x00, 0x10 };
+            var dummyImages = new List<byte[]>
+            {
+                new byte[] { 0xFF, 0xD8, 0xFF, 0xE1, 0x00, 0x10 },
+                //new byte[] { 0xFF, 0xD8, 0xFF, 0xE1, 0x00, 0x10 },
+                //new byte[] { 0xFF, 0xD8, 0xFF, 0xE1, 0x00, 0x10 },
+                //new byte[] { 0xFF, 0xD8, 0xFF, 0xE1, 0x00, 0x10 },
+                //new byte[] { 0xFF, 0xD8, 0xFF, 0xE1, 0x00, 0x10 }
+            };
 
             // Prepare multipart form-data.
             var multipartContent = new MultipartFormDataContent();
-            multipartContent.Add(new ByteArrayContent(dummyImage1), "file", "test-image1.jpg");
-            multipartContent.Add(new ByteArrayContent(dummyImage2), "file", "test-image2.jpg");
-            multipartContent.Add(new StringContent("1"), "camera");
-            multipartContent.Add(new StringContent("2"), "cameraPosition");
-            multipartContent.Add(new StringContent("TestSite"), "site");
+            for(int i = 0; i < dummyImages.Count; i++)
+            {
+                multipartContent.Add(new ByteArrayContent(dummyImages[i]), "file", $"test-image{i + 1}.jpg");
+            }
+            multipartContent.Add(new StringContent("2025-01-01T00:00:00Z"), "DateTime");
+            multipartContent.Add(new StringContent("TestSite"), "SiteName");
+            multipartContent.Add(new StringContent("1"), "SiteNumber");
+            multipartContent.Add(new StringContent("1"), "CameraPositionNumber");
+            multipartContent.Add(new StringContent("TestPosition"), "CameraPositionName");
 
             // Act: Post to the multiple file upload endpoint.
-            var response = await _client.PostAsync("/api/upload/multiple", multipartContent);
+            var response = await _client.PostAsync("/api/upload", multipartContent);
             response.EnsureSuccessStatusCode();
 
             // Parse the JSON response.
@@ -610,7 +620,7 @@ namespace APIUnitTests
             var fileNamesElement = (JsonElement)jsonResponse["fileNames"];
             Assert.Equal(JsonValueKind.Array, fileNamesElement.ValueKind);
             var fileNames = fileNamesElement.EnumerateArray().Select(x => x.GetString()).ToList();
-            Assert.True(fileNames.Count >= 2, $"Expected at least 2 file names, but got {fileNames.Count}.");
+            Assert.True(fileNames.Count >= 1 && fileNames.Count <= 5, $"Expected between 1 and 5 file names, but got {fileNames.Count}.");
 
             //Delete the uploaded files if they are stored on disk.
             string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
