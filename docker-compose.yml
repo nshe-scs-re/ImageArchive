@@ -23,7 +23,7 @@ services:
     container_name: dev_api
     profiles: [dev]
     image: ${DOCKER_REGISTRY-}image-archive-api
-    # pull_policy: build
+    pull_policy: build
     build:
       context: src/api
       dockerfile: Dockerfile
@@ -49,7 +49,7 @@ services:
     container_name: dev_frontend
     profiles: [dev]
     image: ${DOCKER_REGISTRY-}image-archive
-    # pull_policy: build
+    pull_policy: build
     build:
       context: src/frontend
       dockerfile: Dockerfile
@@ -71,7 +71,7 @@ services:
     profiles: [prod]
     network_mode: host
     image: ${DOCKER_REGISTRY-}image-archive-api
-    # pull_policy: build
+    pull_policy: build
     build:
       context: src/api
       dockerfile: Dockerfile
@@ -84,7 +84,7 @@ services:
     profiles: [prod]
     network_mode: host
     image: ${DOCKER_REGISTRY-}image-archive
-    # pull_policy: build
+    pull_policy: build
     build:
       context: src/frontend
       dockerfile: Dockerfile
