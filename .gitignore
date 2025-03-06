@@ -370,3 +370,5 @@ Archives/
 appsettings.Production.json
 appsettings.Development.json
 *.env
+.DS_Store/
+.history/
