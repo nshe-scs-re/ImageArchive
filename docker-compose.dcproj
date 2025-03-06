@@ -4,11 +4,11 @@
     <ProjectVersion>2.1</ProjectVersion>
     <ProjectGuid>cbec8347-1728-48bb-bca3-8313368b881e</ProjectGuid>
     <DockerTargetOS>Linux</DockerTargetOS>
-	<DockerDevelopmentMode>Regular</DockerDevelopmentMode>
-	<DockerComposeBuildArguments>--no-cache</DockerComposeBuildArguments>
-	<DockerComposeUpArguments>--remove-orphans</DockerComposeUpArguments>
     <DockerPublishLocally>False</DockerPublishLocally>
-	<DependencyAwareStart>True</DependencyAwareStart>
+    <DependencyAwareStart>True</DependencyAwareStart>
+    <DockerDevelopmentMode>Regular</DockerDevelopmentMode>
+    <DockerComposeBuildArguments>--no-cache --pull</DockerComposeBuildArguments>
+    <DockerComposeUpArguments>--remove-orphans</DockerComposeUpArguments>
   </PropertyGroup>
   <ItemGroup>
     <None Include=".env" />
