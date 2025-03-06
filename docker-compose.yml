@@ -42,6 +42,7 @@ services:
       - "127.0.0.1:8080:8080"
     volumes:
       - ${USERPROFILE}/source/images:/app/images
+      - ${USERPROFILE}/source/archives:/app/archives
       - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
       - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
 
