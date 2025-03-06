@@ -1,0 +1,209 @@
+﻿@page "/privacy"
+@using System
+@using System.Collections.Generic
+@using System.Text.RegularExpressions
+@code {
+    private string Title => "Privacy Policy for Research Image Archive";
+    private string ContactEmail => "support@researcharchive.com";
+
+    // List of sections in the Privacy Policy
+    private List<string> Sections = new List<string>
+    {
+        "Introduction",
+        "Scope of Policy",
+        "Data Collection",
+        "Types of Data Collected",
+        "Purpose of Data Collection",
+        "Data Usage in Research and Analysis",
+        "User Consent",
+        "Data Security and Storage",
+        "Data Retention",
+        "Data Sharing and Disclosure",
+        "User Rights and Data Control",
+        "Cookies and Tracking Technologies",
+        "Third-Party Integrations",
+        "External Links",
+        "Data Access and Account Authentication",
+        "Children’s Privacy",
+        "Changes to Privacy Policy",
+        "Contact Information"
+    };
+
+    // Detailed information for each section
+    private Dictionary<string, string> PolicyDetails;
+
+    public Privacy()
+    {
+        PolicyDetails = new Dictionary<string, string>
+    {
+        { "Introduction", "Welcome to the Research Image Archive, a platform committed to advancing research through the secure and efficient management of scientific data. Our team recognizes the importance of protecting your privacy and ensuring transparency in all data practices. This Privacy Policy outlines how we handle data collection, usage, storage, and sharing for all users accessing the platform, regardless of device or location. By accessing and utilizing our services, you confirm that you have read, understood, and agree to the practices outlined in this policy. We reserve the right to update this Privacy Policy as necessary to reflect changes in legal requirements or operational practices, and we will notify users of any significant modifications." },
+
+        { "Scope of Policy", "This Privacy Policy applies comprehensively to all aspects of data collection, usage, sharing, and storage within the Research Image Archive. It governs the actions of all individuals interacting with our platform, including but not limited to account holders, guest users, and affiliates engaged in collaborative research. This policy outlines our commitment to uphold all applicable data privacy laws, such as the General Data Protection Regulation (GDPR), the California Consumer Privacy Act (CCPA), and other pertinent regional and international laws. The scope of this policy encompasses personal data, metadata, image data, and any other data generated or processed within our platform. Compliance with this policy is mandatory, and by accessing our services, users agree to adhere to the terms set forth." },
+
+        { "Data Collection", "To deliver a tailored, user-centric experience, we collect specific categories of data that enable us to provide core functionalities and support research activities effectively. Data collection methods include user account registration, interactions with the platform (e.g., search queries and filter selections), and any metadata or images that users voluntarily upload to the platform. We also gather data that assists in enhancing user experience, such as navigation history and interaction logs, which allow us to analyze and improve our services continuously. This data collection process is designed to be minimally invasive, and users have control over their data preferences. We strictly adhere to lawful data collection practices, obtaining data only when necessary and with user consent." },
+
+        { "Types of Data Collected", "The types of data we collect fall under three primary categories: Personal Data, Research Data, and Behavioral Data. Personal Data includes details necessary to identify and contact users, such as names, email addresses, and secure login credentials. Research Data encompasses metadata associated with images, annotations, and tags that users add to enhance research capabilities. Behavioral Data consists of non-identifiable information related to user interactions on the platform, such as search histories, preference settings, and interaction frequency. All data is gathered to improve functionality, security, and user experience. We implement strict security protocols to protect each data category, ensuring that user privacy is preserved throughout the data lifecycle." },
+
+        { "Purpose of Data Collection", "The primary purpose of data collection is to empower researchers, support scientific inquiry, and provide an optimized user experience on our platform. Data helps us to deliver accurate and efficient search results, offer personalized recommendations, and streamline image retrieval processes for research purposes. Additionally, data is used to maintain the security and integrity of user accounts and to identify areas for service improvement. By collecting relevant data, we can adapt to user needs, refine system performance, and enhance our platform’s collaborative research features. We are transparent about data collection practices and ensure that data is only used for the purposes stated, aligning with legal and ethical guidelines." },
+
+        { "Data Usage in Research and Analysis", "Data collected within the Research Image Archive is utilized for multiple purposes, primarily to support research, data analysis, and academic projects. Collected data enables researchers to explore vast environmental datasets and supports interdisciplinary studies that benefit from rich metadata and tagging systems. We employ role-based access controls to ensure that only authorized individuals can view or modify research data, safeguarding sensitive information. Additionally, aggregate data derived from user interactions may be analyzed to improve platform functionality, develop new features, and generate insights that enhance the research community’s experience. This data usage is carefully monitored, ensuring that privacy and security standards are upheld rigorously." },
+
+        { "User Consent", "By accessing and utilizing the services of the Research Image Archive, users acknowledge and consent to the data collection and processing practices described in this Privacy Policy. Consent is obtained at the time of account creation and may be reaffirmed periodically through updates or new features. Users have the right to withdraw consent at any time by contacting us; however, revoking consent may limit access to certain features and functionalities. Consent management tools are provided within the user interface to allow easy adjustments to data preferences. We value user autonomy and are committed to providing a transparent approach to consent, ensuring that users remain informed of their rights and options." },
+
+        { "Data Security and Storage", "The Research Image Archive takes robust measures to secure and protect all user data. Our data security protocols include encryption of data both in transit and at rest, multi-factor authentication, and strict access controls based on user roles. Data is stored on secure servers compliant with industry standards for data protection. Regular security audits are conducted to identify and mitigate potential vulnerabilities, and all access to sensitive data is restricted to authorized personnel only. We adhere to the highest security standards to safeguard user data, although users are also encouraged to practice caution when sharing or uploading sensitive information to ensure additional protection." },
+
+        { "Data Retention", "We retain data only for as long as it is necessary to support research activities, enhance user experience, and comply with legal obligations. Personal data is stored for the duration of the user’s engagement with the Research Image Archive and may be deleted upon account termination. Research data and metadata are retained to support ongoing projects or as required by collaborative research agreements. Users have the right to request the deletion of their data in accordance with applicable laws, and we follow secure deletion procedures to ensure complete removal from our systems. Our data retention policy is designed to balance the need for research continuity with respect for user privacy." },
+
+        { "Data Sharing and Disclosure", "We are committed to maintaining the confidentiality of user data and do not share personal information with third parties without explicit consent, unless required by law. Data may be shared within research groups or collaborations as part of project requirements, provided that appropriate safeguards are in place to protect user privacy. In compliance with data protection regulations, we ensure that any data-sharing arrangements include legally binding agreements that outline the responsibilities of each party. If compelled by legal authorities, we may disclose specific data as required by law, but will make every effort to notify affected users in such cases, where permissible by law." },
+
+        { "User Rights and Data Control", "Users of the Research Image Archive have specific rights regarding their personal data, including the right to access, modify, delete, and restrict the processing of their data. Additionally, users can request data portability, allowing them to receive a copy of their data in a structured format for use elsewhere. Requests related to data rights can be directed to " + ContactEmail + " and will be addressed in a timely manner. We are committed to upholding user rights and have implemented tools within the platform to allow users to manage their privacy settings independently. We strive to be transparent and responsive in addressing all data rights requests." },
+
+        { "Cookies and Tracking Technologies", "The Research Image Archive uses cookies and similar tracking technologies to enhance user experience, save preferences, and analyze site usage. Cookies help us understand user interactions and are utilized to improve navigation, security, and personalized content. Users have the option to adjust cookie settings within their browser, though some features may be affected if cookies are disabled. We respect user preferences regarding cookies and provide clear options for managing tracking technologies. By using our platform, users consent to the use of cookies as outlined in this policy, in compliance with applicable cookie laws and regulations." },
+
+        { "Third-Party Integrations", "Our platform integrates with third-party providers such as Google, Microsoft, and UNR’s NetID authentication services to facilitate secure account access. These integrations are essential for user authentication, allowing users to access their accounts using preferred services. Data processed by these third-party services follows their respective privacy policies, which we encourage users to review. The Research Image Archive is not responsible for the data handling practices of these providers. We ensure that all integrations comply with privacy standards and do not transfer unnecessary user data to third parties." },
+
+        { "External Links", "Our site may contain links to third-party websites, including external research resources, academic institutions, and partner organizations. The Research Image Archive is not responsible for the privacy practices of these external sites, and users are encouraged to review each site’s privacy policy before interacting with them. We strive to partner with reputable sites and ensure that our links are secure; however, we cannot control the content or privacy practices of external sites. Users access these sites at their own discretion, and we advise caution when sharing information on third-party platforms." },
+
+        { "Data Access and Account Authentication", "To protect user accounts and ensure data security, the Research Image Archive employs advanced authentication methods, including multi-factor authentication and secure password protocols. Role-based access control is in place to restrict sensitive data access to authorized users only. Users are responsible for safeguarding their login credentials and must report any suspected unauthorized access to " + ContactEmail + " immediately. Our authentication systems are regularly tested and updated to prevent security breaches and unauthorized data access. We prioritize user security and continually assess our protocols to uphold the highest standards of data protection." },
+
+        { "Children’s Privacy", "The Research Image Archive is designed for use by research professionals, and it is not intended for individuals under the age of 13. We do not knowingly collect or store data from children under 13, in compliance with the Children’s Online Privacy Protection Act (COPPA) and other applicable regulations. If we become aware that we have inadvertently collected data from a minor, we will take immediate steps to delete the data from our systems. Parents and guardians are encouraged to monitor their children’s online activities and may contact us directly with any concerns regarding children’s data." },
+
+        { "Changes to Privacy Policy", "The Research Image Archive reserves the right to modify this Privacy Policy as needed to reflect changes in our data practices or legal obligations. Users will be notified of major changes via email or an in-app notification, and updated policies will be posted on our site. Continued use of our services following a policy update indicates acceptance of the revised terms. We encourage users to review this policy periodically to stay informed about how their data is protected. Any modifications will take effect on the date specified in the updated policy." },
+
+        { "Contact Information", "For any questions, concerns, or requests related to this Privacy Policy, users are encouraged to contact us at " + ContactEmail + ". Our team is dedicated to addressing inquiries promptly and ensuring that user privacy concerns are fully resolved. The Research Image Archive values transparency and accountability, and we are here to support users in understanding and exercising their privacy rights. Whether you have questions about data collection, security practices, or user rights, please do not hesitate to reach out to our support team." }
+    };
+    }
+
+
+    private string searchQuery = "";
+    private List<string> searchResults = new List<string>();
+
+    // Search function to locate sections containing the search term
+    private void SearchPolicy()
+    {
+        searchResults.Clear();
+        if (!string.IsNullOrWhiteSpace(searchQuery))
+        {
+            foreach (var section in Sections)
+            {
+                if (PolicyDetails.ContainsKey(section))
+                {
+                    string content = PolicyDetails[section];
+                    if (content.IndexOf(searchQuery, StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        string highlightedContent = HighlightSearchTerms(content, searchQuery);
+                        searchResults.Add($"<b>{section}:</b><br>{highlightedContent}");
+                    }
+                }
+            }
+        }
+    }
+
+    // Method to highlight search terms within the policy content
+    private string HighlightSearchTerms(string content, string searchTerm)
+    {
+        return Regex.Replace(content, $"({Regex.Escape(searchTerm)})", "<mark>$1</mark>", RegexOptions.IgnoreCase);
+    }
+
+    private int GetCurrentYear() => DateTime.Now.Year;
+}
+
+<style>
+    .privacy-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 2rem;
+        font-family: Arial, sans-serif;
+        color: #333;
+        background-color: #f4f7f8;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        line-height: 1.7;
+    }
+
+    h1, h2 {
+        color: #004080;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    h1 {
+        font-size: 2.2rem;
+        margin-bottom: 1rem;
+    }
+
+    h2 {
+        font-size: 1.6rem;
+        margin-top: 1.5rem;
+        border-bottom: 2px solid #004080;
+        padding-bottom: 0.5rem;
+    }
+
+    p {
+        font-size: 1rem;
+        margin-bottom: 1.2rem;
+        text-align: justify;
+    }
+
+    .search-box {
+        width: 100%;
+        padding: 0.5rem;
+        margin: 1rem 0;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    .search-results {
+        padding: 1rem;
+        margin-top: 1rem;
+        background-color: #e6f2ff;
+        border-radius: 4px;
+    }
+
+    .footer {
+        margin-top: 2rem;
+        text-align: center;
+        font-size: 0.9rem;
+        color: #666;
+    }
+</style>
+
+<div class="privacy-container">
+    <h1>@Title</h1>
+
+    <!-- Search Bar -->
+    <input type="text" @bind="searchQuery" placeholder="Search Privacy Policy..." class="search-box" />
+    <button @onclick="SearchPolicy">Search</button>
+
+    <!-- Display Search Results -->
+    @if (searchResults.Count > 0)
+    {
+        <div class="search-results">
+            <h3>Search Results:</h3>
+            @foreach (var result in searchResults)
+            {
+                <p>@(new MarkupString(result))</p>
+            }
+        </div>
+    }
+    else if (!string.IsNullOrWhiteSpace(searchQuery))
+    {
+        <div class="search-results">
+            <p>No results found for "<b>@searchQuery</b>".</p>
+        </div>
+    }
+
+    <!-- Display Full Policy -->
+    <div>
+        @foreach (var section in Sections)
+        {
+            <h2>@(section)</h2>
+            <p>@PolicyDetails[section]</p>
+        }
+    </div>
+
+    <!-- Footer with current year -->
+    <div class="footer">
+        <p>&copy; @(GetCurrentYear()) Research Image Archive. All rights reserved.</p>
+    </div>
+</div>

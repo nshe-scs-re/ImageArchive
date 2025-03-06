@@ -1,0 +1,234 @@
+﻿@page "/upload"
+@inject HttpService HttpService
+@inject ThemeService ThemeService
+
+<PageTitle>Upload</PageTitle>
+
+<div class="container-fluid  my-3 @GetTheme()">
+  <h3 class="text-center fw-bold py-3 h1 custom-theme-light fs-1">Upload Development Page</h3>
+
+  @if(image != null)
+  {
+  <div class="container">
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3 justify-content-center">
+      <div class="col d-flex justify-content-center">
+        <div class="card shadow-sm @GetTheme()">
+          <img src="/proxy/images/@image.Id" class="card-img-top" width="320" height="240" />
+          <div class="card-body">
+            <p class="card-text">Time: @image.DateTime</p>
+            <p class="card-text">Site Name: @image.SiteName</p>
+            <p class="card-text">Site Number: @image.SiteNumber</p>
+            <p class="card-text">Camera Position Number: @image.CameraPositionNumber</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+
+  <section class="text-center py-3">
+    <button class="btn btn-primary" @onclick="ShowModal">Upload File(s)</button>
+  </section>
+
+  <div class="modal" tabindex="-1" style="display:@(isModalVisible ? "block" : "none")">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Upload Files</h5>
+                    <button type="button" class="btn-close" @onclick="HideModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="UploadFormContainer" class="col mx-auto">
+                        <EditForm Model="uploadModel" OnValidSubmit="HandleSubmit">
+                            <DataAnnotationsValidator/>
+                            <ValidationSummary/>
+                            <div class="row py-2">
+                                <label for="id_SiteName" class="form-label">Site Name</label>
+                                <select class="form-select" id="id_SiteName" value=@uploadModel.SiteName @onchange="OnSiteNameChanged">
+                                    <option value="">Select a site</option>
+                                    @foreach (var site in siteNames)
+                                    {
+                                        <option value="@site">@site</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="row py-2 @(string.IsNullOrEmpty(uploadModel.SiteName) ? "disabled" : "")">
+                                <label for="id_SiteNumber" class="form-label">Site Number</label>
+                                <select class="form-select" id="id_SiteNumber" @onchange="OnSiteNumberChanged" disabled="@(string.IsNullOrEmpty(uploadModel.SiteName))">
+                                    <option value="">Select a site number</option>
+                                    @if (siteNumbers != null && !string.IsNullOrEmpty(uploadModel.SiteName) && siteNumbers.ContainsKey(uploadModel.SiteName))
+
+                                    {
+                                        @foreach (var siteNumber in siteNumbers[uploadModel.SiteName]) 
+                                        { 
+                                            <option value="@siteNumber">@siteNumber</option> 
+                                        } 
+                                    } 
+                                </select> 
+                            </div>
+                            <div class="row py-2 @(uploadModel.SiteNumber == null ? "disabled" : "")">
+                                <label for="id_CameraPosition" class="form-label">Camera Position</label>
+                                <select class="form-select" id="id_CameraPosition" @onchange="OnCameraPositionNumberChanged" disabled="@(uploadModel.SiteNumber == null)">
+                                    <option value="">Select a camera position</option>
+                                    @if (cameraPositions != null)
+                                    {
+                                        @foreach (var kvp in cameraPositions)
+                                        {
+                                          <option value="@kvp.Key">@kvp.Value</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="row py-2 @(string.IsNullOrEmpty(uploadModel.CameraPositionName) ? "disabled" : "")" hidden>
+                                <label for="id_CameraPositionNumber" class="form-label">Camera Position Number</label>
+                                <input type="text" class="form-control" id="id_CameraPositionNumber" @bind="uploadModel.CameraPositionNumber" readonly />
+                            </div>
+                            <div class="row py-2">
+                                <label for="id_DateTime" class="form-label">Photo Date and Time</label>
+                                <input type="datetime-local" id="id_DateTime" @onchange="OnDateTimeChanged" class="form-control" />
+                            </div>
+                            <div class="row py-2">
+                                <label for="fileInputElement">Files:</label>
+                                <InputFile OnChange="HandleFileSelected" id="fileInputElement" multiple accept=".jpg,.jpeg" class="@(string.IsNullOrEmpty(uploadModel.CameraPositionName) ? "disabled" : "")" />
+                            </div>
+                            <button type="submit" class="btn btn-primary" disabled="@(!CanUpload)">Upload</button>
+                        </EditForm>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="HideModal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@if(errors.Count > 0)
+{
+    <h2>Error(s)</h2>
+    <ul class="text-danger">
+        @foreach (var error in errors)
+        {
+            <li>@error</li>
+        }
+    </ul>
+}
+
+@code{
+    public FileUploadItem uploadModel = new FileUploadItem();
+    private bool isModalVisible = false;
+    private int maxAllowedFiles = 5;
+    private List<string> errors = new();
+    private List<IBrowserFile> selectedFiles = new List<IBrowserFile>();
+    private bool CanUpload =>
+      !string.IsNullOrEmpty(uploadModel.SiteName)
+      && uploadModel.SiteNumber.HasValue
+      && !string.IsNullOrEmpty(uploadModel.CameraPositionName)
+      && uploadModel.CameraPositionNumber >= 0;
+    private List<string> siteNames = CameraPositionMap.GetSiteNames();
+    private Dictionary<string, List<int>> siteNumbers = CameraPositionMap.GetAllSiteNumbers();
+    private Dictionary<int, string> cameraPositions = new();
+    private Image image = null as Image;
+
+    protected override void OnInitialized(){}
+
+    private void ResetCameraPosition()
+    {
+        uploadModel.CameraPositionName = string.Empty;
+        uploadModel.CameraPositionNumber = 0;
+    }
+
+    private void OnSiteNameChanged(ChangeEventArgs e)
+    {
+        uploadModel.SiteName = e.Value?.ToString() ?? string.Empty;
+        uploadModel.SiteNumber = null;
+        ResetCameraPosition();
+        cameraPositions.Clear();
+
+        siteNumbers[uploadModel.SiteName] = CameraPositionMap.GetSubSiteNumbers(uploadModel.SiteName);
+    }
+
+    private void OnDateTimeChanged(ChangeEventArgs e)
+    {
+        if (DateTime.TryParse(e.Value?.ToString(), out var userDateTime))
+        {
+            uploadModel.DateTime = userDateTime;
+            uploadModel.UnixTime = new DateTimeOffset(userDateTime).ToUnixTimeSeconds();
+        }
+    }
+
+    private void OnSiteNumberChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var number))
+        {
+            uploadModel.SiteNumber = number;
+            ResetCameraPosition();
+            cameraPositions = CameraPositionMap.GetCameraPositions(uploadModel.SiteName, number);
+        }
+        else
+        {
+            uploadModel.SiteNumber = null;
+            ResetCameraPosition();
+        }
+    }
+
+    private void OnCameraPositionNumberChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var positionNumber) && cameraPositions.TryGetValue(positionNumber, out var positionName))
+        {
+            uploadModel.CameraPositionNumber = positionNumber;
+            uploadModel.CameraPositionName = positionName;
+        }
+        else
+        {
+            uploadModel.CameraPositionNumber = 0;
+            uploadModel.CameraPositionName = string.Empty;
+        }
+    }
+
+    private Task ShowModal()
+    {
+        isModalVisible = true;
+        return Task.CompletedTask;
+    }
+
+    private Task HideModal()
+    {
+        isModalVisible = false;
+        return Task.CompletedTask;
+    }
+
+    private List<string> GetCameraNumbers()
+    {
+        if (siteNumbers != null && !string.IsNullOrEmpty(uploadModel.SiteName) && siteNumbers.ContainsKey(uploadModel.SiteName) && siteNumbers[uploadModel.SiteName].Contains(uploadModel.SiteNumber.GetValueOrDefault()))
+        {
+            return siteNumbers[uploadModel.SiteName].Select(sn => sn.ToString()).ToList();
+        }
+        return new List<string>();
+    }
+
+    private void HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        uploadModel.File = e.File;
+    }
+
+    private async Task HandleSubmit()
+    {
+        await HideModal();
+
+        var response = await HttpService.PostFileAsync(uploadModel);
+
+        if (response.IsSuccessStatusCode)
+        {
+           image = await response.Content.ReadFromJsonAsync<Image>();
+        }
+        else
+        {
+            errors.Add($"HTTP Response status code: {response.StatusCode.ToString()}");
+        }
+    }
+
+    private string GetTheme()
+    {
+        return ThemeService.State ? "bg-body-tertiary" : "custom-color-bg-dm-secondary";
+    }
+}
