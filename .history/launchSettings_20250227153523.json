@@ -1,0 +1,23 @@
+{
+  "profiles": {
+    "Docker Compose (Development)": {
+      "commandName": "DockerCompose",
+      "commandVersion": "1.0",
+      "composeLaunchAction": "LaunchBrowser",
+      "composeLaunchServiceName": "dev_frontend",
+      "composeLaunchUrl": "http://localhost",
+      "hotReloadProfile": "aspnetcore",
+      "composeProfile": {
+        "includes": [
+          "dev"
+        ]
+      }
+    }
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Warning",
+      "Microsoft": "Warning"
+    }
+  }
+}

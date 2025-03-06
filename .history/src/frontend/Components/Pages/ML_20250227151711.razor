@@ -1,0 +1,225 @@
+@page "/ml"
+@using System.Globalization
+@using System.Diagnostics
+
+<h1>ML Page Test</h1>
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h2 class="text-center mb-0">Snow Prediction Tool</h2>
+        </div>
+        <div class="card-body">
+            <!-- Location Dropdown -->
+            <div class="form-group">
+                <label for="locationSelect" class="form-label">Select Location:</label>
+                <select id="locationSelect" class="form-control" @onchange="HandleLocationChange">
+                    <option value="">-- Select Location --</option>
+                    @foreach (var location in Locations)
+                    {
+                        <option value="@location">@location</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Camera Options -->
+            @if (ShowCameraOptions)
+            {
+                <div class="form-group mt-3">
+                    <label for="cameraSelect" class="form-label">Select Camera:</label>
+                    <select id="cameraSelect" class="form-control" @bind="SelectedCamera">
+                        <option value="">-- Select Camera --</option>
+                        @foreach (var camera in CameraOptions)
+                        {
+                            <option value="@camera">@camera</option>
+                        }
+                    </select>
+                </div>
+            }
+
+            <!-- Date Picker -->
+            <div class="form-group mt-3">
+                <label for="datePicker" class="form-label">Select Date:</label>
+                <input id="datePicker" type="date" class="form-control" @bind="SelectedDate" />
+            </div>
+
+            <!-- Submit Button -->
+            <button class="btn btn-primary mt-4 w-100" @onclick="SubmitSelection"
+                disabled="@(string.IsNullOrWhiteSpace(SelectedLocation))">
+                Analyze Image
+            </button>
+
+            <!-- Results Section -->
+            @if (!string.IsNullOrWhiteSpace(ImagePath))
+            {
+                <div class="mt-4">
+                    @if (ClassificationResults != null)
+                    {
+                        <div class="card">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0">Analysis Results</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>Selected Image:</h6>
+                                        <img src="@ImagePath" class="img-fluid rounded" alt="Selected image" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>Predictions:</h6>
+                                        <div class="alert @(ClassificationResults.Prediction == "Has Snow" ? "alert-info" : "alert-warning")">
+                                            <strong>Prediction:</strong> @ClassificationResults.Prediction
+                                        </div>
+                                        <div class="progress mb-3">
+                                            <div class="progress-bar bg-info" 
+                                                 role="progressbar" 
+                                                 style="width: @(ClassificationResults.SnowProbability * 100)%">
+                                                Snow: @(ClassificationResults.SnowProbability.ToString("P1"))
+                                            </div>
+                                        </div>
+                                        <div class="progress">
+                                            <div class="progress-bar bg-warning" 
+                                                 role="progressbar" 
+                                                 style="width: @(ClassificationResults.NoSnowProbability * 100)%">
+                                                No Snow: @(ClassificationResults.NoSnowProbability.ToString("P1"))
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">
+                            Analyzing image... Please wait.
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<string> Locations = new() { "Rockland", "Sheep", "Snake", "Spring" };
+    private Dictionary<string, List<string>> LocationCameras = new()
+    {
+        { "Rockland", new List<string>() },
+        { "Sheep", new List<string> { "Camera 1", "Camera 2", "Camera 3", "Camera 4" } },
+        { "Snake", new List<string> { "Camera 1", "Camera 2", "Camera 3" } },
+        { "Spring", new List<string>() }
+    };
+
+    private string SelectedLocation = string.Empty;
+    private string SelectedCamera = string.Empty;
+    private DateTime SelectedDate = DateTime.Now;
+    private bool IsValidDate = true;
+    private string ImagePath = string.Empty; // Holds the dynamically generated image path
+    private bool ShowCameraOptions = false;
+    private List<string> CameraOptions = new();
+    private ClassificationResult? ClassificationResults { get; set; }
+
+    // Handle location change and update camera options
+    private void HandleLocationChange(ChangeEventArgs e)
+    {
+        SelectedLocation = e.Value?.ToString() ?? string.Empty;
+
+        if (!string.IsNullOrEmpty(SelectedLocation) && LocationCameras.ContainsKey(SelectedLocation))
+        {
+            CameraOptions = LocationCameras[SelectedLocation];
+            ShowCameraOptions = CameraOptions.Count > 0;
+        }
+        else
+        {
+            CameraOptions = new List<string>();
+            ShowCameraOptions = false;
+        }
+    }
+
+    // Validates if the selected date is in the future
+    private void ValidateFutureDate()
+    {
+        IsValidDate = SelectedDate > DateTime.Now;
+    }
+
+    private async Task SubmitSelection()
+    {
+        // Generate the image path
+        string formattedDate = SelectedDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        ImagePath = $"/Images/{SelectedLocation}{(ShowCameraOptions ? $"/{SelectedCamera}" : string.Empty)}/{formattedDate}";
+
+        try
+        {
+            // Construct the full path to the Python script
+            string pythonScriptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, 
+                "predictor", "Local_data_for_model", "classify_image.py");
+            string modelPath = "/Users/nathanmichelotti/Desktop/College/CS 425/Senior Project/ImageArchive/src/predictor/Local_data_for_model/best_model.pth";
+
+            // Create process to run Python script
+            var processInfo = new ProcessStartInfo
+            {
+                FileName = "python3",
+                Arguments = $"\"{pythonScriptPath}\" \"{ImagePath}\" --model \"{modelPath}\"",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            using var process = Process.Start(processInfo);
+            string output = await process!.StandardOutput.ReadToEndAsync();
+            string error = await process.StandardError.ReadToEndAsync();
+            await process.WaitForExitAsync();
+
+            if (process.ExitCode == 0)
+            {
+                // Parse the output and update ClassificationResults
+                ParsePythonOutput(output);
+            }
+            else
+            {
+                Console.WriteLine($"Error running Python script: {error}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+    }
+
+    private void ParsePythonOutput(string output)
+    {
+        try
+        {
+            var lines = output.Split('\n');
+            var result = new ClassificationResult();
+
+            foreach (var line in lines)
+            {
+                if (line.StartsWith("Prediction:"))
+                    result.Prediction = line.Split(':')[1].Trim();
+                else if (line.StartsWith("Confidence:"))
+                    result.Confidence = double.Parse(line.Split(':')[1].Trim().TrimEnd('%')) / 100;
+                else if (line.StartsWith("Snow Probability:"))
+                    result.SnowProbability = double.Parse(line.Split(':')[1].Trim().TrimEnd('%')) / 100;
+                else if (line.StartsWith("No Snow Probability:"))
+                    result.NoSnowProbability = double.Parse(line.Split(':')[1].Trim().TrimEnd('%')) / 100;
+            }
+
+            ClassificationResults = result;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error parsing Python output: {ex.Message}");
+        }
+    }
+
+    private class ClassificationResult
+    {
+        public string Prediction { get; set; } = "";
+        public double Confidence { get; set; }
+        public double SnowProbability { get; set; }
+        public double NoSnowProbability { get; set; }
+    }
+}

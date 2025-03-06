@@ -1,0 +1,96 @@
+secrets:
+  image_archive_ca_cert:
+    file: /Users/nathanmichelotti/Desktop/College/CS 425/Senior Project/OneDrive_1_10-22-2024/secrets/image-archive-ca.crt
+  image_archive_api_cert:
+    file: /Users/nathanmichelotti/Desktop/College/CS 425/Senior Project/OneDrive_1_10-22-2024/secrets/image-archive-api.pfx
+  image_archive_api_cert_pw:
+    file: /Users/nathanmichelotti/Desktop/College/CS 425/Senior Project/OneDrive_1_10-22-2024/secrets/image-archive-api-cert-pw.txt
+
+volumes:
+  sqlvolume:
+
+services:
+  dev_db:
+    container_name: dev_db
+    profiles: [dev]
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    env_file: /Users/nathanmichelotti/Desktop/College/CS 425/Senior Project/OneDrive_1_10-22-2024/secrets/dev_db.env
+    volumes:
+      - sqlvolume:/var/opt/mssql
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:1433:1433"
+
+  dev_api:
+    container_name: dev_api
+    profiles: [dev]
+    image: ${DOCKER_REGISTRY-}image-archive-api
+    build:
+      context: src/api
+      dockerfile: Dockerfile
+    depends_on:
+      - dev_db
+    secrets:
+      - source: image_archive_ca_cert
+        target: /usr/local/share/ca-certificates/image-archive-ca.crt
+      - source: image_archive_api_cert
+        target: /https/image_archive_api_cert.pfx
+    env_file: /Users/nathanmichelotti/Desktop/College/CS 425/Senior Project/OneDrive_1_10-22-2024/secrets/dev_api.env
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_HTTP_PORTS: 8080
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - ./Images:/app/Images
+      - /Users/nathanmichelotti/Desktop/College/CS 425/Senior Project/OneDrive_1_10-22-2024/secrets/usersecrets:/home/app/.microsoft/usersecrets:ro
+      - /Users/nathanmichelotti/Desktop/College/CS 425/Senior Project/OneDrive_1_10-22-2024/secrets/https:/home/app/.aspnet/https:ro
+
+  dev_frontend:
+    container_name: dev_frontend
+    profiles: [dev]
+    image: ${DOCKER_REGISTRY-}image-archive
+    build:
+      context: src/frontend
+      dockerfile: Dockerfile
+    depends_on:
+      - dev_api
+    secrets:
+      - source: image_archive_ca_cert
+        target: /usr/local/share/ca-certificates/image-archive-ca.crt
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=80
+      - DOTNET_WATCH_RESTART_ON_RUDE_EDIT=true
+    ports:
+      - "127.0.0.1:80:80"
+    volumes:
+      - /Users/nathanmichelotti/Desktop/College/CS 425/Senior Project/OneDrive_1_10-22-2024/secrets/usersecrets:/home/app/.microsoft/usersecrets:ro
+      - /Users/nathanmichelotti/Desktop/College/CS 425/Senior Project/OneDrive_1_10-22-2024/secrets/https:/home/app/.aspnet/https:ro
+      - ./src/frontend:/app
+      - /app/bin
+      - /app/obj
+
+  api:
+    profiles: [prod]
+    network_mode: host
+    image: ${DOCKER_REGISTRY-}image-archive-api
+    build:
+      context: src/api
+      dockerfile: Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+    restart: on-failure:3
+
+  frontend:
+    profiles: [prod]
+    network_mode: host
+    image: ${DOCKER_REGISTRY-}image-archive
+    build:
+      context: src/frontend
+      dockerfile: Dockerfile
+    depends_on:
+      - api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+    restart: on-failure:3

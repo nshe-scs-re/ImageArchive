@@ -3,7 +3,7 @@
 @inject IJSRuntime JSRuntime
 
 <div class="container mt-4">
-    <div class="card">
+    <div class="card shadow">
         <div class="card-header bg-primary text-white">
             <h2 class="text-center mb-0">Snow Prediction Tool</h2>
         </div>
@@ -11,10 +11,18 @@
             <div class="form-group text-center">
                 <InputFile OnChange="@HandleFileSelected" class="form-control mb-3" accept="image/*" />
                 
+                @if (!string.IsNullOrEmpty(selectedImagePath))
+                {
+                    <div class="mt-3">
+                        <img src="@selectedImagePath" class="img-fluid rounded mb-3" style="max-height: 300px;" alt="Selected image" />
+                    </div>
+                }
+
                 <button class="btn btn-primary" @onclick="AnalyzeImage" disabled="@(uploadedFile == null || isAnalyzing)">
                     @if (isAnalyzing)
                     {
-                        <span>Analyzing...</span>
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        <span class="ms-2">Analyzing...</span>
                     }
                     else
                     {
@@ -23,22 +31,46 @@
                 </button>
             </div>
 
-            @if (!string.IsNullOrEmpty(analysisStatus))
+            @if (isAnalyzing)
             {
-                <p class="text-center mt-3 @(analysisStatus.StartsWith("Error") ? "text-danger" : "text-info")">
-                    @analysisStatus
-                </p>
+                <div class="mt-3">
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                             role="progressbar" 
+                             style="width: @(analysisProgress)%">
+                            @analysisProgress%
+                        </div>
+                    </div>
+                    <p class="text-center mt-2">@analysisStatus</p>
+                </div>
             }
 
             @if (ClassificationResults != null)
             {
                 <div class="mt-4">
-                    <div class="alert @(ClassificationResults.Prediction == "Has Snow" ? "alert-info" : "alert-warning")">
-                        <strong>Prediction:</strong> @ClassificationResults.Prediction
-                        <br />
-                        <strong>Snow Probability:</strong> @(ClassificationResults.SnowProbability.ToString("P1"))
-                        <br />
-                        <strong>No Snow Probability:</strong> @(ClassificationResults.NoSnowProbability.ToString("P1"))
+                    <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">Analysis Results</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert @(ClassificationResults.Prediction == "Has Snow" ? "alert-info" : "alert-warning")">
+                                <strong>Prediction:</strong> @ClassificationResults.Prediction
+                            </div>
+                            <div class="progress mb-3">
+                                <div class="progress-bar bg-info" 
+                                     role="progressbar" 
+                                     style="width: @(ClassificationResults.SnowProbability * 100)%">
+                                    Snow: @(ClassificationResults.SnowProbability.ToString("P1"))
+                                </div>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar bg-warning" 
+                                     role="progressbar" 
+                                     style="width: @(ClassificationResults.NoSnowProbability * 100)%">
+                                    No Snow: @(ClassificationResults.NoSnowProbability.ToString("P1"))
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             }
@@ -48,15 +80,28 @@
 
 @code {
     private IBrowserFile? uploadedFile;
+    private string selectedImagePath = string.Empty;
     private bool isAnalyzing = false;
+    private int analysisProgress = 0;
     private string analysisStatus = string.Empty;
     private ClassificationResult? ClassificationResults;
 
-    private void HandleFileSelected(InputFileChangeEventArgs e)
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
     {
-        uploadedFile = e.File;
-        analysisStatus = "Image loaded. Click 'Analyze Image' to begin.";
-        StateHasChanged();
+        try
+        {
+            uploadedFile = e.File;
+            var format = "image/jpeg";
+            var resizedImage = await e.File.RequestImageFileAsync(format, 800, 600);
+            var buffer = new byte[resizedImage.Size];
+            await resizedImage.OpenReadStream().ReadAsync(buffer);
+            selectedImagePath = $"data:{format};base64,{Convert.ToBase64String(buffer)}";
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Error loading image: {ex.Message}");
+        }
     }
 
     private async Task AnalyzeImage()
@@ -65,11 +110,13 @@
 
         isAnalyzing = true;
         ClassificationResults = null;
-        analysisStatus = "Analyzing image...";
+        analysisProgress = 0;
+        analysisStatus = "Processing image...";
         StateHasChanged();
 
         try
         {
+            // Save image to temp file
             var tempFileName = $"temp_{Guid.NewGuid()}.jpg";
             var tempPath = Path.Combine(Path.GetTempPath(), tempFileName);
             
@@ -78,6 +125,7 @@
                 await uploadedFile.OpenReadStream().CopyToAsync(stream);
             }
 
+            // Get paths relative to solution root
             var solutionRoot = Directory.GetParent(Directory.GetCurrentDirectory())?.Parent?.FullName;
             if (solutionRoot == null)
             {
@@ -87,6 +135,7 @@
             var scriptPath = Path.Combine(solutionRoot, "predictor", "Local_data_for_model", "classify_image.py");
             var modelPath = Path.Combine(solutionRoot, "predictor", "Local_data_for_model", "best_model.pth");
 
+            // Run Python script
             using var process = new Process
             {
                 StartInfo = new ProcessStartInfo
@@ -101,8 +150,12 @@
             };
 
             process.Start();
+            analysisProgress = 50;
+            StateHasChanged();
+
             var output = await process.StandardOutput.ReadToEndAsync();
             var error = await process.StandardError.ReadToEndAsync();
+
             await process.WaitForExitAsync();
 
             if (process.ExitCode != 0)
@@ -110,6 +163,7 @@
                 throw new Exception($"Python script failed: {error}");
             }
 
+            // Parse the output
             foreach (var line in output.Split('\n'))
             {
                 if (line.StartsWith("Prediction:"))
@@ -120,8 +174,10 @@
                     ClassificationResults.NoSnowProbability = double.Parse(line.Split(':')[1].Trim().TrimEnd('%')) / 100;
             }
 
+            analysisProgress = 100;
             analysisStatus = "Analysis complete!";
 
+            // Cleanup
             if (File.Exists(tempPath))
             {
                 File.Delete(tempPath);
@@ -129,8 +185,8 @@
         }
         catch (Exception ex)
         {
-            analysisStatus = $"Error: {ex.Message}";
             await JSRuntime.InvokeVoidAsync("alert", $"Error: {ex.Message}");
+            analysisStatus = $"Error: {ex.Message}";
         }
         finally
         {
