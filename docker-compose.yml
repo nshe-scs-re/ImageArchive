@@ -3,8 +3,6 @@ secrets:
     file: ${USERPROFILE}/source/secrets/image-archive-ca.crt
   image_archive_api_cert:
     file: ${USERPROFILE}/source/secrets/image-archive-api.pfx
-  image_archive_api_cert_pw:
-    file: ${USERPROFILE}/source/secrets/image-archive-api-cert-pw.txt
 
 volumes:
   sqlvolume:
@@ -14,6 +12,7 @@ services:
     container_name: dev_db
     profiles: [dev]
     image: mcr.microsoft.com/mssql/server:2022-latest
+    pull_policy: missing
     env_file: ${USERPROFILE}/source/secrets/dev_db.env
     volumes:
       - sqlvolume:/var/opt/mssql
@@ -24,14 +23,12 @@ services:
   dev_api:
     container_name: dev_api
     profiles: [dev]
-    # platform: linux/amd64
     image: ${DOCKER_REGISTRY-}image-archive-api
-    pull_policy: build
     build:
-      context: src/api
-      dockerfile: Dockerfile
-      args:
-        - --no-cache
+      context: .
+      dockerfile: src/api/Dockerfile
+      no_cache: true
+      pull: true
     depends_on:
       - dev_db
     secrets:
@@ -43,26 +40,23 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_HTTP_PORTS: 8080
-      # ASPNETCORE_HTTPS_PORTS: 8081
     ports:
       - "127.0.0.1:8080:8080"
-      # - "127.0.0.1:8081:8081"
     volumes:
       - ${USERPROFILE}/source/images:/app/images
+      - ${USERPROFILE}/source/archives:/app/archives
       - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
       - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
 
   dev_frontend:
     container_name: dev_frontend
     profiles: [dev]
-    # platform: linux/amd64
     image: ${DOCKER_REGISTRY-}image-archive
-    pull_policy: build
     build:
-      context: src/frontend
-      dockerfile: Dockerfile
-      args:
-        - --no-cache
+      context: .
+      dockerfile: src/frontend/Dockerfile
+      no_cache: true
+      pull: true
     depends_on:
       - dev_api
     secrets:
@@ -71,35 +65,28 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=80
-      # - ASPNETCORE_HTTPS_PORTS=443
-      # - ASPNETCORE_URLS=http://+;https://+
     ports:
       - "127.0.0.1:80:80"
-      # - "127.0.0.1:443:443"
     volumes:
       - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
       - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
 
   api:
     profiles: [prod]
-    # platform: linux/amd64
     network_mode: host
     image: ${DOCKER_REGISTRY-}image-archive-api
-    # pull_policy: build
     build:
       context: src/api
       dockerfile: Dockerfile
     environment:
       ASPNETCORE_ENVIRONMENT: Production
     #volumes:
-    restart: on-failure:3
+    restart: unless-stopped
 
   frontend:
     profiles: [prod]
-    # platform: linux/amd64
     network_mode: host
     image: ${DOCKER_REGISTRY-}image-archive
-    # pull_policy: build
     build:
       context: src/frontend
       dockerfile: Dockerfile
@@ -108,4 +95,4 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
     #volumes:
-    restart: on-failure:3
+    restart: unless-stopped

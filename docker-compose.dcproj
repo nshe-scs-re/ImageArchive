@@ -2,9 +2,13 @@
 <Project ToolsVersion="15.0" Sdk="Microsoft.Docker.Sdk">
   <PropertyGroup Label="Globals">
     <ProjectVersion>2.1</ProjectVersion>
+    <ProjectGuid>cbec8347-1728-48bb-bca3-8313368b881e</ProjectGuid>
     <DockerTargetOS>Linux</DockerTargetOS>
     <DockerPublishLocally>False</DockerPublishLocally>
-    <ProjectGuid>cbec8347-1728-48bb-bca3-8313368b881e</ProjectGuid>
+    <DependencyAwareStart>True</DependencyAwareStart>
+    <DockerDevelopmentMode>Regular</DockerDevelopmentMode>
+    <DockerComposeBuildArguments>--no-cache --pull</DockerComposeBuildArguments>
+    <DockerComposeUpArguments>--remove-orphans</DockerComposeUpArguments>
   </PropertyGroup>
   <ItemGroup>
     <None Include=".env" />
