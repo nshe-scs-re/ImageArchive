@@ -1,17 +1,32 @@
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+
 USER root
+
 WORKDIR /app
 
 RUN update-ca-certificates
 
 USER app
+
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
+
 WORKDIR /src
-COPY ["frontend.csproj", "."]
+
+COPY ./src/frontend/frontend.csproj ./frontend/
+
+COPY ./Directory.Packages.props .
+
+WORKDIR /src/frontend
+
 RUN dotnet restore "./frontend.csproj"
-COPY . .
-WORKDIR "/src/."
+
+WORKDIR /src
+
+COPY ./src/frontend ./frontend
+
+WORKDIR /src/frontend
+
 RUN dotnet build "./frontend.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
