@@ -1,62 +1,45 @@
 @page "/ML"
-@using System.Globalization
-
-<h1 class="text-center mt-4">Prediction Center</h1>
+@using System.Diagnostics
+@inject IJSRuntime JSRuntime
 
 <div class="container mt-4">
-    <div class="card shadow">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2 class="text-center mb-0">Snow Prediction Tool</h2>
+        </div>
         <div class="card-body">
-            <h3 class="card-title">Select Options</h3>
-
-            <!-- Location Dropdown -->
-            <div class="form-group">
-                <label for="locationSelect" class="form-label">Location:</label>
-                <select id="locationSelect" class="form-control" @onchange="HandleLocationChange">
-                    <option value="">-- Select Location --</option>
-                    @foreach (var location in Locations)
+            <div class="form-group text-center">
+                <InputFile OnChange="@HandleFileSelected" class="form-control mb-3" accept="image/*" />
+                
+                <button class="btn btn-primary" @onclick="AnalyzeImage" disabled="@(uploadedFile == null || isAnalyzing)">
+                    @if (isAnalyzing)
                     {
-                        <option value="@location">@location</option>
+                        <span>Analyzing...</span>
                     }
-                </select>
+                    else
+                    {
+                        <span>Analyze Image</span>
+                    }
+                </button>
             </div>
 
-            <!-- Camera Options -->
-            @if (ShowCameraOptions)
+            @if (!string.IsNullOrEmpty(analysisStatus))
             {
-                <div class="form-group mt-3">
-                    <label for="cameraSelect" class="form-label">Camera:</label>
-                    <select id="cameraSelect" class="form-control" @bind="SelectedCamera">
-                        <option value="">-- Select Camera --</option>
-                        @foreach (var camera in CameraOptions)
-                        {
-                            <option value="@camera">@camera</option>
-                        }
-                    </select>
-                </div>
+                <p class="text-center mt-3 @(analysisStatus.StartsWith("Error") ? "text-danger" : "text-info")">
+                    @analysisStatus
+                </p>
             }
 
-            <!-- Date Picker -->
-            <div class="form-group mt-3">
-                <label for="datePicker" class="form-label">Future Date:</label>
-                <input id="datePicker" type="date" class="form-control" @bind="SelectedDate" />
-                @if (!IsValidDate)
-                {
-                    <small class="text-danger">Please select a date in the future.</small>
-                }
-            </div>
-
-            <!-- Submit Button -->
-            <button class="btn btn-primary mt-4 w-100" @onclick="SubmitSelection"
-                disabled="@(string.IsNullOrWhiteSpace(SelectedLocation) || !IsValidDate)">
-                Submit
-            </button>
-
-            <!-- Display Generated Path -->
-            @if (!string.IsNullOrWhiteSpace(ImagePath))
+            @if (ClassificationResults != null)
             {
                 <div class="mt-4">
-                    <h5>Generated Path:</h5>
-                    <p>@ImagePath</p>
+                    <div class="alert @(ClassificationResults.Prediction == "Has Snow" ? "alert-info" : "alert-warning")">
+                        <strong>Prediction:</strong> @ClassificationResults.Prediction
+                        <br />
+                        <strong>Snow Probability:</strong> @(ClassificationResults.SnowProbability.ToString("P1"))
+                        <br />
+                        <strong>No Snow Probability:</strong> @(ClassificationResults.NoSnowProbability.ToString("P1"))
+                    </div>
                 </div>
             }
         </div>
@@ -64,53 +47,102 @@
 </div>
 
 @code {
-    private List<string> Locations = new() { "Rockland", "Sheep", "Snake", "Spring" };
-    private Dictionary<string, List<string>> LocationCameras = new()
+    private IBrowserFile? uploadedFile;
+    private bool isAnalyzing = false;
+    private string analysisStatus = string.Empty;
+    private ClassificationResult? ClassificationResults;
+
+    private void HandleFileSelected(InputFileChangeEventArgs e)
     {
-        { "Rockland", new List<string>() },
-        { "Sheep", new List<string> { "Camera 1", "Camera 2", "Camera 3", "Camera 4" } },
-        { "Snake", new List<string> { "Camera 1", "Camera 2", "Camera 3" } },
-        { "Spring", new List<string>() }
-    };
+        uploadedFile = e.File;
+        analysisStatus = "Image loaded. Click 'Analyze Image' to begin.";
+        StateHasChanged();
+    }
 
-    private string SelectedLocation = string.Empty;
-    private string SelectedCamera = string.Empty;
-    private DateTime SelectedDate = DateTime.Now;
-    private bool IsValidDate = true;
-    private string ImagePath = string.Empty; // Holds the dynamically generated image path
-    private bool ShowCameraOptions = false;
-    private List<string> CameraOptions = new();
-
-    // Handle location change and update camera options
-    private void HandleLocationChange(ChangeEventArgs e)
+    private async Task AnalyzeImage()
     {
-        SelectedLocation = e.Value?.ToString() ?? string.Empty;
+        if (uploadedFile == null) return;
 
-        if (!string.IsNullOrEmpty(SelectedLocation) && LocationCameras.ContainsKey(SelectedLocation))
+        isAnalyzing = true;
+        ClassificationResults = null;
+        analysisStatus = "Analyzing image...";
+        StateHasChanged();
+
+        try
         {
-            CameraOptions = LocationCameras[SelectedLocation];
-            ShowCameraOptions = CameraOptions.Count > 0;
+            var tempFileName = $"temp_{Guid.NewGuid()}.jpg";
+            var tempPath = Path.Combine(Path.GetTempPath(), tempFileName);
+            
+            await using (var stream = new FileStream(tempPath, FileMode.Create))
+            {
+                await uploadedFile.OpenReadStream().CopyToAsync(stream);
+            }
+
+            var solutionRoot = Directory.GetParent(Directory.GetCurrentDirectory())?.Parent?.FullName;
+            if (solutionRoot == null)
+            {
+                throw new DirectoryNotFoundException("Could not find solution root directory");
+            }
+
+            var scriptPath = Path.Combine(solutionRoot, "predictor", "Local_data_for_model", "classify_image.py");
+            var modelPath = Path.Combine(solutionRoot, "predictor", "Local_data_for_model", "best_model.pth");
+
+            using var process = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "python3",
+                    Arguments = $"\"{scriptPath}\" \"{tempPath}\" --model \"{modelPath}\"",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                }
+            };
+
+            process.Start();
+            var output = await process.StandardOutput.ReadToEndAsync();
+            var error = await process.StandardError.ReadToEndAsync();
+            await process.WaitForExitAsync();
+
+            if (process.ExitCode != 0)
+            {
+                throw new Exception($"Python script failed: {error}");
+            }
+
+            foreach (var line in output.Split('\n'))
+            {
+                if (line.StartsWith("Prediction:"))
+                    ClassificationResults = new ClassificationResult { Prediction = line.Split(':')[1].Trim() };
+                else if (line.StartsWith("Snow Probability:"))
+                    ClassificationResults.SnowProbability = double.Parse(line.Split(':')[1].Trim().TrimEnd('%')) / 100;
+                else if (line.StartsWith("No Snow Probability:"))
+                    ClassificationResults.NoSnowProbability = double.Parse(line.Split(':')[1].Trim().TrimEnd('%')) / 100;
+            }
+
+            analysisStatus = "Analysis complete!";
+
+            if (File.Exists(tempPath))
+            {
+                File.Delete(tempPath);
+            }
         }
-        else
+        catch (Exception ex)
         {
-            CameraOptions = new List<string>();
-            ShowCameraOptions = false;
+            analysisStatus = $"Error: {ex.Message}";
+            await JSRuntime.InvokeVoidAsync("alert", $"Error: {ex.Message}");
+        }
+        finally
+        {
+            isAnalyzing = false;
+            StateHasChanged();
         }
     }
 
-    // Validates if the selected date is in the future
-    private void ValidateFutureDate()
+    private class ClassificationResult
     {
-        IsValidDate = SelectedDate > DateTime.Now;
-    }
-
-    private void SubmitSelection()
-    {
-        // Generate the image path
-        string formattedDate = SelectedDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-        ImagePath = $"/Images/{SelectedLocation}{(ShowCameraOptions ? $"/{SelectedCamera}" : string.Empty)}/{formattedDate}";
-
-        // Example: Log to console or use this path elsewhere
-        Console.WriteLine($"Location: {SelectedLocation}, Camera: {SelectedCamera}, Date: {SelectedDate}, ImagePath: {ImagePath}");
+        public string Prediction { get; set; } = "";
+        public double SnowProbability { get; set; }
+        public double NoSnowProbability { get; set; }
     }
 }
