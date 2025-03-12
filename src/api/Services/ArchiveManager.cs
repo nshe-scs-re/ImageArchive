@@ -77,7 +77,7 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
                             {
                                 lock(archiveLock)
                                 {
-                                    ZipArchiveEntry entry = archive.CreateEntry($"{year}/{month}/{day}/{day} {month} {year} {image.DateTime:hh.mmtt}{Path.GetExtension(image.FilePath)}");
+                                    ZipArchiveEntry entry = archive.CreateEntry($"{year}/{month}/{day}/{day}_{month}_{year}_{image.DateTime:hh.mmtt}{Path.GetExtension(image.FilePath)}");
 
                                     using(FileStream fileStream = new FileStream(image.FilePath, FileMode.Open, FileAccess.Read))
                                     {
@@ -91,7 +91,7 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
                             }
                             else
                             {
-                                Console.WriteLine($"[WARNING] [ArchiveManager.cs]: {image.FilePath} does not exist.");
+                                Console.WriteLine($"[WARNING] [ArchiveManager.cs] [CreateArchiveAsync]: {image.FilePath} does not exist.");
                             }
                         }
                         catch(Exception exception)
@@ -104,7 +104,7 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
                     {
                         foreach(Exception exception in exceptions)
                         {
-                            Console.WriteLine($"[ERROR] [ArchiveManager.cs]: Exception: {exception.Message}");
+                            Console.WriteLine($"[ERROR] [ArchiveManager.cs] [CreateArchiveAsync]: Exception: {exception.Message}");
 
                             request.AddError(exception.Message);
                         }
