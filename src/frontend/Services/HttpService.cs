@@ -129,7 +129,7 @@ public class HttpService
     public async Task<HttpResponseMessage> GetArchiveDownloadAsync(Guid jobId)
     {
         var httpClient = CreateForwardClient();
-        return await httpClient.GetAsync($"api/archive/download/{jobId}");
+        return await httpClient.GetAsync($"api/archive/download/{jobId}", HttpCompletionOption.ResponseHeadersRead);
     }
 
     public async Task<HttpResponseMessage> PostArchiveRequestAsync(ArchiveRequest request)
