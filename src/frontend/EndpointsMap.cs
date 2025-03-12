@@ -29,8 +29,8 @@ public static class EndpointsMap
             }
             catch(Exception exception)
             {
-                Console.WriteLine($"ERROR [Program.cs] [/api/images/{id}]: Exception message: {exception.Message}");
-                return Results.Problem($"Error fetching image: {exception.Message}");
+                Console.WriteLine($"[ERROR] [/proxy/images/{id}]: Exception message: {exception.Message}");
+                return Results.Problem();
             }
         });
 
@@ -51,8 +51,8 @@ public static class EndpointsMap
             }
             catch(Exception exception)
             {
-                Console.WriteLine($"ERROR [Program.cs] [/proxy/archive/download/{jobId}]: Exception message: {exception.Message}");
-                return Results.Problem(exception.Message);
+                Console.WriteLine($"[ERROR] [/proxy/archive/download/{jobId}]: Exception message: {exception.Message}");
+                return Results.Problem();
             }
         });
 
