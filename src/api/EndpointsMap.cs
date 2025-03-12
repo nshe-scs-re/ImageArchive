@@ -136,7 +136,7 @@ public static class EndpointsMap
             {
                 var request = manager.GetJob(jobId);
 
-                if(request is null || string.IsNullOrEmpty(request.FilePath) || !System.IO.File.Exists(request.FilePath))
+                if(request is null || string.IsNullOrEmpty(request.FilePath) || !File.Exists(request.FilePath))
                 {
                     return Results.NotFound(request);
                 }
@@ -148,12 +148,12 @@ public static class EndpointsMap
 
                 FileStream fileStream = new FileStream(request.FilePath, FileMode.Open, FileAccess.Read);
 
-                return Results.File(fileStream, "application/zip", $"{jobId}.zip");
+                return Results.Stream(fileStream, "application/zip", $"{jobId}.zip");
             }
             catch(Exception exception)
             {
                 Console.WriteLine($"ERROR [Program.cs] [/api/archive/download]: Exception message: {exception.Message}");
-                return Results.Problem(detail: exception.Message, statusCode: 500);
+                return Results.Problem();
             }
         })
         .WithSummary("Requests an archive download.")
