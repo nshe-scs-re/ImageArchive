@@ -1,5 +1,8 @@
-﻿namespace frontend.Models;
+﻿using System.Text.Json.Serialization;
 
+namespace frontend.Models;
+
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum ArchiveStatus
 {
     Failed = -1,
