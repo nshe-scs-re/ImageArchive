@@ -7,7 +7,7 @@
 <PageTitle>Home</PageTitle>
 
 <div class="accordion accordion-flush">
-  <div class="accordion-item my-3 py-3 text-center rounded @GetTheme()">
+  <div class="accordion-item my-3 py-3 rounded @GetTheme()">
     <div class="row">
       <div class="col-lg-6 col-md-8 mx-auto">
         <h1 class="accordion-header py-2">
@@ -78,6 +78,14 @@
               </InputSelect>
             </div>
           </div>
+          <div class="row py-2 align-items-center">
+            <label class="col-8 col-form-label">Show extended information</label>
+            <div class="col-4 d-flex justify-content-end">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault" @bind="showExtendedInformation">
+              </div>
+            </div>
+          </div>
           <div class="text-end py-2">
             <button type="submit" class="btn btn-light rounded custom-btn-fixed-size-sm @GetButtonTheme()" data-bs-toggle="collapse" data-bs-target="#QueryFormContainer">Search</button>
           </div>
@@ -98,12 +106,15 @@
             <div class="card shadow-sm @GetTheme()">
               <img src="/placeholder.jpg" class="card-img-top" width="320" height="240" />
               <div class="card-body">
-                <p class="card-text">Time: </p>
-                <p class="card-text">Site Name: </p>
-                <p class="card-text">Site Number: </p>
-                <p class="card-text">Camera Number: </p>
-                <p class="card-text">Camera Position Number: </p>
-                <p class="card-text">Camera Postion Name: </p>
+                @if(showExtendedInformation)
+                {
+                  <p class="card-text">Time: </p>
+                  <p class="card-text">Site Name: </p>
+                  <p class="card-text">Site Number: </p>
+                  <p class="card-text">Camera Number: </p>
+                  <p class="card-text">Camera Position Number: </p>
+                  <p class="card-text">Camera Postion Name: </p>
+                }
                 <div class="d-flex justify-content-between align-items-center">
                   <div class="btn-group">
                     <button type="button" class="disabled btn btn-sm btn-light @GetButtonTheme()">View</button>
@@ -129,11 +140,14 @@ else if (querySubmitted && !loading)
             <div class="card shadow-sm @GetTheme()">
               <img src="/proxy/images/@image.Id" class="card-img-top" width="320" height="240" />
               <div class="card-body">
-                <p class="card-text">Time: @image.DateTime</p>
-                <p class="card-text">Site Name: @image.SiteName</p>
-                <p class="card-text">Site Number: @image.SiteNumber</p>
-                <p class="card-text">Camera Position Number: @image.CameraPositionNumber</p>
-                <p class="card-text">Camera Postion Name: @image.CameraPositionName</p>
+                @if(showExtendedInformation)
+                {
+                  <p class="card-text">Time: @image.DateTime</p>
+                  <p class="card-text">Site Name: @image.SiteName</p>
+                  <p class="card-text">Site Number: @image.SiteNumber</p>
+                  <p class="card-text">Camera Position Number: @image.CameraPositionNumber</p>
+                  <p class="card-text">Camera Postion Name: @image.CameraPositionName</p>
+                }
                 <div class="d-flex justify-content-between align-items-center">
                   <div class="btn-group">
                     <button type="button" class="btn btn-sm btn-light @GetButtonTheme()" @onclick="() => UpdateImageSrc(image.Id)" data-bs-toggle="modal" data-bs-target="#view-image-modal">View</button>
@@ -198,6 +212,7 @@ else if (querySubmitted && !loading)
 
 @code
 {
+    private bool showExtendedInformation = false;
     private bool loading = false;
     private bool querySubmitted = false;
     private List<Image>? images = new();
