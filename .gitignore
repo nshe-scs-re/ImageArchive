@@ -372,5 +372,4 @@ appsettings.Development.json
 *.env
 .DS_Store/
 .history/
-wwwroot/lib/bootstrap/css/bootstrap.min.css
-
+/src/frontend/wwwroot/lib/bootstrap/css/bootstrap.min.css
