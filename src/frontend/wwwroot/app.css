@@ -13,6 +13,28 @@
     --custom-color-link-primary: #75b6e7;
 }
 
+@keyframes shimmer {
+    to {
+        background-position-x: 0%
+    }
+}
+
+.custom-card-placeholder {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    background: linear-gradient(-45deg, #eee 40%, #fafafa 50%, #eee 60%);
+    background-size: 300%;
+    background-position-x: 100%;
+    animation: shimmer 1s infinite linear;
+}
+
+.card-img-top{
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+}
+
+
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
