@@ -146,11 +146,11 @@ internal class Program
     {
         List<string> siteNames = new List<string>
         {
-            "sheep",
-            "snake",
-            "spring",
-            "rockland",
-            "eldorado"
+            "Sheep",
+            "Snake",
+            "Spring",
+            "Rockland",
+            "Eldorado"
         };
 
         List<string> siteNumbers = new List<string>
@@ -274,7 +274,7 @@ internal class Program
 
         if(basePath == linuxBasePath)
         {
-            return filePath; 
+            return filePath;
         }
 
         return filePath.Replace(basePath, linuxBasePath).Replace('\\', '/');
