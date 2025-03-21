@@ -24,9 +24,9 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
     {
         RegisterJob(request);
 
-        #pragma warning disable CS4014 // Allow the async method to run without awaiting it. This is intentional.
+#pragma warning disable CS4014 // Allow the async method to run without awaiting it. This is intentional.
         CreateArchiveAsync(request);
-        #pragma warning restore CS4014
+#pragma warning restore CS4014
 
         return request;
     }

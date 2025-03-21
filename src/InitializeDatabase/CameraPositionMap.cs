@@ -8,15 +8,15 @@ public class Site
 public class SubSite
 {
     public required string Name { get; init; }
-    public required Dictionary<int, string> NameMap{ get; init; }
+    public required Dictionary<int, string> NameMap { get; init; }
 }
 
 public static class CameraPositionMap
 {
-    public static readonly Dictionary<string, Site> Sites = new()
+    public static readonly Dictionary<string, Site> Sites = new(StringComparer.OrdinalIgnoreCase)
     {
-        { "sheep", new Site {
-            Name = "sheep",
+        { "Sheep", new Site {
+            Name = "Sheep",
             SubSites = new Dictionary<int, SubSite>
             {
                 { 1, new SubSite {
@@ -117,8 +117,8 @@ public static class CameraPositionMap
             }
         }
         },
-        { "rockland", new Site {
-            Name = "rockland",
+        { "Rockland", new Site {
+            Name = "Rockland",
             SubSites = new Dictionary<int, SubSite>
             {
                 {1, new SubSite {
@@ -146,13 +146,13 @@ public static class CameraPositionMap
                         { 19, "South Aspect"},
                         { 20, "Mt Rose"}
                     }
-                    }   
+                    }
                 }
             }
         }
         },
-        { "spring", new Site {
-            Name = "spring",
+        { "Spring", new Site {
+            Name = "Spring",
             SubSites = new Dictionary<int, SubSite>
             {
                 {0, new SubSite {
@@ -255,8 +255,8 @@ public static class CameraPositionMap
             }
         }
         },
-        {"snake", new Site { 
-            Name = "snake",
+        {"Snake", new Site {
+            Name = "Snake",
             SubSites = new Dictionary<int, SubSite>
             {
                 {1, new SubSite {
@@ -274,7 +274,7 @@ public static class CameraPositionMap
                         { 9, "Solar Panels"},
                         { 10, "Tower Base"},
                         { 11, "Site Access"},
-                        { 12, "?Tower Base 2"},
+                        { 12, "Tower Base 2"},
                         { 13, "Precipitation Gage"},
                         { 14, "UNLV Data Logger"},
                         { 15, "Great Basin National Park"}
@@ -331,10 +331,25 @@ public static class CameraPositionMap
             }
         }
         },
-        {"eldorado", new Site {
-            Name = "eldorado",
+        {"Eldorado", new Site {
+            Name = "Eldorado",
             SubSites = new Dictionary<int, SubSite>
             {
+                {2, new SubSite {
+                    Name = "site_2",
+                    NameMap = new Dictionary<int, string>
+                    {
+                        { 1, "North" },
+                        { 2, "North East" },
+                        { 3, "East"},
+                        { 4, "South East" },
+                        { 5, "South" },
+                        { 6, "South West" },
+                        { 7, "West" },
+                        { 8, "North West" },
+                    }
+                }
+                },
                 {3, new SubSite {
                     Name = "site_3",
                     NameMap = new Dictionary<int, string>
@@ -365,17 +380,67 @@ public static class CameraPositionMap
         }
     };
 
+    public static List<string> GetSiteNames()
+    {
+        return Sites.Keys.OrderBy(name => name).ToList();
+    }
+
+    public static List<int> GetSubSiteNumbers(string siteName)
+    {
+        return Sites.TryGetValue(siteName, out var site)
+            ? site.SubSites.Keys.OrderBy(n => n).ToList()
+            : new List<int>();
+    }
+
+    public static Dictionary<int, string> GetCameraPositions(string siteName, int siteNumber)
+    {
+        return Sites.TryGetValue(siteName, out var site) &&
+               site.SubSites.TryGetValue(siteNumber, out var subSite)
+            ? subSite.NameMap
+            : new Dictionary<int, string>();
+    }
+
+     public static List<int> GetCameraPositionNumbers(string siteName, int siteNumber)
+    {
+        return Sites.TryGetValue(siteName, out var site) &&
+               site.SubSites.TryGetValue(siteNumber, out var subSite)
+            ? subSite.NameMap.Keys.OrderBy(n => n).ToList()
+            : new List<int>();
+    }
+
     public static string? GetCameraPositionName(string? siteName, int siteNumber, int cameraPositionNumber)
     {
-        if(siteName == null)
-        {
-            return null;
-        }
-
         return Sites.TryGetValue(siteName, out var site)
             && site.SubSites.TryGetValue(siteNumber, out var subSite)
             && subSite.NameMap.TryGetValue(cameraPositionNumber, out var positionName)
             ? positionName
             : null;
+    }
+
+    public static List<string> GetSubSiteNames(string siteName)
+    {
+        if(Sites.TryGetValue(siteName, out var site))
+        {
+            return site.SubSites.Values.Select(subSite => subSite.Name).ToList();
+        }
+
+        return new List<string>();
+    }
+
+    public static SubSite? GetSubSite(string siteName, int siteNumber)
+    {
+        return Sites.TryGetValue(siteName, out var site) &&
+               site.SubSites.TryGetValue(siteNumber, out var subSite)
+            ? subSite
+            : null;
+    }
+
+    public static Dictionary<string, List<int>> GetAllSiteNumbers()
+    {
+        return Sites.OrderBy(kvp => kvp.Key).ToDictionary(
+            kvp => kvp.Key,
+            kvp => kvp.Value.SubSites.Keys.OrderBy(n => n).ToList(),
+            StringComparer.OrdinalIgnoreCase
+        );
     }
 }

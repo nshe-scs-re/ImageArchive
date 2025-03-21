@@ -1,0 +1,54 @@
+﻿.custom-help-container {
+    background-color: #f8f9fa;
+    color: #333;
+    padding: 2rem;
+    border-radius: 10px;
+    max-width: 1200px;
+    margin: 2rem auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    font-family: Arial, sans-serif;
+}
+
+.custom-help-section {
+    margin-bottom: 3rem;
+}
+
+    .custom-help-section h2 {
+        color: #004080;
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+    }
+
+
+.custom-contact-support {
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-top: 2rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.custom-faq-item {
+    margin-bottom: 1.5rem;
+}
+
+.custom-faq-question {
+    font-weight: bold;
+    color: #004080;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    font-size: 1.1rem;
+}
+
+    .custom-faq-question:hover {
+        color: #002060;
+    }
+
+.custom-faq-answer {
+    display: none;
+    font-size: 1rem;
+    margin-top: 0.5rem;
+    line-height: 1.6;
+    background-color: #e0ebff;
+    padding: 0.5rem;
+    border-radius: 5px;
+}
