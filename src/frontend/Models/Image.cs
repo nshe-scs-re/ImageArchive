@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace frontend.Models;
+﻿namespace frontend.Models;
 
 /// <summary>
 /// Models the 'Images' table in the 'ImageDatabase' database for use with Entity Framework Core
