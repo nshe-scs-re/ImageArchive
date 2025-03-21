@@ -8,7 +8,7 @@ public class Site
 public class SubSite
 {
     public required string Name { get; init; }
-    public required Dictionary<int, string> NameMap{ get; init; }
+    public required Dictionary<int, string> NameMap { get; init; }
 }
 
 public static class CameraPositionMap
@@ -146,7 +146,7 @@ public static class CameraPositionMap
                         { 19, "South Aspect"},
                         { 20, "Mt Rose"}
                     }
-                    }   
+                    }
                 }
             }
         }
@@ -255,7 +255,7 @@ public static class CameraPositionMap
             }
         }
         },
-        {"Snake", new Site { 
+        {"Snake", new Site {
             Name = "Snake",
             SubSites = new Dictionary<int, SubSite>
             {
@@ -274,7 +274,7 @@ public static class CameraPositionMap
                         { 9, "Solar Panels"},
                         { 10, "Tower Base"},
                         { 11, "Site Access"},
-                        { 12, "?Tower Base 2"},
+                        { 12, "Tower Base 2"},
                         { 13, "Precipitation Gage"},
                         { 14, "UNLV Data Logger"},
                         { 15, "Great Basin National Park"}
@@ -384,18 +384,28 @@ public static class CameraPositionMap
     {
         return Sites.Keys.OrderBy(name => name).ToList();
     }
+
     public static List<int> GetSubSiteNumbers(string siteName)
     {
         return Sites.TryGetValue(siteName, out var site)
             ? site.SubSites.Keys.OrderBy(n => n).ToList()
             : new List<int>();
     }
+
     public static Dictionary<int, string> GetCameraPositions(string siteName, int siteNumber)
     {
         return Sites.TryGetValue(siteName, out var site) &&
                site.SubSites.TryGetValue(siteNumber, out var subSite)
             ? subSite.NameMap
             : new Dictionary<int, string>();
+    }
+
+     public static List<int> GetCameraPositionNumbers(string siteName, int siteNumber)
+    {
+        return Sites.TryGetValue(siteName, out var site) &&
+               site.SubSites.TryGetValue(siteNumber, out var subSite)
+            ? subSite.NameMap.Keys.OrderBy(n => n).ToList()
+            : new List<int>();
     }
 
     public static string? GetCameraPositionName(string? siteName, int siteNumber, int cameraPositionNumber)
