@@ -9,10 +9,8 @@ public class ImageQuery
     public string? FilePath { get; set; }
     public DateTime StartDateTime { get; set; }
     public DateTime EndDateTime { get; set; }
-    public TimeOnly StartTimeOnly { get; set; }
-    public TimeOnly EndTimeOnly { get; set; }
     public long? UnixTime { get; set; }
     public string? SiteName { get; set; }
     public int? SiteNumber { get; set; }
-    public int? CameraPosition { get; set; }
+    public int? CameraPositionNumber { get; set; }
 }

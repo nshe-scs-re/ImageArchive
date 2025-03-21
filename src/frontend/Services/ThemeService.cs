@@ -15,4 +15,9 @@ public class ThemeService
         State = !State;
         StateChanged?.Invoke();
     }
+
+    public string GetTheme()
+    {
+        return State ? "custom-theme-light" : "custom-theme-dark";
+    }
 }

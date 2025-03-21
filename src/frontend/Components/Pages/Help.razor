@@ -4,9 +4,9 @@
 
 <PageTitle>Help & Documentation</PageTitle>
 
-<div class="custom-help-section @GetTheme() p-2">
+<div class="custom-help-section  p-2">
 
-    <h2 class="text-center custom-help-section py-3 @GetTheme()"> Help & Documentation</h2>
+    <h2 class="text-center custom-help-section py-3 "> Help & Documentation</h2>
 
     <div class="m-3">
       <p>Welcome to the Image Archive Help and Documentation page! This comprehensive resource is here to ensure you have all the guidance you need to navigate our platform with confidence and ease. Whether you’re just starting out or looking to explore advanced features, this page offers detailed step-by-step instructions, practical tips, and solutions to common questions. From setting up your account and performing basic searches to mastering advanced filters and managing your profile settings, we’ve covered every aspect to help you make the most of our tools. Designed with your needs in mind, this guide aims to simplify your experience, enhance your productivity, and address any concerns you may encounter. Dive into the sections below to unlock the full potential of our platform and find the answers you're looking for, all in one place.</p>
@@ -37,40 +37,34 @@
         <ul>
             <li><strong>Date Range:</strong> Filter images captured between specific start and end dates.</li>
             <li><strong>Time Range:</strong> Narrow down results to specific times of day.</li>
-            <li><strong>Camera Number:</strong> Choose the exact camera used to capture images.</li>
             <li><strong>Position:</strong> Select images based on camera angle or location.</li>
         </ul>
     </div>
 
     <div id="account-management" class="custom-help-section m-3">
         <h2>Account Management</h2>
-        <p>You can manage your account settings by accessing your profile from the navigation bar. Here, you can update your personal information, adjust notification preferences, and enable dark mode for a comfortable viewing experience.</p>
+        <p>You can manage your account settings by accessing your profile from the navigation bar.</p>
     </div>
 
     <div id="faq" class="custom-help-section m-3">
         <h2>Frequently Asked Questions</h2>
-        <div class="custom-faq-item">
-          <p class="custom-faq-question" @onclick="@(() => ToggleAnswer("faq-answer-0"))">How can I reset my password?</p>
-          <p class="custom-faq-answer" id="faq-answer-0" style="display:none;">To reset your password, go to the Profile page and click on 'Reset Password.' Follow the on-screen instructions to complete the process.</p>
-        </div>
          <div class="custom-faq-item">
           <p class="custom-faq-question" @onclick="@(() => ToggleAnswer("faq-answer-1"))">Can I save my search queries for future use?</p>
-          <p class="custom-faq-answer" id="faq-answer-1" style="display:none;">Yes, you can save search queries under the 'Saved Searches' section in your profile. This allows you to quickly access commonly used queries.</p>
+          <p class="custom-faq-answer" id="faq-answer-1" style="display:none;">Not at this time.</p>
         </div>
          <div class="custom-faq-item">
           <p class="custom-faq-question" @onclick="@(() => ToggleAnswer("faq-answer-2"))">What file formats are supported for uploads?</p>
-          <p class="custom-faq-answer" id="faq-answer-2" style="display:none;">Currently, we support .jpg, and .png formats. Ensure that images are high-resolution and accurately tagged for optimal performance.</p>
+          <p class="custom-faq-answer" id="faq-answer-2" style="display:none;">Currently, we support .jpg, .jpeg formats.</p>
         </div>
     </div>
 
-    <div id="custom-contact-support" class="custom-contact-support m-3 @GetTheme()">
+    <div id="custom-contact-support" class="custom-contact-support m-3">
         <h2>Contact Support</h2>
         <p>If you encounter any issues, please don't hesitate to reach out. We are here to help with any questions or problems you may have.</p>
-        <p><strong>Email:</strong> support@imagerepository.com</p>
-        <p><strong>Phone:</strong> +1 (555) 123-4567</p>
+        <p><strong>Email: </strong>whaley@nshe.nevada.edu</p>
     </div>
 
-    <div class="custom-feedback-section m-3 @GetTheme()">
+    <div class="custom-feedback-section m-3" hidden>
         <h2>Your Feedback Matters</h2>
         <p>Help us improve our platform by sharing your feedback. We appreciate your input!</p>
         <textarea @bind="feedbackText" placeholder="Type your feedback here..."></textarea>

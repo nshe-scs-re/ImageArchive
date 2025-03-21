@@ -13,9 +13,17 @@
 
   <ItemGroup>
     <PackageReference Include="Auth0.AspNetCore.Authentication" />
+    <PackageReference Include="bootstrap" />
     <PackageReference Include="Microsoft.AspNetCore.Components.QuickGrid" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
     <PackageReference Include="System.Net.Http.Json" />
   </ItemGroup>
+
+  <Target Name="CopyBootstrapCSS" AfterTargets="Build">
+    <ItemGroup>
+      <BootstrapCSS Include="$(NuGetPackageRoot)bootstrap\5.3.3\content\Content\bootstrap.min.css" />
+    </ItemGroup>
+    <Copy SourceFiles="@(BootstrapCSS)" DestinationFolder="$(ProjectDir)wwwroot\lib\bootstrap\css\" />
+  </Target>
 
 </Project>

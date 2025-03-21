@@ -1,8 +1,8 @@
 ﻿using frontend.Models;
 using Microsoft.AspNetCore.Antiforgery;
-using System.Net.Http.Headers;
-using System.Net;
 using System.Globalization;
+using System.Net;
+using System.Net.Http.Headers;
 namespace frontend.Services;
 
 public class HttpService
@@ -22,7 +22,7 @@ public class HttpService
 
     public HttpClient CreateForwardClient(Uri? baseAddress = null)
     {
-        
+
         var client = _httpClientFactory.CreateClient("ForwardingClient");
 
         if(baseAddress != null)
@@ -91,7 +91,7 @@ public class HttpService
 
         var tokens = _antiforgery.GetAndStoreTokens(httpContext);
 
-        if (tokens.RequestToken is null || tokens.HeaderName is null)
+        if(tokens.RequestToken is null || tokens.HeaderName is null)
         {
             Console.WriteLine($"[ERROR] [HttpService] [AddAntiForgeryToken]: Antiforgery token fields null.");
         }
@@ -112,6 +112,12 @@ public class HttpService
     {
         var httpClient = CreateForwardClient();
         return await httpClient.GetAsync($"api/images/paginated?filter={startDate},{endDate},{pageIndex},{pageSize},{siteName},{siteNumber},{cameraPosition}");
+    }
+
+    public async Task<HttpResponseMessage> GetImagesByPageAsync(ImageQuery imageQuery, int pageIndex, int pageSize)
+    {
+        var httpClient = CreateForwardClient();
+        return await httpClient.GetAsync($"api/images/paginated?filter={imageQuery.StartDateTime},{imageQuery.EndDateTime},{pageIndex},{pageSize},{imageQuery.SiteName},{imageQuery.SiteNumber},{imageQuery.CameraPositionNumber}");
     }
 
     public async Task<HttpResponseMessage> GetImagesAllAsync()
@@ -184,7 +190,7 @@ public class HttpService
 
         using var content = new MultipartFormDataContent();
 
-        for(int i=0; i < fileItems.Count; i++)
+        for(int i = 0; i < fileItems.Count; i++)
         {
             var item = fileItems[i];
 
