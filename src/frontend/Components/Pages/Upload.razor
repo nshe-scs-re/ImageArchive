@@ -1,18 +1,17 @@
 ﻿@page "/upload"
 @inject HttpService HttpService
-@inject ThemeService ThemeService
 
 <PageTitle>Upload</PageTitle>
 
-<div class="container-fluid  my-3 @GetTheme()">
-  <h3 class="text-center fw-bold py-3 h1 custom-theme-light fs-1">Upload Development Page</h3>
+<div class="container-fluid  my-3">
+  <h3 class="text-center fw-bold py-3 h1 fs-1">Upload Development Page</h3>
 
   @if(image != null)
   {
   <div class="container">
     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3 justify-content-center">
       <div class="col d-flex justify-content-center">
-        <div class="card shadow-sm @GetTheme()">
+        <div class="card shadow-sm">
           <img src="/proxy/images/@image.Id" class="card-img-top" width="320" height="240" />
           <div class="card-body">
             <p class="card-text">Time: @image.DateTime</p>
@@ -27,7 +26,7 @@
   }
 
   <section class="text-center py-3">
-    <button class="btn btn-primary" @onclick="ShowModal">Upload File(s)</button>
+    <button class="btn" @onclick="ShowModal">Upload Image</button>
   </section>
 
   <div class="modal" tabindex="-1" style="display:@(isModalVisible ? "block" : "none")">
@@ -91,17 +90,18 @@
                                 <label for="fileInputElement">Files:</label>
                                 <InputFile OnChange="HandleFileSelected" id="fileInputElement" multiple accept=".jpg,.jpeg" class="@(string.IsNullOrEmpty(uploadModel.CameraPositionName) ? "disabled" : "")" />
                             </div>
-                            <button type="submit" class="btn btn-primary" disabled="@(!CanUpload)">Upload</button>
+                            <button type="submit" class="btn" disabled="@(!CanUpload)">Upload</button>
                         </EditForm>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" @onclick="HideModal">Close</button>
+                    <button type="button" class="btn" @onclick="HideModal">Close</button>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
 @if(errors.Count > 0)
 {
     <h2>Error(s)</h2>
@@ -116,7 +116,7 @@
 @code{
     public FileUploadItem uploadModel = new FileUploadItem();
     private bool isModalVisible = false;
-    private int maxAllowedFiles = 5;
+    //private int maxAllowedFiles = 5;
     private List<string> errors = new();
     private List<IBrowserFile> selectedFiles = new List<IBrowserFile>();
     private bool CanUpload =>
@@ -127,7 +127,7 @@
     private List<string> siteNames = CameraPositionMap.GetSiteNames();
     private Dictionary<string, List<int>> siteNumbers = CameraPositionMap.GetAllSiteNumbers();
     private Dictionary<int, string> cameraPositions = new();
-    private Image image = null as Image;
+    private Image? image = null as Image;
 
     protected override void OnInitialized(){}
 
@@ -225,10 +225,5 @@
         {
             errors.Add($"HTTP Response status code: {response.StatusCode.ToString()}");
         }
-    }
-
-    private string GetTheme()
-    {
-        return ThemeService.State ? "bg-body-tertiary" : "custom-color-bg-dm-secondary";
     }
 }
