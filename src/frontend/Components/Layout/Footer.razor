@@ -48,6 +48,6 @@
 
     public void Dispose()
     {
-        ThemeService.StateChanged -= StateHasChanged;
+        ThemeService.StateChanged -= OnThemeChanged;
     }
 }
