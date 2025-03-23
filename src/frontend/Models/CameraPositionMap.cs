@@ -13,371 +13,319 @@ public class SubSite
 
 public static class CameraPositionMap
 {
+    private static readonly Dictionary<int, SubSite> SheepSubSites = new()
+    {
+        { 1, new SubSite { Name = "site_1", NameMap = new Dictionary<int, string>
+            {
+                { 1, "North" },
+                { 2, "North East" },
+                { 3, "East"},
+                { 4, "South East" },
+                { 5, "South" },
+                { 6, "South West" },
+                { 7, "West" },
+                { 8, "North West" },
+                { 9, "Solar Panels"},
+                { 10, "Tower Base"},
+                { 11, "Site Access"},
+                { 12, "Soil Sensors"},
+                { 13, "Precipitation Gage"},
+                { 14, "Angel Peak"},
+                { 15, "Refuge HQ"},
+                { 16, "Vegetation Interspace"}
+            }}
+        },
+        { 2, new SubSite { Name = "site_2", NameMap = new Dictionary<int, string>
+            {
+                { 1, "North" },
+                { 2, "North East" },
+                { 3, "East"},
+                { 4, "South East" },
+                { 5, "South" },
+                { 6, "South West" },
+                { 7, "West" },
+                { 8, "North West" },
+                { 9, "Solar Panels"},
+                { 10, "Tower Base"},
+                { 11, "Site Access"},
+                { 12, "Soil Sensors"},
+                { 13, "Precipitation Gage"},
+                { 14, "LV Precip Station"},
+                { 15, "Angel Peak"},
+                { 16, "Hayford Peak"},
+                { 17, "Sheep 3&4"},
+                { 18, "Canopy Interspace"}
+            }}
+        },
+        { 3, new SubSite { Name = "site_3", NameMap = new Dictionary<int, string>
+            {
+                { 1, "North" },
+                { 2, "North East" },
+                { 3, "East"},
+                { 4, "South East" },
+                { 5, "South" },
+                { 6, "South West" },
+                { 7, "West" },
+                { 8, "North West" },
+                { 9, "Solar Panels"},
+                { 10, "Tower Base"},
+                { 11, "Site Access"},
+                { 12, "Soil Sensors"},
+                { 13, "Precipitation Gage"},
+                { 14, "Runoff Collector"},
+                { 15, "NRCS SCAN Site"},
+                { 16, "LV Precip Station"}
+            }}
+        },
+        { 4, new SubSite { Name = "site_4", NameMap = new Dictionary<int, string>
+            {
+                { 1, "North" },
+                { 2, "North East" },
+                { 3, "East"},
+                { 4, "South East" },
+                { 5, "South" },
+                { 6, "South West" },
+                { 7, "West" },
+                { 8, "North West" },
+                { 9, "Solar Panels"},
+                { 10, "Tower Base"},
+                { 11, "Site Access"},
+                { 12, "Soil Sensors"},
+                { 13, "Precipitation Gage"},
+                { 14, "Rain Gage"},
+                { 15, "Canopy Interspace"},
+                { 16, "Sap Flow Sensors"},
+                { 17, "PIMO Canopy"}
+            }}
+        }
+    };
+
+    private static readonly Dictionary<int, SubSite> RocklandSubSites = new()
+    {
+        {1, new SubSite { Name = "site_1", NameMap = new Dictionary<int, string>
+            {
+                { 1, "North" },
+                { 2, "North East" },
+                { 3, "East"},
+                { 4, "South East" },
+                { 5, "South" },
+                { 6, "South West" },
+                { 7, "West" },
+                { 8, "North West" },
+                { 9, "Solar Panels"},
+                { 10, "Tower Base"},
+                { 11, "Mason Valley"},
+                { 12, "Sawtooth Ridge"},
+                { 13, "Sweetwater Range"},
+                { 14, "White Mountain Range"},
+                { 15, "Walker River"},
+                { 16, "Corey Peak"},
+                { 17, "Mt Grant"},
+                { 18, "North Aspect"},
+                { 19, "South Aspect"},
+                { 20, "Mt Rose"}
+            }
+            }
+        }
+    };
+
+    private static readonly Dictionary<int, SubSite> SpringSubSites = new()
+    {
+        {0, new SubSite { Name = "site_0", NameMap = new Dictionary<int, string>
+            {
+                { 1, "North" },
+                { 2, "North East" },
+                { 3, "East"},
+                { 4, "South East" },
+                { 5, "South" },
+                { 6, "South West" },
+                { 7, "West" },
+                { 8, "North West" }
+            }}
+        },
+        {1, new SubSite { Name = "site_1", NameMap = new Dictionary<int, string>
+            {
+                { 1, "North" },
+                { 2, "North East" },
+                { 3, "East"},
+                { 4, "South East" },
+                { 5, "South" },
+                { 6, "South West" },
+                { 7, "West" },
+                { 8, "North West" }
+            }}
+        },
+        {2, new SubSite { Name = "site_2", NameMap = new Dictionary<int, string>
+            {
+                { 1, "North" },
+                { 2, "North East" },
+                { 3, "East"},
+                { 4, "South East" },
+                { 5, "South" },
+                { 6, "South West" },
+                { 7, "West" },
+                { 8, "North West" }
+            }}
+        },
+        {3, new SubSite { Name = "site_3", NameMap = new Dictionary<int, string>
+            {
+                { 1, "North" },
+                { 2, "North East" },
+                { 3, "East"},
+                { 4, "South East" },
+                { 5, "South" },
+                { 6, "South West" },
+                { 7, "West" },
+                { 8, "North West" },
+                { 9, "Solar Panels"},
+                { 10, "Tower Base"},
+                { 11, "Site Access"},
+                { 12, "Soil Sensors"},
+                { 13, "Precipitation Gage"},
+                { 14, "Snow Pole 1"},
+                { 15, "Snow Pole 2"},
+                { 16, "Mountain Mahogony Canopy"},
+                { 17, "Spring 1"},
+                { 18, "Cave Mountain"}
+            }}
+        },
+        {4, new SubSite { Name = "site_4", NameMap = new Dictionary<int, string>
+            {
+                { 1, "North" },
+                { 2, "North East" },
+                { 3, "East"},
+                { 4, "South East" },
+                { 5, "South" },
+                { 6, "South West" },
+                { 7, "West" },
+                { 8, "North West" },
+                { 9, "Solar Panels"},
+                { 10, "Tower Base"},
+                { 11, "Site Access"},
+                { 12, "Soil Sensors"},
+                { 13, "Precipitation Gage"},
+                { 14, "Snow Pole"},
+                { 15, "Snow Weighing Sensors (Shade)"},
+                { 16, "Snow Weighing Sensors (Sun)"},
+                { 17, "Bristlecone Canopy"},
+                { 18, "Limber Pine Canopy"},
+                { 19, "South Spring Valley"},
+                { 20, "South Schell Creek Range"}
+            }}
+        }
+    };
+
+    private static readonly Dictionary<int, SubSite> SnakeSubSites = new()
+    {
+        {1, new SubSite {
+            Name = "site_1",
+            NameMap = new Dictionary<int, string>
+            {
+                { 1, "North" },
+                { 2, "North East" },
+                { 3, "East"},
+                { 4, "South East" },
+                { 5, "South" },
+                { 6, "South West" },
+                { 7, "West" },
+                { 8, "North West" },
+                { 9, "Solar Panels"},
+                { 10, "Tower Base"},
+                { 11, "Site Access"},
+                { 12, "Tower Base 2"},
+                { 13, "Precipitation Gage"},
+                { 14, "UNLV Data Logger"},
+                { 15, "Great Basin National Park"}
+            }}
+        },
+        {2, new SubSite { Name = "site_2", NameMap = new Dictionary<int, string>
+            {
+                { 1, "North" },
+                { 2, "North East" },
+                { 3, "East"},
+                { 4, "South East" },
+                { 5, "South" },
+                { 6, "South West" },
+                { 7, "West" },
+                { 8, "North West" },
+                { 9, "Solar Panels"},
+                { 10, "Tower Base"},
+                { 11, "Site Access"},
+                { 12, "Soil Sensors"},
+                { 13, "Precipitation Gage"},
+                { 14, "Great Basin Ranch Exhibit"},
+                { 15, "Spring One"}
+            }}
+        },
+        {3, new SubSite { Name = "site_3", NameMap = new Dictionary<int, string>
+            {
+                { 1, "North" },
+                { 2, "North East" },
+                { 3, "East"},
+                { 4, "South East" },
+                { 5, "South" },
+                { 6, "South West" },
+                { 7, "West" },
+                { 8, "North West" },
+                { 9, "Solar Panels"},
+                { 10, "Tower Base"},
+                { 11, "Site Access"},
+                { 12, "Precipitation Gage"},
+                { 13, "Sap Flow Sensors"},
+                { 14, "Vegetation Interspace"},
+                { 15, "Deciduous Leaves"},
+                { 16, "Soil Sensors"},
+                { 17, "Snow Weighing Sensor"},
+                { 18, "Snow Depth Pole"}
+            }}
+        }
+    };
+
+    private static readonly Dictionary<int, SubSite> EldoradoSubSites = new()
+    {
+        {2, new SubSite { Name = "site_2", NameMap = new Dictionary<int, string>
+            {
+                { 1, "North" },
+                { 2, "North East" },
+                { 3, "East"},
+                { 4, "South East" },
+                { 5, "South" },
+                { 6, "South West" },
+                { 7, "West" },
+                { 8, "North West" },
+            }}
+        },
+        {3, new SubSite { Name = "site_3", NameMap = new Dictionary<int, string>
+            {
+                { 1, "North" },
+                { 2, "North East" },
+                { 3, "East"},
+                { 4, "South East" },
+                { 5, "South" },
+                { 6, "South West" },
+                { 7, "West" },
+                { 8, "North West" },
+                { 9, "Solar Panels"},
+                { 10, "Tower Base"},
+                { 11, "Site Access"},
+                { 12, "Precipitation Gage"},
+                { 13, "Sap Flow Sensors"},
+                { 14, "Vegetation Interspace"},
+                { 15, "Deciduous Leaves"},
+                { 16, "Soil Sensors"},
+                { 17, "Snow Weighing Sensor"},
+                { 18, "Snow Depth Pole"}
+            }}
+        }
+    };
+
     public static readonly Dictionary<string, Site> Sites = new(StringComparer.OrdinalIgnoreCase)
     {
-        { "Sheep", new Site {
-            Name = "Sheep",
-            SubSites = new Dictionary<int, SubSite>
-            {
-                { 1, new SubSite {
-                    Name = "site_1",
-                    NameMap = new Dictionary<int, string>
-                    {
-                        { 1, "North" },
-                        { 2, "North East" },
-                        { 3, "East"},
-                        { 4, "South East" },
-                        { 5, "South" },
-                        { 6, "South West" },
-                        { 7, "West" },
-                        { 8, "North West" },
-                        { 9, "Solar Panels"},
-                        { 10, "Tower Base"},
-                        { 11, "Site Access"},
-                        { 12, "Soil Sensors"},
-                        { 13, "Precipitation Gage"},
-                        { 14, "Angel Peak"},
-                        { 15, "Refuge HQ"},
-                        { 16, "Vegetation Interspace"}
-                    }
-                }
-                },
-                { 2, new SubSite {
-                    Name = "site_2",
-                    NameMap = new Dictionary<int, string>
-                    {
-                        { 1, "North" },
-                        { 2, "North East" },
-                        { 3, "East"},
-                        { 4, "South East" },
-                        { 5, "South" },
-                        { 6, "South West" },
-                        { 7, "West" },
-                        { 8, "North West" },
-                        { 9, "Solar Panels"},
-                        { 10, "Tower Base"},
-                        { 11, "Site Access"},
-                        { 12, "Soil Sensors"},
-                        { 13, "Precipitation Gage"},
-                        { 14, "LV Precip Station"},
-                        { 15, "Angel Peak"},
-                        { 16, "Hayford Peak"},
-                        { 17, "Sheep 3&4"},
-                        { 18, "Canopy Interspace"}
-                    }
-                }
-                },
-                { 3, new SubSite {
-                    Name = "site_3",
-                    NameMap = new Dictionary<int, string>
-                    {
-                        { 1, "North" },
-                        { 2, "North East" },
-                        { 3, "East"},
-                        { 4, "South East" },
-                        { 5, "South" },
-                        { 6, "South West" },
-                        { 7, "West" },
-                        { 8, "North West" },
-                        { 9, "Solar Panels"},
-                        { 10, "Tower Base"},
-                        { 11, "Site Access"},
-                        { 12, "Soil Sensors"},
-                        { 13, "Precipitation Gage"},
-                        { 14, "Runoff Collector"},
-                        { 15, "NRCS SCAN Site"},
-                        { 16, "LV Precip Station"}
-                    }
-                }
-                },
-                { 4, new SubSite {
-                    Name = "site_4",
-                    NameMap = new Dictionary<int, string>
-                    {
-                        { 1, "North" },
-                        { 2, "North East" },
-                        { 3, "East"},
-                        { 4, "South East" },
-                        { 5, "South" },
-                        { 6, "South West" },
-                        { 7, "West" },
-                        { 8, "North West" },
-                        { 9, "Solar Panels"},
-                        { 10, "Tower Base"},
-                        { 11, "Site Access"},
-                        { 12, "Soil Sensors"},
-                        { 13, "Precipitation Gage"},
-                        { 14, "Rain Gage"},
-                        { 15, "Canopy Interspace"},
-                        { 16, "Sap Flow Sensors"},
-                        { 17, "PIMO Canopy"}
-                    }
-                }
-                }
-            }
-        }
-        },
-        { "Rockland", new Site {
-            Name = "Rockland",
-            SubSites = new Dictionary<int, SubSite>
-            {
-                {1, new SubSite {
-                    Name = "site_1",
-                    NameMap = new Dictionary<int, string>
-                    {
-                        { 1, "North" },
-                        { 2, "North East" },
-                        { 3, "East"},
-                        { 4, "South East" },
-                        { 5, "South" },
-                        { 6, "South West" },
-                        { 7, "West" },
-                        { 8, "North West" },
-                        { 9, "Solar Panels"},
-                        { 10, "Tower Base"},
-                        { 11, "Mason Valley"},
-                        { 12, "Sawtooth Ridge"},
-                        { 13, "Sweetwater Range"},
-                        { 14, "White Mountain Range"},
-                        { 15, "Walker River"},
-                        { 16, "Corey Peak"},
-                        { 17, "Mt Grant"},
-                        { 18, "North Aspect"},
-                        { 19, "South Aspect"},
-                        { 20, "Mt Rose"}
-                    }
-                    }
-                }
-            }
-        }
-        },
-        { "Spring", new Site {
-            Name = "Spring",
-            SubSites = new Dictionary<int, SubSite>
-            {
-                {0, new SubSite {
-                    Name = "site_0",
-                    NameMap = new Dictionary<int, string>
-                    {
-                        { 1, "North" },
-                        { 2, "North East" },
-                        { 3, "East"},
-                        { 4, "South East" },
-                        { 5, "South" },
-                        { 6, "South West" },
-                        { 7, "West" },
-                        { 8, "North West" }
-                    }
-                }
-                },
-                {1, new SubSite {
-                    Name = "site_1",
-                    NameMap = new Dictionary<int, string>
-                    {
-                        { 1, "North" },
-                        { 2, "North East" },
-                        { 3, "East"},
-                        { 4, "South East" },
-                        { 5, "South" },
-                        { 6, "South West" },
-                        { 7, "West" },
-                        { 8, "North West" }
-                    }
-                }
-                },
-                {2, new SubSite {
-                    Name = "site_2",
-                    NameMap = new Dictionary<int, string>
-                    {
-                        { 1, "North" },
-                        { 2, "North East" },
-                        { 3, "East"},
-                        { 4, "South East" },
-                        { 5, "South" },
-                        { 6, "South West" },
-                        { 7, "West" },
-                        { 8, "North West" }
-                    }
-                }
-                },
-                {3, new SubSite {
-                    Name = "site_3",
-                    NameMap = new Dictionary<int, string>
-                    {
-                        { 1, "North" },
-                        { 2, "North East" },
-                        { 3, "East"},
-                        { 4, "South East" },
-                        { 5, "South" },
-                        { 6, "South West" },
-                        { 7, "West" },
-                        { 8, "North West" },
-                        { 9, "Solar Panels"},
-                        { 10, "Tower Base"},
-                        { 11, "Site Access"},
-                        { 12, "Soil Sensors"},
-                        { 13, "Precipitation Gage"},
-                        { 14, "Snow Pole 1"},
-                        { 15, "Snow Pole 2"},
-                        { 16, "Mountain Mahogony Canopy"},
-                        { 17, "Spring 1"},
-                        { 18, "Cave Mountain"}
-                    }
-                }
-                },
-                {4, new SubSite {
-                    Name = "site_4",
-                    NameMap = new Dictionary<int, string>
-                    {
-                        { 1, "North" },
-                        { 2, "North East" },
-                        { 3, "East"},
-                        { 4, "South East" },
-                        { 5, "South" },
-                        { 6, "South West" },
-                        { 7, "West" },
-                        { 8, "North West" },
-                        { 9, "Solar Panels"},
-                        { 10, "Tower Base"},
-                        { 11, "Site Access"},
-                        { 12, "Soil Sensors"},
-                        { 13, "Precipitation Gage"},
-                        { 14, "Snow Pole"},
-                        { 15, "Snow Weighing Sensors (Shade)"},
-                        { 16, "Snow Weighing Sensors (Sun)"},
-                        { 17, "Bristlecone Canopy"},
-                        { 18, "Limber Pine Canopy"},
-                        { 19, "South Spring Valley"},
-                        { 20, "South Schell Creek Range"}
-                    }
-                }
-                }
-            }
-        }
-        },
-        {"Snake", new Site {
-            Name = "Snake",
-            SubSites = new Dictionary<int, SubSite>
-            {
-                {1, new SubSite {
-                    Name = "site_1",
-                    NameMap = new Dictionary<int, string>
-                    {
-                        { 1, "North" },
-                        { 2, "North East" },
-                        { 3, "East"},
-                        { 4, "South East" },
-                        { 5, "South" },
-                        { 6, "South West" },
-                        { 7, "West" },
-                        { 8, "North West" },
-                        { 9, "Solar Panels"},
-                        { 10, "Tower Base"},
-                        { 11, "Site Access"},
-                        { 12, "Tower Base 2"},
-                        { 13, "Precipitation Gage"},
-                        { 14, "UNLV Data Logger"},
-                        { 15, "Great Basin National Park"}
-                    }
-                }
-                },
-                {2, new SubSite {
-                    Name = "site_2",
-                    NameMap = new Dictionary<int, string>
-                    {
-                        { 1, "North" },
-                        { 2, "North East" },
-                        { 3, "East"},
-                        { 4, "South East" },
-                        { 5, "South" },
-                        { 6, "South West" },
-                        { 7, "West" },
-                        { 8, "North West" },
-                        { 9, "Solar Panels"},
-                        { 10, "Tower Base"},
-                        { 11, "Site Access"},
-                        { 12, "Soil Sensors"},
-                        { 13, "Precipitation Gage"},
-                        { 14, "Great Basin Ranch Exhibit"},
-                        { 15, "Spring One"}
-                    }
-                }
-                },
-                {3, new SubSite {
-                    Name = "site_3",
-                    NameMap = new Dictionary<int, string>
-                    {
-                        { 1, "North" },
-                        { 2, "North East" },
-                        { 3, "East"},
-                        { 4, "South East" },
-                        { 5, "South" },
-                        { 6, "South West" },
-                        { 7, "West" },
-                        { 8, "North West" },
-                        { 9, "Solar Panels"},
-                        { 10, "Tower Base"},
-                        { 11, "Site Access"},
-                        { 12, "Precipitation Gage"},
-                        { 13, "Sap Flow Sensors"},
-                        { 14, "Vegetation Interspace"},
-                        { 15, "Deciduous Leaves"},
-                        { 16, "Soil Sensors"},
-                        { 17, "Snow Weighing Sensor"},
-                        { 18, "Snow Depth Pole"}
-                    }
-                }
-                }
-            }
-        }
-        },
-        {"Eldorado", new Site {
-            Name = "Eldorado",
-            SubSites = new Dictionary<int, SubSite>
-            {
-                {2, new SubSite {
-                    Name = "site_2",
-                    NameMap = new Dictionary<int, string>
-                    {
-                        { 1, "North" },
-                        { 2, "North East" },
-                        { 3, "East"},
-                        { 4, "South East" },
-                        { 5, "South" },
-                        { 6, "South West" },
-                        { 7, "West" },
-                        { 8, "North West" },
-                    }
-                }
-                },
-                {3, new SubSite {
-                    Name = "site_3",
-                    NameMap = new Dictionary<int, string>
-                    {
-                        { 1, "North" },
-                        { 2, "North East" },
-                        { 3, "East"},
-                        { 4, "South East" },
-                        { 5, "South" },
-                        { 6, "South West" },
-                        { 7, "West" },
-                        { 8, "North West" },
-                        { 9, "Solar Panels"},
-                        { 10, "Tower Base"},
-                        { 11, "Site Access"},
-                        { 12, "Precipitation Gage"},
-                        { 13, "Sap Flow Sensors"},
-                        { 14, "Vegetation Interspace"},
-                        { 15, "Deciduous Leaves"},
-                        { 16, "Soil Sensors"},
-                        { 17, "Snow Weighing Sensor"},
-                        { 18, "Snow Depth Pole"}
-                    }
-                }
-            }
-            }
-        }
-        }
+        { "Sheep", new Site { Name = "Sheep", SubSites = SheepSubSites }},
+        { "Rockland", new Site { Name = "Rockland", SubSites = RocklandSubSites }},
+        { "Spring", new Site { Name = "Spring", SubSites = SpringSubSites }},
+        { "Snake", new Site { Name = "Snake", SubSites = SnakeSubSites }},
+        { "Eldorado", new Site { Name = "Eldorado", SubSites = EldoradoSubSites }}
     };
 
     public static List<string> GetSiteNames()
