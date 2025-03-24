@@ -5,18 +5,12 @@ namespace frontend.Models;
 
 public class FileUploadItem
 {
-    [Required]
-    public IBrowserFile File { get; set; }
-    [Required]
+    public IBrowserFile? File { get; set; }
     public DateTime? DateTime { get; set; }
     public long? UnixTime { get; set; }
-    [Required]
     public string? SiteName { get; set; }
-    [Required]
     public int? SiteNumber { get; set; }
-    [Required]
     public int? CameraPositionNumber { get; set; }
-    [Required]
     public string? CameraPositionName { get; set; }
 
     public override string ToString()
@@ -27,6 +21,6 @@ public class FileUploadItem
 
 public class FileUploadRequest
 {
-    public List<FileUploadItem> FileItems { get; set; }
+    public List<FileUploadItem>? FileItems { get; set; }
 
 }
