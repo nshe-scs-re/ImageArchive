@@ -358,7 +358,7 @@ public static class CameraPositionMap
 
     public static string? GetCameraPositionName(string? siteName, int siteNumber, int cameraPositionNumber)
     {
-        return Sites.TryGetValue(siteName, out var site)
+        return Sites.TryGetValue(siteName!, out var site)
             && site.SubSites.TryGetValue(siteNumber, out var subSite)
             && subSite.NameMap.TryGetValue(cameraPositionNumber, out var positionName)
             ? positionName
