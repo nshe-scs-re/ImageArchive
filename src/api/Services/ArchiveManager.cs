@@ -17,16 +17,16 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
         {
             request.Id = Guid.NewGuid();
         }
-        while(!Jobs.TryAdd(request.Id, request));
+        while(!Jobs.TryAdd((Guid)request.Id, request));
     }
 
     public ArchiveRequest ProcessArchiveRequest(ArchiveRequest request)
     {
         RegisterJob(request);
 
-#pragma warning disable CS4014 // Allow the async method to run without awaiting it. This is intentional.
+        #pragma warning disable CS4014 // Allow the async method to run without awaiting it. This is intentional.
         CreateArchiveAsync(request);
-#pragma warning restore CS4014
+        #pragma warning restore CS4014
 
         return request;
     }
@@ -52,7 +52,7 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
 
             //TODO: Extend LINQ query to include other search parameters
             List<Image> images = await dbContext.Images
-                .Where(i => i.DateTime >= request.StartDate && i.DateTime <= request.EndDate)
+                .Where(i => i.DateTime >= request.StartDateTime && i.DateTime <= request.EndDateTime)
                 .ToListAsync();
 
             request.FilePath = Path.Combine(Directory.GetCurrentDirectory(), "archives", $"{request.Id}.zip");
