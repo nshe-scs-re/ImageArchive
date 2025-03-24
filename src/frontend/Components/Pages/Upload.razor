@@ -26,15 +26,15 @@
   }
 
   <section class="text-center py-3">
-    <button class="btn" @onclick="ShowModal">Upload Image</button>
+    <button class="btn" data-bs-toggle="modal" data-bs-target="#upload-modal">Upload Image</button>
   </section>
 
-  <div class="modal" tabindex="-1" style="display:@(isModalVisible ? "block" : "none")">
-        <div class="modal-dialog">
+    <div class="modal" id="upload-modal" tabindex="-1">
+        <div class="modal-dialog" id="upload-modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Upload Files</h5>
-                    <button type="button" class="btn-close" @onclick="HideModal"></button>
+                    <h5 class="modal-title">Upload Image</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div id="UploadFormContainer" class="col mx-auto">
@@ -90,12 +90,12 @@
                                 <label for="fileInputElement">Files:</label>
                                 <InputFile OnChange="HandleFileSelected" id="fileInputElement" multiple accept=".jpg,.jpeg" class="@(string.IsNullOrEmpty(uploadModel.CameraPositionName) ? "disabled" : "")" />
                             </div>
-                            <button type="submit" class="btn" disabled="@(!CanUpload)">Upload</button>
+                            <button type="submit" class="btn" disabled="@(!CanUpload)" data-bs-dismiss="modal">Upload</button>
                         </EditForm>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn" @onclick="HideModal">Close</button>
+                    <button type="button" class="btn" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
@@ -115,7 +115,6 @@
 
 @code{
     public FileUploadItem uploadModel = new FileUploadItem();
-    private bool isModalVisible = false;
     //private int maxAllowedFiles = 5;
     private List<string> errors = new();
     private List<IBrowserFile> selectedFiles = new List<IBrowserFile>();
@@ -185,18 +184,6 @@
         }
     }
 
-    private Task ShowModal()
-    {
-        isModalVisible = true;
-        return Task.CompletedTask;
-    }
-
-    private Task HideModal()
-    {
-        isModalVisible = false;
-        return Task.CompletedTask;
-    }
-
     private List<string> GetCameraNumbers()
     {
         if (siteNumbers != null && !string.IsNullOrEmpty(uploadModel.SiteName) && siteNumbers.ContainsKey(uploadModel.SiteName) && siteNumbers[uploadModel.SiteName].Contains(uploadModel.SiteNumber.GetValueOrDefault()))
@@ -213,8 +200,6 @@
 
     private async Task HandleSubmit()
     {
-        await HideModal();
-
         var response = await HttpService.PostFileAsync(uploadModel);
 
         if (response.IsSuccessStatusCode)
