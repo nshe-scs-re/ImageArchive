@@ -65,7 +65,7 @@ public class HttpService
         }
 
         var antiCookie = httpContext.Request.Cookies
-            .FirstOrDefault(c => c.Key.StartsWith(".AspNetCore.Antiforgery."));
+            .FirstOrDefault(c => c.Key.StartsWith(".AspNetCore.Antiforgery.", StringComparison.OrdinalIgnoreCase));
 
         if(!string.IsNullOrEmpty(antiCookie.Value) && client.BaseAddress != null)
         {
@@ -96,7 +96,7 @@ public class HttpService
             Console.WriteLine($"[ERROR] [HttpService] [AddAntiForgeryToken]: Antiforgery token fields null.");
         }
 
-        client.DefaultRequestHeaders.Add(tokens.HeaderName, tokens.RequestToken);
+        client.DefaultRequestHeaders.Add(tokens.HeaderName!, tokens.RequestToken);
 
         //Console.WriteLine($"[INFO] [HttpService] [AddAntiForgeryToken]: {nameof(tokens.HeaderName)}: {tokens.HeaderName}");
         //Console.WriteLine($"[INFO] [HttpService] [AddAntiForgeryToken]: {nameof(tokens.RequestToken)}: {tokens.RequestToken}");
@@ -150,7 +150,7 @@ public class HttpService
 
         using var content = new MultipartFormDataContent();
 
-        var fileContent = new StreamContent(item.File.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024));
+        var fileContent = new StreamContent(item.File!.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024));
 
         fileContent.Headers.ContentType = new MediaTypeHeaderValue(item.File.ContentType);
 
@@ -194,7 +194,7 @@ public class HttpService
         {
             var item = fileItems[i];
 
-            var fileContent = new StreamContent(item.File.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024)); // 10 MB max file size
+            var fileContent = new StreamContent(item.File!.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024)); // 10 MB max file size
 
             fileContent.Headers.ContentType = new MediaTypeHeaderValue(item.File.ContentType);
 
