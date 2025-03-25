@@ -1,16 +1,16 @@
 ﻿@inject TokenProvider TokenProvider
 
-<Microsoft.AspNetCore.Components.Authorization.CascadingAuthenticationState>
+<CascadingAuthenticationState>
   <Router AppAssembly="typeof(Program).Assembly">
     <Found Context="routeData">
-      <Microsoft.AspNetCore.Components.Authorization.AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
+      <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
         <Authorizing>
           <p>Determining session state, please wait...</p>
         </Authorizing>
         <NotAuthorized>
-          <p>You're not authorized to reach this page. You need to log in.</p>
+          <AccessDenied></AccessDenied>
         </NotAuthorized>
-      </Microsoft.AspNetCore.Components.Authorization.AuthorizeRouteView>
+      </AuthorizeRouteView>
       <FocusOnNavigate RouteData="routeData" Selector="h1" />
     </Found>
     <NotFound>
@@ -20,7 +20,7 @@
       </LayoutView>
     </NotFound>
   </Router>
-</Microsoft.AspNetCore.Components.Authorization.CascadingAuthenticationState>
+</CascadingAuthenticationState>
 
 @code {
     [Parameter]
