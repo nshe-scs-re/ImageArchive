@@ -11,16 +11,13 @@
     <div class="navbar-collapse collapse row" id="mainNavBar">
       <ul class="col navbar-nav mx-auto justify-content-md-start"></ul>
       <ul class="col navbar-nav mx-auto justify-content-md-center">
-        <AuthorizeView>
+        <AuthorizeView Roles="Administrator">
           <Authorized>
-            <li class="nav-item"><a class="btn rounded custom-btn-fixed-size-md" href="/" Match="NavLinkMatch.All">Home</a></li>
+            <li class="nav-item"><a class="btn rounded custom-btn-fixed-size-md" href="/search" Match="NavLinkMatch.All">Search</a></li>
             <li class="nav-item"><a class="btn rounded custom-btn-fixed-size-md" href="http://localhost:8080/swagger">Swagger</a></li>
             <li class="nav-item"><a class="btn rounded custom-btn-fixed-size-md" href="upload">Upload</a></li>
           </Authorized>
           <NotAuthorized>
-            <li class="nav-item"><a class="btn rounded custom-btn-fixed-size-md" href="/" Match="NavLinkMatch.All">Home</a></li>
-            <li class="nav-item"><a class="btn rounded custom-btn-fixed-size-md" href="http://localhost:8080/swagger">Swagger</a></li>
-            <li class="nav-item"><a class="btn rounded custom-btn-fixed-size-md" href="upload">Upload</a></li>
           </NotAuthorized>
         </AuthorizeView>
       </ul>
@@ -49,8 +46,8 @@
             </li>
             <li class="nav-item dropdown"><a class="nav-link dropdown-toggle rounded" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">@userName</a>
               <ul class="dropdown-menu">
-                <li><a class="dropdown-item custom-btn-fixed-size-md" href="/profile" Match="NavLinkMatch.All">View Profile</a></li>
-                <li><a class="dropdown-item custom-btn-fixed-size-md" href="/logout">Logout</a></li>
+                <li><a class="dropdown-item custom-btn-fixed-size-md" href="/Account/Profile" Match="NavLinkMatch.All">View Profile</a></li>
+                <li><a class="dropdown-item custom-btn-fixed-size-md" href="/Account/Logout">Logout</a></li>
               </ul>
             </li>
           </Authorized>
@@ -75,7 +72,7 @@
                 </div>
               }
             </li>
-            <li class="nav-item"><a class="btn rounded custom-btn-fixed-size-md" href="/login">Login</a></li>
+            <li class="nav-item"><a class="btn rounded custom-btn-fixed-size-md" href="/Account/Login">Login</a></li>
           </NotAuthorized>
         </AuthorizeView>
       </ul>

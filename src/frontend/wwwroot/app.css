@@ -1,6 +1,6 @@
 :root {
     --custom-color-text-primary: black;
-    --custom-color-text-primary-faded: rgba(0,0,0,0.8);
+    --custom-color-text-primary-faded: rgba(0,0,0,0.65);
     --custom-color-text-dm-primary: antiquewhite;
 
     --custom-color-border-primary: black;
@@ -139,6 +139,13 @@ input[type=number] {
 
     .custom-theme-dark .accordion-button:hover {
         background-color: var(--custom-color-bg-dm-primary);
+    }
+
+.custom-theme-light .btn {
+    color: var(--custom-color-text-primary-faded);
+}
+    .custom-theme-light .btn:hover {
+        color: var(--custom-color-text-primary);
     }
 
 .custom-theme-dark .btn {
@@ -280,6 +287,10 @@ input[type=number] {
     height: 40px;
 }
 
+.custom-body-content-wrapper {
+    min-height: inherit;
+}
+
 .custom-card-placeholder {
     width: 100%;
     aspect-ratio: 4 / 3;
@@ -291,9 +302,45 @@ input[type=number] {
 
 /* Id Tag Specificity */
 
+#body-container {
+    min-height: 80vh;
+}
+
 #upload-modal,
 #view-image-modal,
 #upload-modal-dialog,
 #view-image-modal-dialog{
     background-color: unset;
+}
+
+#access-denied-container {
+    outline-style: solid;
+    outline-color: red;
+}
+
+#landing-page-wrapper {
+  position: relative;
+  z-index: 0;
+}
+
+#landing-page-wrapper::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+
+  background-image: url("/images/background_landing_page.jpg");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+
+  opacity: 0.65;
+
+  z-index: -1;
+}
+
+#landing-page-text-box {
+    max-width: 280px;
 }

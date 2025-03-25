@@ -1,4 +1,5 @@
 ﻿@page "/upload"
+@attribute [Authorize(Roles = "Administrator")]
 @inject HttpService HttpService
 
 <PageTitle>Upload</PageTitle>

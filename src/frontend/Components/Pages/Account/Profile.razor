@@ -1,24 +1,27 @@
-﻿@page "/Profile"
-@using Microsoft.AspNetCore.Authorization
+﻿@page "/Account/Profile"
 @inject TokenProvider tokenProvider
 @attribute [Authorize]
 
-<PageTitle>Profile</PageTitle>
+<PageTitle>Image Archive | Profile</PageTitle>
 
 <div class="row">
-  <div class="col-md-12">
-    <div class="row">
-      <h2>Profile</h2>
-      <div class="col-md-2">
-        <img src="@Picture" alt="" class="img-rounded img-responsive" />
-      </div>
-      <div class="col-md-4">
-        @if(!string.IsNullOrEmpty(Username)){<h3>@Username</h3>}
-        @if(!string.IsNullOrEmpty(EmailAddress)){<p>@EmailAddress</p>}
-        @if(!string.IsNullOrEmpty(IdToken)){<p>@IdToken</p>}
-      </div>
-    </div>
-  </div>
+    @if(state.User.Identity.IsAuthenticated)
+    {
+        <div class="col">
+            <img src="@Picture" alt="Profile Picture" class="img-rounded img-responsive" />
+        </div>
+        <div class="col text-center">
+            <h1 class="h1">Hi, @Username</h1>
+            @if(!string.IsNullOrEmpty(EmailAddress))
+            {
+                <p>@EmailAddress</p>
+            }
+        </div>
+    }
+    else
+    {
+        <p>Please sign in to view your profile.</p>
+    }
 </div>
 
 @code {
@@ -29,10 +32,11 @@
     private string EmailAddress = string.Empty;
     private string Picture = string.Empty;
     private string IdToken = string.Empty;
+    private AuthenticationState? state;
 
     protected override async Task OnInitializedAsync()
     {
-        var state = await AuthenticationStateTask;
+        state = await AuthenticationStateTask;
 
         Username = state.User.Identity.Name ?? string.Empty;
         EmailAddress = state.User.Claims
