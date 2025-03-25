@@ -1,0 +1,34 @@
+﻿@page "/"
+@inject NavigationManager NavigationManager
+<PageTitle>Image Archive</PageTitle>
+
+<div class="row align-content-center custom-body-content-wrapper" id="landing-page-wrapper">
+    <div class="rounded-end-4 p-3" id="landing-page-text-box">
+        <h1 class="h1">Welcome.</h1>
+        <p class="p">This is the home of the NEVCAN image archive.</p>
+        <AuthorizeView>
+            <NotAuthorized>
+                <div class="text-center">
+                    <button type="button" class="btn" @onclick="GoToLogin">Log in</button>
+                </div>
+            </NotAuthorized>
+            <Authorized>
+                <div class="text-center">
+                    <button type="button" class="btn" @onclick="GoToSearch">Search database</button>
+                </div>
+            </Authorized>
+        </AuthorizeView>
+    </div>
+</div>
+
+@code {
+    private void GoToLogin()
+    {
+        NavigationManager.NavigateTo("/Account/Login", forceLoad: true);
+    }
+
+    private void GoToSearch()
+    {
+        NavigationManager.NavigateTo("/search");
+    }
+}
