@@ -2,68 +2,73 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using api.Models;
 using api.Data;
-using Azure.Identity; 
 
 public class ImageUploadService
 {
-    private readonly string _storagePath;
+    private readonly string _basePath;
     private readonly ImageDbContext _context;
 
     public ImageUploadService(ImageDbContext context)
     {
         _context = context;
-        //TODO: investigate why it doesn't save to DB, but uploading to the uploads folder in wwwroot works
-        _storagePath = Path.Combine("wwwroot", "uploads");
-
-        if (!Directory.Exists(_storagePath))
-        {
-            Directory.CreateDirectory(_storagePath);
-        }
+        _basePath = "images";
     }
 
-    //TODO: check the IFormFile Config to make sure that it cooperates with everything else --  I was having issues with other IFormFile. Seems to work tho
-    public async Task<string> SaveImageAsync(IFormFile file, int camera, int? cameraPosition, string? site)
+    public async Task<Image> SaveImageAsync(FileUploadItem item)
     {
         try
         {
-            //TODO: Validate file size
-            // Validate file type
-            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
-            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
-            if (!allowedExtensions.Contains(extension))
+            var allowedFileExtensions = new[] { ".jpg", ".jpeg" };
+            var fileExtension = Path.GetExtension(item.File.FileName).ToLowerInvariant();
+            if(!allowedFileExtensions.Contains(fileExtension))
             {
-                throw new InvalidOperationException("Invalid file type.");
-            }
-            var fileName = Path.GetFileNameWithoutExtension(file.FileName);
-            //var extension = Path.GetExtension(file.FileName);
-            var uniqueFileName = $"{fileName}_{Guid.NewGuid()}{extension}";
-            var filePath = Path.Combine(_storagePath, uniqueFileName);
-
-            await using (var fileStream = new FileStream(filePath, FileMode.Create))
-            {
-                await file.CopyToAsync(fileStream);
+                Console.WriteLine($"[ERROR] [ImageUploadService.cs] [SaveImageAsync]: Invalid file type.");
+                throw new InvalidOperationException("[ERROR] [ImageUploadService.cs] [SaveImageAsync]: Invalid file type.");
             }
 
-            //Save image metadata to the database
+            item.UnixTime = new DateTimeOffset(item.DateTime).ToUnixTimeSeconds();
+
+            var unixEpoch = new DateTime(1970, 1, 1);
+
+            var daysSinceEpoch = (item.DateTime - unixEpoch).Days;
+
+            var siteNumberString = $"site_{item.SiteNumber}";
+
+            var directoryPath = Path.Combine(_basePath, item.SiteName.ToLower(), siteNumberString, daysSinceEpoch.ToString());
+
+            if(!Directory.Exists(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
+
+            var filePath = Path.Combine(directoryPath, $"{item.UnixTime}{fileExtension}");
+
+            await using(var fileStream = new FileStream(filePath, FileMode.Create))
+            {
+                await item.File.CopyToAsync(fileStream);
+            }
+
             var image = new Image
             {
-                Name = fileName,
                 FilePath = filePath,
-                DateTime = DateTime.UtcNow,
-                UnixTime = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds(),
-                SiteName = site
+                UnixTime = item.UnixTime,
+                DateTime = item.DateTime,
+                SiteName = item.SiteName,
+                SiteNumber = item.SiteNumber,
+                CameraPositionNumber = item.CameraPositionNumber,
+                CameraPositionName = item.CameraPositionName
             };
 
             _context.Images.Add(image);
             await _context.SaveChangesAsync();
-            return uniqueFileName;
+
+            return image;
         }
-        catch (Exception ex)
+        catch(Exception ex)
         {
-            Console.WriteLine($"ERROR [ImageUploadService.cs] [SaveImageAsync]: Exception message: {ex.Message}");
+            Console.WriteLine($"[ERROR] [ImageUploadService.cs] [SaveImageAsync]: Exception message: {ex.Message}");
             throw;
         }
     }
