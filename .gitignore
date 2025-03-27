@@ -370,3 +370,4 @@ Archives/
 appsettings.Production.json
 appsettings.Development.json
 *.env
+.qodo

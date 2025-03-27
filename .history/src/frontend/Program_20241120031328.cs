@@ -29,8 +29,6 @@ builder.Services.AddHttpClient("HttpClient", httpClient =>
     }
 });
 
-builder.Services.AddHttpClient();
-
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped<HttpService>();

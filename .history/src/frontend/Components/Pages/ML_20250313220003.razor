@@ -1,7 +1,6 @@
 @page "/ML"
 @using System.Diagnostics
 @inject IJSRuntime JSRuntime
-@inject HttpClient Http
 
 <div class="container mt-4">
     <div class="card">
@@ -15,7 +14,6 @@
                 <button class="btn btn-primary" @onclick="AnalyzeImage" disabled="@(uploadedFile == null || isAnalyzing)">
                     @if (isAnalyzing)
                     {
-                        <span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>
                         <span>Analyzing...</span>
                     }
                     else
@@ -72,36 +70,61 @@
 
         try
         {
-            // Create a multipart form content to send the image
-            using var content = new MultipartFormDataContent();
-            using var imageContent = new StreamContent(uploadedFile.OpenReadStream(maxAllowedSize: 10485760)); // 10MB max
+            var tempFileName = $"temp_{Guid.NewGuid()}.jpg";
+            var tempPath = Path.Combine(Path.GetTempPath(), tempFileName);
             
-            // Add the file to the form
-            content.Add(
-                content: imageContent,
-                name: "\"image\"",
-                fileName: uploadedFile.Name);
-
-            // Send the request to the API endpoint
-            var response = await Http.PostAsync("api/ml/analyze", content);
-            
-            // Check if the request was successful
-            if (!response.IsSuccessStatusCode)
+            await using (var stream = new FileStream(tempPath, FileMode.Create))
             {
-                var errorMessage = await response.Content.ReadAsStringAsync();
-                throw new Exception($"API request failed: {errorMessage}");
+                await uploadedFile.OpenReadStream().CopyToAsync(stream);
             }
 
-            // Parse the response
-            var result = await response.Content.ReadFromJsonAsync<ClassificationResult>();
-            if (result != null)
+            var solutionRoot = Directory.GetParent(Directory.GetCurrentDirectory())?.Parent?.FullName;
+            if (solutionRoot == null)
             {
-                ClassificationResults = result;
-                analysisStatus = "Analysis complete!";
+                throw new DirectoryNotFoundException("Could not find solution root directory");
             }
-            else
+
+            var scriptPath = Path.Combine(solutionRoot, "predictor", "Model", "classify_images.py");
+            var modelPath = Path.Combine(solutionRoot, "predictor", "Model", "best_model.pth");
+
+            using var process = new Process
             {
-                throw new Exception("Failed to parse the analysis results");
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "python3",
+                    Arguments = $"\"{scriptPath}\" \"{tempPath}\" --model \"{modelPath}\"",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                }
+            };
+
+            process.Start();
+            var output = await process.StandardOutput.ReadToEndAsync();
+            var error = await process.StandardError.ReadToEndAsync();
+            await process.WaitForExitAsync();
+
+            if (process.ExitCode != 0)
+            {
+                throw new Exception($"Python script failed: {error}");
+            }
+
+            foreach (var line in output.Split('\n'))
+            {
+                if (line.StartsWith("Prediction:"))
+                    ClassificationResults = new ClassificationResult { Prediction = line.Split(':')[1].Trim() };
+                else if (line.StartsWith("Snow Probability:"))
+                    ClassificationResults.SnowProbability = double.Parse(line.Split(':')[1].Trim().TrimEnd('%')) / 100;
+                else if (line.StartsWith("No Snow Probability:"))
+                    ClassificationResults.NoSnowProbability = double.Parse(line.Split(':')[1].Trim().TrimEnd('%')) / 100;
+            }
+
+            analysisStatus = "Analysis complete!";
+
+            if (File.Exists(tempPath))
+            {
+                File.Delete(tempPath);
             }
         }
         catch (Exception ex)
