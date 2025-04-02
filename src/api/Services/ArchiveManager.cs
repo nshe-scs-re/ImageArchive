@@ -50,9 +50,15 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
         {
             ImageDbContext dbContext = DbScope.ServiceProvider.GetRequiredService<ImageDbContext>();
 
-            //TODO: Extend LINQ query to include other search parameters
             List<Image> images = await dbContext.Images
-                .Where(i => i.DateTime >= request.StartDateTime && i.DateTime <= request.EndDateTime)
+                .Where
+                (
+                    i => i.DateTime >= request.StartDateTime
+                    && i.DateTime <= request.EndDateTime
+                    && i.SiteName == request.SiteName
+                    && i.SiteNumber == request.SiteNumber
+                    && i.CameraPositionNumber == request.CameraPositionNumber
+                )
                 .ToListAsync();
 
             request.FilePath = Path.Combine(Directory.GetCurrentDirectory(), "archives", $"{request.Id}.zip");
