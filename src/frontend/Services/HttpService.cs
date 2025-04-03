@@ -1,8 +1,8 @@
 ﻿using frontend.Models;
 using Microsoft.AspNetCore.Antiforgery;
-using System.Net.Http.Headers;
-using System.Net;
 using System.Globalization;
+using System.Net;
+using System.Net.Http.Headers;
 namespace frontend.Services;
 
 public class HttpService
@@ -22,7 +22,7 @@ public class HttpService
 
     public HttpClient CreateForwardClient(Uri? baseAddress = null)
     {
-        
+
         var client = _httpClientFactory.CreateClient("ForwardingClient");
 
         if(baseAddress != null)
@@ -65,7 +65,7 @@ public class HttpService
         }
 
         var antiCookie = httpContext.Request.Cookies
-            .FirstOrDefault(c => c.Key.StartsWith(".AspNetCore.Antiforgery."));
+            .FirstOrDefault(c => c.Key.StartsWith(".AspNetCore.Antiforgery.", StringComparison.OrdinalIgnoreCase));
 
         if(!string.IsNullOrEmpty(antiCookie.Value) && client.BaseAddress != null)
         {
@@ -91,12 +91,12 @@ public class HttpService
 
         var tokens = _antiforgery.GetAndStoreTokens(httpContext);
 
-        if (tokens.RequestToken is null || tokens.HeaderName is null)
+        if(tokens.RequestToken is null || tokens.HeaderName is null)
         {
             Console.WriteLine($"[ERROR] [HttpService] [AddAntiForgeryToken]: Antiforgery token fields null.");
         }
 
-        client.DefaultRequestHeaders.Add(tokens.HeaderName, tokens.RequestToken);
+        client.DefaultRequestHeaders.Add(tokens.HeaderName!, tokens.RequestToken);
 
         //Console.WriteLine($"[INFO] [HttpService] [AddAntiForgeryToken]: {nameof(tokens.HeaderName)}: {tokens.HeaderName}");
         //Console.WriteLine($"[INFO] [HttpService] [AddAntiForgeryToken]: {nameof(tokens.RequestToken)}: {tokens.RequestToken}");
@@ -114,6 +114,12 @@ public class HttpService
         return await httpClient.GetAsync($"api/images/paginated?filter={startDate},{endDate},{pageIndex},{pageSize},{siteName},{siteNumber},{cameraPosition}");
     }
 
+    public async Task<HttpResponseMessage> GetImagesByPageAsync(ImageQuery imageQuery, int pageIndex, int pageSize)
+    {
+        var httpClient = CreateForwardClient();
+        return await httpClient.GetAsync($"api/images/paginated?filter={imageQuery.StartDateTime},{imageQuery.EndDateTime},{pageIndex},{pageSize},{imageQuery.SiteName},{imageQuery.SiteNumber},{imageQuery.CameraPositionNumber}");
+    }
+
     public async Task<HttpResponseMessage> GetImagesAllAsync()
     {
         var httpClient = CreateForwardClient();
@@ -129,7 +135,7 @@ public class HttpService
     public async Task<HttpResponseMessage> GetArchiveDownloadAsync(Guid jobId)
     {
         var httpClient = CreateForwardClient();
-        return await httpClient.GetAsync($"api/archive/download/{jobId}");
+        return await httpClient.GetAsync($"api/archive/download/{jobId}", HttpCompletionOption.ResponseHeadersRead);
     }
 
     public async Task<HttpResponseMessage> PostArchiveRequestAsync(ArchiveRequest request)
@@ -144,7 +150,7 @@ public class HttpService
 
         using var content = new MultipartFormDataContent();
 
-        var fileContent = new StreamContent(item.File.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024));
+        var fileContent = new StreamContent(item.File!.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024));
 
         fileContent.Headers.ContentType = new MediaTypeHeaderValue(item.File.ContentType);
 
@@ -184,11 +190,11 @@ public class HttpService
 
         using var content = new MultipartFormDataContent();
 
-        for(int i=0; i < fileItems.Count; i++)
+        for(int i = 0; i < fileItems.Count; i++)
         {
             var item = fileItems[i];
 
-            var fileContent = new StreamContent(item.File.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024)); // 10 MB max file size
+            var fileContent = new StreamContent(item.File!.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024)); // 10 MB max file size
 
             fileContent.Headers.ContentType = new MediaTypeHeaderValue(item.File.ContentType);
 

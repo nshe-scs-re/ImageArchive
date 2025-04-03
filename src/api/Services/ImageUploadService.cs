@@ -21,22 +21,22 @@ public class ImageUploadService
         try
         {
             var allowedFileExtensions = new[] { ".jpg", ".jpeg" };
-            var fileExtension = Path.GetExtension(item.File.FileName).ToLowerInvariant();
+            var fileExtension = Path.GetExtension(item.File!.FileName).ToLowerInvariant();
             if(!allowedFileExtensions.Contains(fileExtension))
             {
                 Console.WriteLine($"[ERROR] [ImageUploadService.cs] [SaveImageAsync]: Invalid file type.");
                 throw new InvalidOperationException("[ERROR] [ImageUploadService.cs] [SaveImageAsync]: Invalid file type.");
             }
 
-            item.UnixTime = new DateTimeOffset(item.DateTime).ToUnixTimeSeconds();
+            item.UnixTime = new DateTimeOffset((DateTime)item.DateTime!).ToUnixTimeSeconds();
 
             var unixEpoch = new DateTime(1970, 1, 1);
 
-            var daysSinceEpoch = (item.DateTime - unixEpoch).Days;
+            var daysSinceEpoch = ((DateTime)item.DateTime - unixEpoch).Days;
 
             var siteNumberString = $"site_{item.SiteNumber}";
 
-            var directoryPath = Path.Combine(_basePath, item.SiteName.ToLower(), siteNumberString, daysSinceEpoch.ToString());
+            var directoryPath = Path.Combine(_basePath, item.SiteName!.ToLower(), siteNumberString, daysSinceEpoch.ToString());
 
             if(!Directory.Exists(directoryPath))
             {

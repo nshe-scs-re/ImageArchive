@@ -17,7 +17,7 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
         {
             request.Id = Guid.NewGuid();
         }
-        while(!Jobs.TryAdd(request.Id, request));
+        while(!Jobs.TryAdd((Guid)request.Id, request));
     }
 
     public ArchiveRequest ProcessArchiveRequest(ArchiveRequest request)
@@ -42,6 +42,8 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
     {
         Stopwatch stopwatch = Stopwatch.StartNew();
 
+        Console.WriteLine($"[INFO] [ArchiveManager] [CreateArchiveAsync]: Archive process started for id {request.Id}");
+
         request.Status = ArchiveStatus.Processing;
 
         using(IServiceScope DbScope = DbScopeFactory.CreateScope())
@@ -50,16 +52,14 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
 
             //TODO: Extend LINQ query to include other search parameters
             List<Image> images = await dbContext.Images
-                .Where(i => i.DateTime >= request.StartDate && i.DateTime <= request.EndDate)
+                .Where(i => i.DateTime >= request.StartDateTime && i.DateTime <= request.EndDateTime)
                 .ToListAsync();
-                
-            string zipFilePath = Path.Combine(Directory.GetCurrentDirectory(), "Archives", $"{request.Id}.zip");
 
-            request.FilePath = zipFilePath;
+            request.FilePath = Path.Combine(Directory.GetCurrentDirectory(), "archives", $"{request.Id}.zip");
 
             ConcurrentBag<Exception> exceptions = new ConcurrentBag<Exception>();
 
-            using(FileStream zipToOpen = new FileStream(zipFilePath, FileMode.Create))
+            using(FileStream zipToOpen = new FileStream(request.FilePath, FileMode.Create))
             {
                 using(ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Create))
                 {
@@ -77,7 +77,7 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
                             {
                                 lock(archiveLock)
                                 {
-                                    ZipArchiveEntry entry = archive.CreateEntry($"{year}/{month}/{day}/{day} {month} {year} {image.DateTime:hh.mmtt}.{Path.GetExtension(image.FilePath)}");
+                                    ZipArchiveEntry entry = archive.CreateEntry($"{year}/{month}/{day}/{day}_{month}_{year}_{image.DateTime:hh.mmtt}{Path.GetExtension(image.FilePath)}");
 
                                     using(FileStream fileStream = new FileStream(image.FilePath, FileMode.Open, FileAccess.Read))
                                     {
@@ -91,7 +91,7 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
                             }
                             else
                             {
-                                Console.WriteLine($"DEBUG [ArchiveManager.cs]: {image.FilePath} does not exist."); //TODO: Implement logging
+                                Console.WriteLine($"[WARNING] [ArchiveManager.cs] [CreateArchiveAsync]: {image.FilePath} does not exist.");
                             }
                         }
                         catch(Exception exception)
@@ -104,7 +104,7 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
                     {
                         foreach(Exception exception in exceptions)
                         {
-                            Console.WriteLine($"DEBUG [ArchiveManager.cs]: Exception: {exception.Message}"); //TODO: Implement logging
+                            Console.WriteLine($"[ERROR] [ArchiveManager.cs] [CreateArchiveAsync]: Exception: {exception.Message}");
 
                             request.AddError(exception.Message);
                         }
@@ -114,9 +114,9 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
 
             stopwatch.Stop();
 
-            Console.WriteLine($"DEBUG: Archiving complete. Elapsed Time: {stopwatch.Elapsed}");
-
             request.Status = ArchiveStatus.Completed;
+
+            Console.WriteLine($"[INFO] [ArchiveManager] [CreateArchiveAsync]: Archiving process completed for id {request.Id}. Elapsed Time: {stopwatch.Elapsed}");
         }
     }
 }

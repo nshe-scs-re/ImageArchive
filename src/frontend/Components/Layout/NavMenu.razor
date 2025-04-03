@@ -1,7 +1,9 @@
 ﻿@inject NavigationManager Navigation
 @inject ThemeService ThemeService
 
-<nav class="navbar navbar-expand-md rounded @GetTheme()">
+<div class="row">
+<div class="col">
+<nav class="navbar navbar-expand-md rounded">
   <div class="container-fluid">
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavBar">
       <span class="navbar-toggler-icon"></span>
@@ -9,16 +11,13 @@
     <div class="navbar-collapse collapse row" id="mainNavBar">
       <ul class="col navbar-nav mx-auto justify-content-md-start"></ul>
       <ul class="col navbar-nav mx-auto justify-content-md-center">
-        <AuthorizeView>
+        <AuthorizeView Roles="Administrator">
           <Authorized>
-            <li class="nav-item"><a class="btn btn-light rounded custom-btn-fixed-size-sm @GetButtonTheme()" href="/" Match="NavLinkMatch.All">Home</a></li>
-            <li class="nav-item"><a class="btn btn-light rounded custom-btn-fixed-size-sm @GetButtonTheme()" href="http://localhost:8080/swagger">Swagger</a></li>
-            <li class="nav-item"><a class="btn btn-light rounded custom-btn-fixed-size-sm @GetButtonTheme()" href="upload">Upload</a></li>
+            <li class="nav-item"><a class="btn rounded custom-btn-fixed-size-md" href="/search" Match="NavLinkMatch.All">Search</a></li>
+            <li class="nav-item"><a class="btn rounded custom-btn-fixed-size-md" href="http://localhost:8080/swagger">Swagger</a></li>
+            <li class="nav-item"><a class="btn rounded custom-btn-fixed-size-md" href="upload">Upload</a></li>
           </Authorized>
           <NotAuthorized>
-            <li class="nav-item"><a class="btn btn-light rounded custom-btn-fixed-size-sm @GetButtonTheme()" href="/" Match="NavLinkMatch.All">Home</a></li>
-            <li class="nav-item"><a class="btn btn-light rounded custom-btn-fixed-size-sm @GetButtonTheme()" href="http://localhost:8080/swagger">Swagger</a></li>
-            <li class="nav-item"><a class="btn btn-light rounded custom-btn-fixed-size-sm @GetButtonTheme()" href="upload">Upload</a></li>
           </NotAuthorized>
         </AuthorizeView>
       </ul>
@@ -29,7 +28,7 @@
               @if (ThemeService.State)
               {
                 <div class="nav-item">
-                  <button type="button" class="btn btn-light rounded custom-btn-fixed-size-md @GetButtonTheme()" @onclick=ToggleTheme>
+                  <button id="dark-mode-button" type="button" class="btn rounded custom-btn-fixed-size-md" @onclick=ToggleTheme>
                     <i class="bi bi-moon-stars-fill"></i>
                     <span class="ms-1">Dark Mode</span>
                   </button>
@@ -38,17 +37,17 @@
               else
               {
                 <div class="nav-item">
-                  <button type="button" class="btn btn-light rounded custom-btn-fixed-size-md @GetButtonTheme()" @onclick=ToggleTheme>
+                  <button id="dark-mode-button" type="button" class="btn rounded custom-btn-fixed-size-md" @onclick=ToggleTheme>
                     <i class="bi bi-brightness-high-fill"></i>
                     <span class="ms-1">Light Mode</span>
                   </button>
                 </div>
               }
             </li>
-            <li class="nav-item dropdown"><a class="nav-link dropdown-toggle rounded @GetButtonTheme()" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">@userName</a>
+            <li class="nav-item dropdown"><a class="nav-link dropdown-toggle rounded" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">@userName</a>
               <ul class="dropdown-menu">
-                <li><a class="dropdown-item custom-btn-fixed-size-md @GetButtonTheme()" href="/profile" Match="NavLinkMatch.All">View Profile</a></li>
-                <li><a class="dropdown-item custom-btn-fixed-size-md @GetButtonTheme()" href="/logout">Logout</a></li>
+                <li><a class="dropdown-item custom-btn-fixed-size-md" href="/Account/Profile" Match="NavLinkMatch.All">View Profile</a></li>
+                <li><a class="dropdown-item custom-btn-fixed-size-md" href="/Account/Logout">Logout</a></li>
               </ul>
             </li>
           </Authorized>
@@ -57,7 +56,7 @@
               @if (ThemeService.State)
               {
                 <div class="nav-item">
-                  <button type="button" class="btn btn-light rounded custom-btn-fixed-size-md @GetButtonTheme()" @onclick=ToggleTheme>
+                  <button id="dark-mode-button" type="button" class="btn rounded custom-btn-fixed-size-md" @onclick=ToggleTheme>
                     <i class="bi bi-moon-stars-fill"></i>
                     <span class="ms-1">Dark Mode</span>
                   </button>
@@ -66,26 +65,33 @@
               else
               {
                 <div class="nav-item">
-                  <button type="button" class="btn btn-light rounded custom-btn-fixed-size-md @GetButtonTheme()" @onclick=ToggleTheme>
+                  <button id="dark-mode-button" type="button" class="btn rounded custom-btn-fixed-size-md" @onclick=ToggleTheme>
                     <i class="bi bi-brightness-high-fill"></i>
                     <span class="ms-1">Light Mode</span>
                   </button>
                 </div>
               }
             </li>
-            <li class="nav-item"><a class="btn btn-light rounded custom-btn-fixed-size-sm @GetButtonTheme()" href="/login">Login</a></li>
+            <li class="nav-item"><a class="btn rounded custom-btn-fixed-size-md" href="/Account/Login">Login</a></li>
           </NotAuthorized>
         </AuthorizeView>
       </ul>
     </div>
   </div>
 </nav>
+</div>
+</div>
 
 @code {
     [CascadingParameter]
     private Task<AuthenticationState>? authenticationState { get; set; }
 
     public string userName = "";
+
+    protected override void OnInitialized()
+    {
+      ThemeService.StateChanged += OnThemeChanged;
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -99,28 +105,18 @@
         await base.OnInitializedAsync();
     }
 
+    private void OnThemeChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
     public void ToggleTheme()
     {
         ThemeService.ToggleTheme();
     }
 
-    protected override void OnInitialized()
-    {
-        ThemeService.StateChanged += StateHasChanged;
-    }
-
-    private string GetTheme()
-    {
-        return ThemeService.State ? "bg-body-tertiary" : "custom-color-bg-dm-secondary";
-    }
-
-    private string GetButtonTheme()
-    {
-        return ThemeService.State ? "nav-link" : "custom-color-btn-dm";
-    }
-
     public void Dispose()
     {
-        ThemeService.StateChanged -= StateHasChanged;
+        ThemeService.StateChanged -= OnThemeChanged;
     }
 }

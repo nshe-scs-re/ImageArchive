@@ -1,5 +1,8 @@
-﻿namespace api.Models;
+﻿using System.Text.Json.Serialization;
 
+namespace api.Models;
+
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum ArchiveStatus
 {
     Failed = -1,
@@ -9,4 +12,3 @@ public enum ArchiveStatus
     Processing = 3,
     Completed = 4
 }
-

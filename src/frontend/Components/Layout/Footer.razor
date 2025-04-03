@@ -1,23 +1,23 @@
 @inject ThemeService ThemeService
 
-<footer class="row row-cols-1 row-cols-md-2 row-cols-xl-3 rounded p-5 align-items-center @GetTheme()">
-    <div class="col d-none d-xl-block">
+<footer class="row row-cols-1 row-cols-md-2 row-cols-xl-3 rounded justify-content-center m-3">
+    <div class="col d-none d-xl-flex">
         <ResearchLogo />
     </div>
     <div class="col">
         <h5 class="p-1">Information</h5>
         <ul class="list-unstyled">
             <li class="p-1">
-                <a class="custom-color-footer-link" href="/About" rel="" target="_self">About Us</a>
+                <a href="/About" rel="" target="_self">About Us</a>
             </li>
             <li class="p-1">
-                <a class="custom-color-footer-link" href="/Help" rel="" target="_self">Help & Documentation</a>
+                <a href="/Help" rel="" target="_self">Help & Documentation</a>
             </li>
             <li class="p-1">
-            <li class="p-1">
-                <a class="custom-color-footer-link" href="/privacy" rel="" target="_self">Privacy Policy</a>
+                <a href="/privacy" rel="" target="_self">Privacy Policy</a>
             </li>
-                <a class="custom-color-footer-link" href="https://github.com/nshe-scs-re" rel="external" target="_blank">Github</a>
+            <li class="p-1">
+                <a href="https://github.com/nshe-scs-re" rel="external" target="_blank">Github</a>
             </li>
         </ul>
     </div>
@@ -25,10 +25,10 @@
         <h5 class="p-1">Partner Links</h5>
         <ul class="list-unstyled">
             <li class="p-1">
-                <a class="custom-color-footer-link" href="https://nshe.nevada.edu/system-administration/" rel="external" target="_blank">Nevada System of Higher Education</a>
+                <a href="https://nshe.nevada.edu/system-administration/" rel="external" target="_blank">Nevada System of Higher Education</a>
             </li> 
             <li class="p-1">
-                <a class="custom-color-footer-link" href="https://scs.nevada.edu/" rel="external" target="_blank">System Computing Services</a>
+                <a href="https://scs.nevada.edu/" rel="external" target="_blank">System Computing Services</a>
             </li>
         </ul>
     </div>
@@ -38,16 +38,16 @@
 {
     protected override void OnInitialized()
     {
-        ThemeService.StateChanged += StateHasChanged;
+      ThemeService.StateChanged += OnThemeChanged;
     }
 
-    private string GetTheme()
+    private void OnThemeChanged()
     {
-        return ThemeService.State ? "bg-body-tertiary" : "custom-color-bg-dm-secondary";
+        InvokeAsync(StateHasChanged);
     }
 
     public void Dispose()
     {
-        ThemeService.StateChanged -= StateHasChanged;
+        ThemeService.StateChanged -= OnThemeChanged;
     }
 }

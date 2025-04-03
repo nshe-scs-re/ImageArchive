@@ -1,0 +1,451 @@
+@page "/search"
+@attribute [Authorize(Roles = "Administrator, User")]
+@inject HttpService HttpService
+@inject ThemeService ThemeService
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Search Tool</PageTitle>
+
+<div class="row custom-body-content-wrapper">
+    <div class="col">
+        <div class="accordion accordion-flush py-3">
+            <div class="accordion-item py-3">
+                <div class="row">
+                    <div class="col-lg-6 col-md-8 mx-auto">
+                        <div class="accordion-header py-3">
+                            <button class="accordion-button accordion-item rounded" type="button" data-bs-toggle="collapse" data-bs-target="#QueryFormContainer" @onclick="OnAccordionToggled">
+                            <h1 class="h1 w-100 text-center">Image Repository Search</h1>
+                            @if (!accordionCollapsed)
+                            {
+                                <span class="p-2">Collapse</span>
+                            }
+                            else
+                            {
+                                <span class="p-2">Expand</span>
+                            }
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div id="QueryFormContainer" class="accordion-collapse collapse show row row-cols-1 row-cols-md-2 row-cols-lg-3 py-2">
+                    <div class="accordion-body col mx-auto border">
+                        <p class="lead text-center fw-normal">Execute a query against the image repository by filling the form below.</p>
+                        <EditForm Model="@imageQuery" OnValidSubmit="GetImagesByPageAsync" FormName="ImageQueryForm" class="form">
+                            <div class="row py-2">
+                                <label for="StartDateTime" class="col col-form-label">Start date:</label>
+                                <div class="col">
+                                    <InputDate id="StartDateTime" @bind-Value="imageQuery.StartDateTime" Type="InputDateType.DateTimeLocal" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="row py-2">
+                                <label for="EndDateTime" class="col col-form-label">End date:</label>
+                                <div class="col">
+                                    <InputDate id="EndDateTime" @bind-Value="imageQuery.EndDateTime" Type="InputDateType.DateTimeLocal" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="row py-2">
+                                <label for="SiteName" class="col col-form-label">Site Name:</label>
+                                <div class="col">
+                                    <InputSelect @bind-Value="SiteName" class="form-select">
+                                        @foreach (var siteName in siteNames)
+                                        {
+                                            <option value="@siteName">@siteName</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                            </div>
+                            <div class="row py-2">
+                                <label for="SiteNumber" class="col col-form-label">Site Number:</label>
+                                <div class="col">
+                                    <InputSelect @bind-Value="SiteNumber" class="form-select">
+                                        @foreach (var siteNumber in siteNumbers)
+                                        {
+                                            <option value="@siteNumber">@siteNumber</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                            </div>
+                            <div class="row py-2">
+                                <label for="CameraPosition" class="col col-form-label">Camera Position:</label>
+                                <div class="col">
+                                    <InputSelect @bind-Value="CameraPositionNumber" class="form-select">
+                                        @foreach (var cameraNumber in cameraPositionNumbers)
+                                        {
+                                            <option value="@cameraNumber">@GetCameraPositionName(SiteName!, (int)SiteNumber!, cameraNumber)</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                            </div>
+                            <div class="row py-2 align-items-center">
+                                <label class="col-8 col-form-label">Show extended information:</label>
+                                <div class="col-4 d-flex justify-content-end">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault" @bind="showExtendedInformation">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-end py-2">
+                                <button type="submit" class="btn rounded custom-btn-fixed-size-sm" data-bs-toggle="collapse" data-bs-target="#QueryFormContainer" @onclick="OnAccordionToggled">Search</button>
+                            </div>
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (querySubmitted && loading)
+        {
+            <div class="my-3 py-3 album rounded">
+                <div class="container">
+                    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
+                        @for (int i = 0; i < pageSize; i++)
+                        {
+                            <div class="col">
+                                <div class="card shadow-sm">
+                                    <figure class="custom-card-placeholder"></figure>
+                                    <div class="card-body">
+                                        @if (showExtendedInformation)
+                                        {
+                                            <p class="card-text">Time: </p>
+                                            <p class="card-text">Site Name: </p>
+                                            <p class="card-text">Site Number: </p>
+                                            <p class="card-text">Camera Number: </p>
+                                            <p class="card-text">Camera Position Number: </p>
+                                            <p class="card-text">Camera Position Name: </p>
+                                        }
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="btn-group">
+                                                <button type="button" class="disabled btn btn-sm">View</button>
+                                                <button type="button" class="disabled btn btn-sm">Download</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+        else if (querySubmitted && !loading)
+        {
+            <div class="my-3 py-3 album rounded">
+                <div class="container">
+                    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
+                        @foreach (var image in images!)
+                        {
+                            <div class="col">
+                                <div class="card shadow-sm">
+                                    <img src="/proxy/images/@image.Id" class="card-img-top" />
+                                    <div class="card-body">
+                                        @if (showExtendedInformation)
+                                        {
+                                            <p class="card-text">Time: @image.DateTime</p>
+                                            <p class="card-text">Site Name: @image.SiteName</p>
+                                            <p class="card-text">Site Number: @image.SiteNumber</p>
+                                            <p class="card-text">Camera Position Number: @image.CameraPositionNumber</p>
+                                            <p class="card-text">Camera Position Name: @image.CameraPositionName</p>
+                                        }
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-sm" @onclick="() => UpdateImageSrc(image.Id)" data-bs-toggle="modal" data-bs-target="#view-image-modal">View</button>
+                                                <button type="button" class="btn btn-sm" @onclick="() => DownloadImage(image)">Download</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <ul class="pagination justify-content-center">
+                    <li class="page-item @(pageIndex==1 ? "disabled" : "")">
+                        <button type="button" class="page-link" @onclick="FirstPage">
+                            <i class="bi bi-chevron-bar-left"></i>
+                        </button>
+                    </li>
+                    <li class="page-item">
+                        <button type="button" class="page-link" @onclick="PreviousPage">
+                            <i class="bi bi-chevron-left"></i>
+                        </button>
+                    </li>
+                    <li class="page-item">
+                        <input type="number" min="0" max="@totalPages" class="page-link text-center" value="@pageIndex" @onchange="UpdatePaginationAsync" />
+                    </li>
+                    <li class="page-item">
+                        <button type="button" class="page-link" @onclick="NextPage">
+                            <i class="bi bi-chevron-right"></i>
+                        </button>
+                    </li>
+                    <li class="page-item @(pageIndex==totalPages ? "disabled" : "")">
+                        <button type="button" class="page-link" @onclick="LastPage">
+                            <i class="bi bi-chevron-bar-right"></i>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="text-center m-3">
+                <button type="button" class="btn btn-md" @onclick="DownloadAllImages">
+                    <i class="bi bi-download mx-1"></i> Download All Images
+                </button>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="modal fade" id="view-image-modal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered justify-content-center" id="view-image-modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img src="@imageSrc" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code
+{
+    private bool accordionCollapsed = false;
+    private bool showExtendedInformation = false;
+    private bool loading = false;
+    private bool querySubmitted = false;
+    private List<Image>? images = new();
+    private int pageIndex = 1;
+    private int pageSize = 9;
+    private int totalImages = 0;
+    private int totalPages = 0;
+    private string imageSrc = string.Empty;
+    private ArchiveRequest archiveRequest = new();
+    private ImageQuery imageQuery = new ImageQuery {
+        StartDateTime = new DateTime(2010, 1, 1),
+        EndDateTime = new DateTime(2020, 1, 1)
+    };
+    private List<string> siteNames = new();
+    private List<int> siteNumbers = new();
+    private List<int> cameraPositionNumbers = new();
+
+    public string? SiteName
+    {
+        get => imageQuery.SiteName;
+        set
+        {
+            imageQuery.SiteName = value;
+            archiveRequest.SiteName = value;
+            StateHasChanged();
+            UpdateSiteNumbers();
+        }
+    }
+
+    public int? SiteNumber
+    {
+        get => imageQuery.SiteNumber;
+        set
+        {
+            imageQuery.SiteNumber = value;
+            archiveRequest.SiteNumber = value;
+            StateHasChanged();
+            UpdateCameraPositions();
+        }
+    }
+
+    public int? CameraPositionNumber
+    {
+        get => imageQuery.CameraPositionNumber;
+        set
+        {
+            imageQuery.CameraPositionNumber = value;
+            archiveRequest.CameraPositionNumber = value;
+            StateHasChanged();
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        ThemeService.StateChanged += OnThemeChanged;
+
+        siteNames = CameraPositionMap.GetSiteNames();
+        SiteName = siteNames.First();
+    }
+
+    private void OnThemeChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void OnAccordionToggled()
+    {
+        accordionCollapsed = !accordionCollapsed;
+    }
+
+    private void UpdateSiteNumbers()
+    {
+        siteNumbers = CameraPositionMap.GetSubSiteNumbers(SiteName!);
+        SiteNumber = siteNumbers.First();
+    }
+
+    private void UpdateCameraPositions()
+    {
+        cameraPositionNumbers = CameraPositionMap.GetCameraPositionNumbers(SiteName!, (int)SiteNumber!);
+        CameraPositionNumber = cameraPositionNumbers.First();
+    }
+
+    private string GetCameraPositionName(string siteName, int siteNumber, int cameraPositionNumber)
+    {
+        return CameraPositionMap.GetCameraPositionName(siteName, siteNumber, cameraPositionNumber)!;
+    }
+
+
+    private async Task GetImagesByPageAsync()
+    {
+        querySubmitted = true;
+        loading = true;
+
+        var response = await HttpService.GetImagesByPageAsync(imageQuery, pageIndex - 1, pageSize);
+
+        if (response is not null)
+        {
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadFromJsonAsync<PaginationResponse>();
+
+                if (content != null)
+                {
+                    images = content.Images;
+                    totalImages = content.TotalCount;
+                    totalPages = totalImages / pageSize;
+                }
+            }
+        }
+        loading = false;
+        StateHasChanged();
+    }
+
+    private async Task FirstPage()
+    {
+        pageIndex = 1;
+        await GetImagesByPageAsync();
+    }
+
+    private async Task NextPage()
+    {
+        pageIndex++;
+        await GetImagesByPageAsync();
+    }
+
+    private async Task PreviousPage()
+    {
+        if (pageIndex > 1)
+        {
+            pageIndex--;
+            await GetImagesByPageAsync();
+        }
+    }
+
+    private async Task LastPage()
+    {
+        pageIndex = totalPages;
+        await GetImagesByPageAsync();
+    }
+
+    public void Dispose()
+    {
+        ThemeService.StateChanged -= OnThemeChanged;
+    }
+
+    private async Task UpdatePaginationAsync(ChangeEventArgs e)
+    {
+        try
+        {
+            if (int.TryParse(e.Value!.ToString(), out int inputValue))
+            {
+                pageIndex = Math.Clamp(inputValue, 1, totalPages);
+                await GetImagesByPageAsync();
+            }
+        }
+        catch (Exception exception)
+        {
+            Console.WriteLine($"[ERROR] [Home.razor] [PaginationChangedAsync]: {exception.Message}");
+            throw;
+        }
+    }
+
+    private async Task DownloadImage(Image image)
+    {
+        await JSRuntime.InvokeVoidAsync("download", $"/proxy/images/{image.Id}", $"{image.UnixTime}.jpg");
+    }
+
+    private async Task DownloadAllImages()
+    {
+        try
+        {
+            archiveRequest.StartDateTime = imageQuery.StartDateTime;
+            archiveRequest.EndDateTime = imageQuery.EndDateTime;
+            var response = await HttpService.PostArchiveRequestAsync(archiveRequest);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.WriteLine("[ERROR] [Home] [DownloadAllImages]: Non-success response status code.");
+                return;
+            }
+
+            var content = await response.Content.ReadFromJsonAsync<ArchiveRequest>();
+
+            if (content == null)
+            {
+                Console.WriteLine("[ERROR] [Home] [DownloadAllImages]: Response content is null.");
+                return;
+            }
+
+            Console.WriteLine($"[INFO] [Home] [DownloadAllImages]: Archive job started with ID: {content.Id}");
+
+            while (true)
+            {
+                await Task.Delay(10000);
+
+                response = await HttpService.GetArchiveStatusAsync(content.Id);
+
+                if (response == null)
+                {
+                    Console.WriteLine("[WARNING] [Home] [DownloadAllImages]: Response is null.");
+                    return;
+                }
+
+                content = await response.Content.ReadFromJsonAsync<ArchiveRequest>();
+
+                Console.WriteLine($"[INFO] [Home] [DownloadAllImages]: Current Archive Status: {content!.Status}");
+
+                if (content.Status == ArchiveStatus.Completed)
+                {
+                    break;
+                }
+
+                if (content.Status == ArchiveStatus.Failed)
+                {
+                    Console.WriteLine("[WARNING] [Home] [DownloadAllImages]: Archive request failed.");
+                    return;
+                }
+            }
+
+            await JSRuntime.InvokeVoidAsync("download", $"/proxy/archive/download/{content.Id}", $"{content.Id}.zip");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR] [Home] [DownloadAllImages]: {ex.Message}, {ex.Source}");
+        }
+    }
+
+    private void UpdateImageSrc(long Id)
+    {
+        imageSrc = $"/proxy/images/{Id}";
+    }
+}

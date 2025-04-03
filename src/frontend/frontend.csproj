@@ -12,14 +12,18 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="wwwroot\TAHOE.jpg" />
+    <PackageReference Include="Auth0.AspNetCore.Authentication" />
+    <PackageReference Include="bootstrap" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.QuickGrid" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
+    <PackageReference Include="System.Net.Http.Json" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Auth0.AspNetCore.Authentication" Version="1.4.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.QuickGrid" Version="8.0.10" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
-    <PackageReference Include="System.Net.Http.Json" Version="8.0.1" />
-  </ItemGroup>
+  <Target Name="CopyBootstrapCSS" AfterTargets="Build">
+    <ItemGroup>
+      <BootstrapCSS Include="$(NuGetPackageRoot)bootstrap\5.3.3\content\Content\bootstrap.min.css" />
+    </ItemGroup>
+    <Copy SourceFiles="@(BootstrapCSS)" DestinationFolder="$(ProjectDir)wwwroot\lib\bootstrap\css\" />
+  </Target>
 
 </Project>
