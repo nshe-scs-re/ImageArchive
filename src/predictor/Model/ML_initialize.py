@@ -1,84 +1,90 @@
+import sys, os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 import torch
 from torchvision import transforms
 from PIL import Image
-import os
 from tqdm import tqdm
-import pymssql
-import predictor.Model.db_connect as db_connect
 from data_labeling_model import MultiTaskResNet
+from db_connect import connect_to_database
 
-# Setup image transform (should match training)
+# Use GPU only
+assert torch.cuda.is_available(), "CUDA is not available — GPU required"
+device = torch.device("cuda")
+
+# Load model
+model_path = "src/predictor/Model/best_model.pth"
+model = MultiTaskResNet()
+model.load_state_dict(torch.load(model_path, map_location=device))
+model.to(device)
+model.eval()
+
+# Transform used during training
 transform = transforms.Compose([
     transforms.Resize((256, 256)),
-    transforms.CenterCrop(224),  # Use CenterCrop for deterministic behavior
+    transforms.CenterCrop(224),
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.485, 0.456, 0.406],
                          std=[0.229, 0.224, 0.225])
 ])
 
-# Load model
-model_path = "/Users/nathanmichelotti/Desktop/College/CS 425/Senior Project/ImageArchive/src/predictor/Model/best_model.pth"
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-model = MultiTaskResNet()
-model.load_state_dict(torch.load(model_path, map_location=device))
-model = model.to(device)
-model.eval()
-
-# Class mappings
-weather_labels = ['Sunny', 'Cloudy']
-snow_labels = ['No Snow', 'Snow']
-
 # Connect to DB
-conn = db_connect.connect_to_database()  # use the pymssql-based connection
+conn = connect_to_database()
 cursor = conn.cursor()
 
-# Add prediction columns if missing
+# Ensure prediction columns exist
 cursor.execute("""
 IF COL_LENGTH('Images', 'WeatherPrediction') IS NULL
-BEGIN
-    ALTER TABLE Images ADD WeatherPrediction NVARCHAR(50)
-END;
+    ALTER TABLE Images ADD WeatherPrediction NVARCHAR(50);
 IF COL_LENGTH('Images', 'SnowPrediction') IS NULL
-BEGIN
-    ALTER TABLE Images ADD SnowPrediction NVARCHAR(50)
-END;
+    ALTER TABLE Images ADD SnowPrediction NVARCHAR(50);
 """)
 conn.commit()
 
-# Fetch image file paths
-cursor.execute("SELECT TOP 10 Id, FilePath FROM Images")
+# Pull paths
+cursor.execute("SELECT Id, FilePath FROM Images")
 rows = cursor.fetchall()
 
-# Wrap rows with tqdm
-for row in tqdm(rows, desc="Predicting images"):
-    img_id = row[0]
-    file_path = row[1]
+# Fix path prefix
+base_path = "/home/nmichelotti/Desktop/Image Archives/OneDrive_1_4-3-2025"
 
+# Predict
+for img_id, file_path in tqdm(rows, desc="Predicting images"):
     try:
-        # Open and transform the image
-        image = Image.open(file_path).convert('RGB')
+        real_path = os.path.join(base_path, file_path.replace("/app", "").lstrip("/"))
+        if not os.path.exists(real_path):
+            raise FileNotFoundError(f"Missing image: {real_path}")
+
+        image = Image.open(real_path).convert("RGB")
         image_tensor = transform(image).unsqueeze(0).to(device)
 
         with torch.no_grad():
             weather_out, snow_out = model(image_tensor)
-            weather_pred = torch.argmax(weather_out, dim=1).item()
-            snow_pred = torch.argmax(snow_out, dim=1).item()
 
-            weather_label = weather_labels[weather_pred]
-            snow_label = snow_labels[snow_pred]
+            weather_probs = torch.softmax(weather_out, dim=1)[0]
+            snow_probs = torch.softmax(snow_out, dim=1)[0]
 
-        # Update DB with predictions
+            weather_idx = torch.argmax(weather_probs).item()
+            snow_idx = torch.argmax(snow_probs).item()
+
+            weather_label = ['Sunny', 'Cloudy'][weather_idx]
+            snow_label = ['No Snow', 'Snow'][snow_idx]
+
+            weather_conf = weather_probs[weather_idx].item() * 100
+            snow_conf = snow_probs[snow_idx].item() * 100
+
+            weather_str = f"{weather_label} ({weather_conf:.1f}%)"
+            snow_str = f"{snow_label} ({snow_conf:.1f}%)"
+
         cursor.execute("""
             UPDATE Images
             SET WeatherPrediction = %s, SnowPrediction = %s
             WHERE Id = %s
-        """, (weather_label, snow_label, img_id))
+        """, (weather_str, snow_str, img_id))
 
     except Exception as e:
-        print(f"[!] Error processing {file_path}: {e}")
+        print(f"[!] Failed on {file_path}: {e}")
 
 conn.commit()
 cursor.close()
 conn.close()
-print("All predictions completed and database updated.")
+print("All predictions complete.")
