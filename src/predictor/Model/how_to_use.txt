@@ -1,0 +1,58 @@
+=====================================
+     How to Run ML_initialize.py
+=====================================
+
+1. Install Required Python Packages
+
+If you haven't already, set up your Python environment.
+
+Install the required libraries:
+    pip install torch torchvision pillow tqdm pymssql
+
+To use a GPU, install a GPU-enabled version of PyTorch.
+See install options at: https://pytorch.org/get-started/locally/
+
+
+2. Update Database Settings
+
+Open the file: db_connect.py
+
+Edit the database connection in the connect_to_database() function:
+
+Lines 5–11:
+    conn = pymssql.connect(
+        server='127.0.0.1',
+        user='sa',
+        password='X1wdgbqjlTSU',
+        database='ImageDb',
+        port=1433
+    )
+
+Update the values for server, user, password, database, and port.
+
+
+3. Update Paths in ML_initialize.py
+
+Open the file: ML_initialize.py
+
+Line 28:
+    model_path = "best_model.pth"
+Change this to your actual model file path.
+
+Line 66:
+    base_path = "/home/nmichelotti/Desktop/Image Archives/OneDrive_1_4-3-2025"
+Change this to the folder where your images are stored.
+
+
+4. Run the Script
+
+Run the script with:
+    python ML_initialize.py
+
+The script will:
+- Connect to your database
+- Load the model
+- Run predictions on all image paths
+- Save predictions and confidence scores into the database
+
+If no GPU is available, the script will prompt you to continue with the CPU.
