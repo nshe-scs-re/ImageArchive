@@ -61,6 +61,8 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
                 )
                 .ToListAsync();
 
+            request.TotalImages = images.Count;
+
             request.FilePath = Path.Combine(Directory.GetCurrentDirectory(), "archives", $"{request.Id}.zip");
 
             ConcurrentBag<Exception> exceptions = new ConcurrentBag<Exception>();
@@ -73,6 +75,22 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
 
                     Parallel.ForEach(images, (image) =>
                     {
+                        request.IncrementProcessedImages();
+
+                        if(request.ProcessedImages % 10 == 0 && request.TotalImages > 0)
+                        {
+                            double processingProgress = (double)request.ProcessedImages / request.TotalImages;
+                            if(processingProgress > 0.01)
+                            {
+                                TimeSpan elapsedTime = stopwatch.Elapsed;
+                                TimeSpan estimatedTotalTime = TimeSpan.FromTicks((long)(elapsedTime.Ticks / processingProgress));
+                                TimeSpan estimatedTimeRemaining = estimatedTotalTime - elapsedTime;
+
+                                request.ElapsedTime = elapsedTime;
+                                request.EstimatedTimeRemaining = estimatedTimeRemaining;
+                            }
+                        }
+
                         int year = image.DateTime.Value.Year;
                         string month = $"{image.DateTime:MMM}";
                         string day = $"{image.DateTime:dd}";
