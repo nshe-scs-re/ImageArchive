@@ -4,6 +4,9 @@ using api.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.Text.Json.Serialization;
+//======================
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+//======================
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,6 +51,14 @@ builder.Services.AddCors(options =>
               .AllowCredentials();
     });
 });
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.Authority = builder.Configuration["Auth0:Authority"];
+        options.Audience = builder.Configuration["Auth0:Audience"];
+    });
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 

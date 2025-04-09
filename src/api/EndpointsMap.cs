@@ -4,6 +4,10 @@ using System.Net.NetworkInformation;
 using Microsoft.AspNetCore.Mvc;
 using api.Data;
 using Microsoft.EntityFrameworkCore;
+//=====================================
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using System.Text.Json;
 
 namespace api;
 
@@ -61,7 +65,47 @@ public static class EndpointsMap
 
             return Results.Ok(image);
         });
+        //===========================================================================
+        // 
+        builder.MapPost("/api/log-query", [Authorize] async (
+            HttpContext context,
+            ImageDbContext dbContext,
+            [FromBody] QueryParameters parameters) =>
+        {
+            try
+            {
+                var user = context.User;
+                var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
+                            user.FindFirst("sub")?.Value; // Auth0 uses 'sub' claim
 
+                if(string.IsNullOrEmpty(userId))
+                {
+                    return Results.Unauthorized();
+                }
+
+                var userQuery = new UserQuery
+                {
+                    UserId = userId,
+                    Parameters = JsonSerializer.Serialize(parameters),
+                    Timestamp = DateTime.UtcNow
+                };
+
+                await dbContext.UserQueries.AddAsync(userQuery);
+                await dbContext.SaveChangesAsync();
+
+                return Results.Created($"/api/queries/{userQuery.QueryId}", userQuery);
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine($"Error logging query: {ex.Message}");
+                return Results.Problem("Failed to log query");
+            }
+        })
+        .WithSummary("Logs a user's search query parameters")
+        .Produces<UserQuery>(201)
+        .Produces(401)
+        .Produces(500);
+        //==============================================================================================
         builder.MapGet("/api/db-verify", async (ImageDbContext dbContext) =>
         {
             try

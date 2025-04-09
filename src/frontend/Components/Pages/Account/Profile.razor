@@ -1,5 +1,10 @@
 ﻿@page "/Account/Profile"
 @inject TokenProvider tokenProvider
+
+@inject HttpClient Http
+@using System.Text.Json  // For JsonSerializer
+@using System.Net.Http.Headers  // For AuthenticationHeaderValue
+
 @attribute [Authorize]
 
 <PageTitle>Image Archive | Profile</PageTitle>
@@ -16,6 +21,41 @@
             {
                 <p>@EmailAddress</p>
             }
+            <!-- Add Query History Section Here -->
+            <div class="position-relative">
+                <button class="btn btn-primary mt-2" @onclick="ToggleHistory">
+                    Query History @(showHistory ? "▲" : "▼")
+                </button>
+                @if (showHistory)
+                {
+                    <div class="dropdown-menu show d-block mt-2 p-3 border rounded">
+                        @if (queryHistory?.Any() == true)
+                        {
+                            <div class="query-history-container">
+                                @foreach (var query in queryHistory)
+                                {
+                                    <div class="query-item mb-2">
+                                        <div class="small text-muted">
+                                            @query.timestamp.ToLocalTime().ToString("g")
+                                        </div>
+                                        <div class="text-break">
+                                            @GetFormattedParameters(query.parameters)
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else if (errorMessage != null)
+                        {
+                            <div class="text-danger">@errorMessage</div>
+                        }
+                        else
+                        {
+                            <div>No query history found</div>
+                        }
+                    </div>
+                }
+            </div>
         </div>
     }
     else
@@ -34,6 +74,66 @@
     private string IdToken = string.Empty;
     private AuthenticationState? state;
 
+
+    // New additions for query history
+    private bool showHistory = false;
+    private List<QueryHistoryItem> queryHistory = new();
+    private string? errorMessage;
+
+    private async Task ToggleHistory()
+    {
+        showHistory = !showHistory;
+        if (showHistory && !queryHistory.Any())
+        {
+            await GetQueryHistoryAsync();
+        }
+    }
+
+    private async Task GetQueryHistoryAsync()
+    {
+        try
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, "/api/query-history");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", IdToken);
+
+            var response = await Http.SendAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                queryHistory = await response.Content.ReadFromJsonAsync<List<QueryHistoryItem>>();
+                errorMessage = null;
+            }
+            else
+            {
+                errorMessage = $"Error loading history: {response.ReasonPhrase}";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to load query history: {ex.Message}";
+        }
+    }
+
+    private string GetFormattedParameters(string parametersJson)
+    {
+        try
+        {
+            var parameters = JsonSerializer.Deserialize<Dictionary<string, object>>(parametersJson);
+            return string.Join(", ", parameters.Select(kvp => $"{kvp.Key}: {kvp.Value}"));
+        }
+        catch
+        {
+            return parametersJson;
+        }
+    }
+
+    public class QueryHistoryItem
+    {
+        public DateTime timestamp { get; set; }
+        public string parameters { get; set; } = string.Empty;
+    }
+
+//=============================================================================================================================
     protected override async Task OnInitializedAsync()
     {
         state = await AuthenticationStateTask;
