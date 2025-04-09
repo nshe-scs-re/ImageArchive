@@ -18,4 +18,8 @@ public class ArchiveRequest
         ExceptionMessages.Add(message);
         Status = ArchiveStatus.Failed;
     }
+    public int TotalImages { get; set; }
+    public int ProcessedImages { get; set; }
+    public TimeSpan ElapsedTime { get; set; }
+    public TimeSpan EstimatedTimeRemaining { get; set; }
 }
