@@ -1,49 +1,74 @@
 import sys, os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 import torch
-from torchvision import transforms
+from torchvision import transforms, models
 from PIL import Image
 from tqdm import tqdm
-from data_labeling_model import MultiTaskResNet
 from db_connect import connect_to_database
 
-# UNIVERSAL GPU / CPU DEVICE SELECTOR
+# --- Model Definition ---
+class MultiTaskResNet(torch.nn.Module):
+    def __init__(self):
+        super(MultiTaskResNet, self).__init__()
+        self.base_model = models.resnet34(pretrained=False)
 
+        for param in self.base_model.parameters():
+            param.requires_grad = False
+        for param in self.base_model.layer4.parameters():
+            param.requires_grad = True
+
+        self.features = torch.nn.Sequential(*list(self.base_model.children())[:-1])
+
+        self.weather_classifier = torch.nn.Sequential(
+            torch.nn.Dropout(0.5),
+            torch.nn.Linear(512, 256),
+            torch.nn.ReLU(),
+            torch.nn.Dropout(0.3),
+            torch.nn.Linear(256, 2)
+        )
+
+        self.snow_classifier = torch.nn.Sequential(
+            torch.nn.Dropout(0.5),
+            torch.nn.Linear(512, 256),
+            torch.nn.ReLU(),
+            torch.nn.Dropout(0.3),
+            torch.nn.Linear(256, 2)
+        )
+
+    def forward(self, x):
+        x = self.features(x)
+        x = torch.flatten(x, 1)
+        return self.weather_classifier(x), self.snow_classifier(x)
+
+# --- Device Selection ---
 def get_best_device():
     if torch.cuda.is_available():
         print(f"Using CUDA GPU: {torch.cuda.get_device_name(0)}")
         return torch.device("cuda:0")
-
     elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
         print("Using Apple Metal (MPS) GPU")
         return torch.device("mps")
-
     elif torch.version.hip is not None and torch.cuda.is_available():
         print("Using ROCm-compatible AMD GPU")
-        return torch.device("cuda:0")  
-
-    # If no GPU backend is available, ask to use CPU
-    user_input = input("No GPU available. Proceed using CPU? (y/n): ").strip().lower()
-    if user_input != 'y':
-        print("Aborting.")
-        sys.exit(1)
-    print("Using CPU")
-    return torch.device("cpu")
+        return torch.device("cuda:0")
+    else:
+        user_input = input("No GPU available. Proceed using CPU? (y/n): ").strip().lower()
+        if user_input != 'y':
+            print("Aborting.")
+            sys.exit(1)
+        print("Using CPU")
+        return torch.device("cpu")
 
 device = get_best_device()
 
-
-# LOAD MODEL
-
+# --- Load Model ---
 model_path = "best_model.pth"
 model = MultiTaskResNet()
 model.load_state_dict(torch.load(model_path, map_location=device))
 model.to(device)
 model.eval()
 
-
-# IMAGE TRANSFORM
-
+# --- Image Preprocessing ---
 transform = transforms.Compose([
     transforms.Resize((256, 256)),
     transforms.CenterCrop(224),
@@ -52,13 +77,9 @@ transform = transforms.Compose([
                          std=[0.229, 0.224, 0.225])
 ])
 
-
-# DATABASE CONNECTION
-
+# --- Database Connection ---
 conn = connect_to_database()
 cursor = conn.cursor()
-
-# Ensure prediction columns exist
 
 cursor.execute("""
 IF COL_LENGTH('Images', 'WeatherPrediction') IS NULL
@@ -72,12 +93,9 @@ IF COL_LENGTH('Images', 'SnowPredictionPercent') IS NULL
 """)
 conn.commit()
 
-
-# RUN PREDICTIONS
-
+# --- Prediction & DB Update ---
 cursor.execute("SELECT Id, FilePath FROM Images")
 rows = cursor.fetchall()
-
 base_path = "/home/nmichelotti/Desktop/Image Archives/OneDrive_1_4-3-2025"
 
 for img_id, file_path in tqdm(rows, desc="Predicting images"):
