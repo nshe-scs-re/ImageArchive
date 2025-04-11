@@ -31,6 +31,17 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
         return request;
     }
 
+    public ArchiveRequest CancelArchiveRequest(ArchiveRequest request)
+    {
+        if(request.Id is not null)
+        {
+            request = GetJob((Guid)request.Id);
+            request.Status = ArchiveStatus.Canceled;
+        }
+
+        return request;
+    }
+
     public ArchiveRequest GetJob(Guid jobId)
     {
         return Jobs.TryGetValue(jobId, out ArchiveRequest? request)
@@ -73,8 +84,15 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
                 {
                     object archiveLock = new object();
 
-                    Parallel.ForEach(images, (image) =>
+                    Parallel.ForEach(images, (image, state) =>
                     {
+                        if(request.Status == ArchiveStatus.Canceled)
+                        {
+                            Console.WriteLine($"[INFO] [ArchiveManager] [CreateArchiveAsync]: Archive status of {request.Id} is {request.Status}. Breaking loop state.");
+                            state.Break();
+                            return;
+                        }
+
                         request.IncrementProcessedImages();
 
                         if(request.ProcessedImages % 10 == 0 && request.TotalImages > 0)
@@ -138,9 +156,15 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
 
             stopwatch.Stop();
 
-            request.Status = ArchiveStatus.Completed;
-
-            Console.WriteLine($"[INFO] [ArchiveManager] [CreateArchiveAsync]: Archiving process completed for id {request.Id}. Elapsed Time: {stopwatch.Elapsed}");
+            if(request.Status == ArchiveStatus.Processing)
+            {
+                request.Status = ArchiveStatus.Completed;
+                Console.WriteLine($"[INFO] [ArchiveManager] [CreateArchiveAsync]: Archiving process completed for id {request.Id}. Elapsed Time: {stopwatch.Elapsed}");
+            }
+            else
+            {
+                Console.WriteLine($"[INFO] [ArchiveManager] [CreateArchiveAsync]: Archiving status for id {request.Id}: {request.Status}. Elapsed Time: {stopwatch.Elapsed}");
+            }
         }
     }
 }
