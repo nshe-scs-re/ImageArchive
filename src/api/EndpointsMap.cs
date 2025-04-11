@@ -66,45 +66,103 @@ public static class EndpointsMap
             return Results.Ok(image);
         });
         //===========================================================================
-        // 
         builder.MapPost("/api/log-query", [Authorize] async (
-            HttpContext context,
-            ImageDbContext dbContext,
-            [FromBody] QueryParameters parameters) =>
-        {
-            try
+         HttpContext context,
+         ImageDbContext dbContext,
+         [FromBody] QueryParameters parameters) =>
             {
+                Console.WriteLine("POST /api/log-query hit");
+
                 var user = context.User;
-                var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
-                            user.FindFirst("sub")?.Value; // Auth0 uses 'sub' claim
+                var userId = user.FindFirst("sub")?.Value;  // Auth0-specific
+
+                Console.WriteLine($"Extracted userId: {userId}");
 
                 if(string.IsNullOrEmpty(userId))
                 {
+                    Console.WriteLine("Unauthorized request: Missing userId");
                     return Results.Unauthorized();
                 }
+
+                var serializedParams = JsonSerializer.Serialize(parameters, new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                });
+
+                Console.WriteLine($"Serialized parameters: {serializedParams}");
 
                 var userQuery = new UserQuery
                 {
                     UserId = userId,
-                    Parameters = JsonSerializer.Serialize(parameters),
+                    Parameters = serializedParams,
                     Timestamp = DateTime.UtcNow
                 };
 
-                await dbContext.UserQueries.AddAsync(userQuery);
-                await dbContext.SaveChangesAsync();
+                try
+                {
+                    await dbContext.UserQueries.AddAsync(userQuery);
+                    await dbContext.SaveChangesAsync();
+                    Console.WriteLine("UserQuery successfully saved to database.");
+                }
+                catch(Exception ex)
+                {
+                    Console.WriteLine($"Error saving UserQuery: {ex.Message}");
+                    return Results.Problem("Failed to log query");
+                }
 
-                return Results.Created($"/api/queries/{userQuery.QueryId}", userQuery);
+                return Results.Ok(userQuery);  // Return 200 instead of 201 for simplicity
+            })
+     .WithSummary("Logs user search queries")
+     .Produces<UserQuery>(200);
+
+
+        builder.MapGet("/api/query-history", [Authorize] async (
+            HttpContext context,
+            ImageDbContext dbContext) =>
+        {
+            Console.WriteLine("GET /api/query-history hit");
+            Console.WriteLine($"Auth Header: {context.Request.Headers.Authorization}");
+
+            try
+            {
+                var userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                             ?? context.User.FindFirst("sub")?.Value;
+
+                Console.WriteLine($"Resolved userId: {userId}");
+
+                if(string.IsNullOrEmpty(userId))
+                {
+                    Console.WriteLine("Unauthorized: No userId found in token");
+                    return Results.Unauthorized();
+                }
+
+                var history = await dbContext.UserQueries
+                    .Where(q => q.UserId == userId)
+                    .OrderByDescending(q => q.Timestamp)
+                    .ToListAsync();
+
+                Console.WriteLine($"Retrieved {history.Count} queries for userId: {userId}");
+
+                if(!history.Any())
+                {
+                    Console.WriteLine("No query history found for user.");
+                    return Results.NotFound("No query history found");
+                }
+
+                return Results.Ok(history);
             }
             catch(Exception ex)
             {
-                Console.WriteLine($"Error logging query: {ex.Message}");
-                return Results.Problem("Failed to log query");
+                Console.WriteLine($"Error fetching query history: {ex.Message}");
+                return Results.Problem("Failed to retrieve history");
             }
         })
-        .WithSummary("Logs a user's search query parameters")
-        .Produces<UserQuery>(201)
+        .WithSummary("Retrieves the authenticated user's query history")
+        .Produces<List<UserQuery>>(200)
         .Produces(401)
+        .Produces(404)
         .Produces(500);
+
         //==============================================================================================
         builder.MapGet("/api/db-verify", async (ImageDbContext dbContext) =>
         {
