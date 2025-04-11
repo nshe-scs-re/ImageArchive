@@ -15,14 +15,7 @@
                         <div class="accordion-header py-3">
                             <button class="accordion-button accordion-item rounded" type="button" data-bs-toggle="collapse" data-bs-target="#QueryFormContainer" @onclick="OnAccordionToggled">
                             <h1 class="h1 w-100 text-center">Image Repository Search</h1>
-                            @if (!accordionCollapsed)
-                            {
-                                <span class="p-2">Collapse</span>
-                            }
-                            else
-                            {
-                                <span class="p-2">Expand</span>
-                            }
+                            <span class="p-2">@(accordionIsCollapsed ? "Expand" : "Collapse")</span>
                             </button>
                         </div>
                     </div>
