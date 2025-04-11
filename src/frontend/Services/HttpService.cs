@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Antiforgery;
 using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
+using Microsoft.Extensions.Logging;
+
 namespace frontend.Services;
 
 public class HttpService
@@ -11,45 +13,52 @@ public class HttpService
     private readonly IAntiforgery _antiforgery;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly CookieContainer _cookieContainer;
+    private readonly ILogger<HttpService> _logger;
 
-    public HttpService(IHttpClientFactory httpClientFactory, IAntiforgery antiforgery, IHttpContextAccessor httpContextAccessor, CookieContainer cookieContainer)
+    public HttpService(IHttpClientFactory httpClientFactory, IAntiforgery antiforgery, IHttpContextAccessor httpContextAccessor, CookieContainer cookieContainer, ILogger<HttpService> logger)
     {
         _httpClientFactory = httpClientFactory;
         _antiforgery = antiforgery;
         _httpContextAccessor = httpContextAccessor;
         _cookieContainer = cookieContainer;
+        _logger = logger;
     }
 
     public HttpClient CreateForwardClient(Uri? baseAddress = null)
     {
-
         var client = _httpClientFactory.CreateClient("ForwardingClient");
 
         if(baseAddress != null)
         {
             client.BaseAddress = baseAddress;
         }
+        else if(client.BaseAddress == null)
+        {
+            client.BaseAddress = new Uri("http://localhost/"); // Set a default base address
+        }
 
-        //AddAntiForgeryCookie(client);
-
-        //AddAntiForgeryToken(client);
+        _logger.LogInformation("ForwardClient BaseAddress: {BaseAddress}", client.BaseAddress);
 
         return client;
     }
 
     public HttpClient CreateProxyClient(Uri? baseAddress = null)
     {
-
         var client = _httpClientFactory.CreateClient("ProxyClient");
 
         if(baseAddress != null)
         {
             client.BaseAddress = baseAddress;
         }
+        else if(client.BaseAddress == null)
+        {
+            client.BaseAddress = new Uri("http://localhost/"); // Set a default base address
+        }
 
         AddAntiForgeryCookie(client);
-
         AddAntiForgeryToken(client);
+
+        _logger.LogInformation("ProxyClient BaseAddress: {BaseAddress}", client.BaseAddress);
 
         return client;
     }
@@ -60,7 +69,7 @@ public class HttpService
 
         if(httpContext == null)
         {
-            Console.WriteLine($"[ERROR] [HttpService] [AddAntiForgeryCookie]: {nameof(httpContext)} is null.");
+            _logger.LogError("[HttpService] [AddAntiForgeryCookie]: {HttpContext} is null.", nameof(httpContext));
             return;
         }
 
@@ -70,13 +79,8 @@ public class HttpService
         if(!string.IsNullOrEmpty(antiCookie.Value) && client.BaseAddress != null)
         {
             _cookieContainer.Add(client.BaseAddress, new Cookie(antiCookie.Key, antiCookie.Value));
-            //Console.WriteLine($"[INFO] [HttpService] [AddAntiForgeryCookie]: Added antiforgery cookie: {antiCookie.Key}");
+            _logger.LogInformation("[HttpService] [AddAntiForgeryCookie]: Added antiforgery cookie: {AntiCookieKey}", antiCookie.Key);
         }
-
-        //foreach(var cookie in httpContext.Request.Cookies)
-        //{
-        //    Console.WriteLine($"[INFO] [HttpService] [AddAntiForgeryToken]: Cookie Key: {cookie.Key}");
-        //}
     }
 
     public void AddAntiForgeryToken(HttpClient client)
@@ -85,7 +89,7 @@ public class HttpService
 
         if(httpContext == null)
         {
-            Console.WriteLine($"[ERROR] [HttpService] [AddAntiForgeryToken]: {nameof(httpContext)} is null.");
+            _logger.LogError("[HttpService] [AddAntiForgeryToken]: {HttpContext} is null.", nameof(httpContext));
             return;
         }
 
@@ -93,55 +97,67 @@ public class HttpService
 
         if(tokens.RequestToken is null || tokens.HeaderName is null)
         {
-            Console.WriteLine($"[ERROR] [HttpService] [AddAntiForgeryToken]: Antiforgery token fields null.");
+            _logger.LogError("[HttpService] [AddAntiForgeryToken]: Antiforgery token fields null.");
         }
 
         client.DefaultRequestHeaders.Add(tokens.HeaderName!, tokens.RequestToken);
-
-        //Console.WriteLine($"[INFO] [HttpService] [AddAntiForgeryToken]: {nameof(tokens.HeaderName)}: {tokens.HeaderName}");
-        //Console.WriteLine($"[INFO] [HttpService] [AddAntiForgeryToken]: {nameof(tokens.RequestToken)}: {tokens.RequestToken}");
+        _logger.LogInformation("[HttpService] [AddAntiForgeryToken]: {HeaderName}: {RequestToken}", tokens.HeaderName, tokens.RequestToken);
     }
 
     public async Task<HttpResponseMessage> GetImagesByIdAsync(long id)
     {
         var httpClient = CreateForwardClient();
-        return await httpClient.GetAsync($"api/images/{id}");
+        var requestUri = $"api/images/{id}";
+        _logger.LogInformation("GetImagesByIdAsync Request URI: {RequestUri}", requestUri);
+        return await httpClient.GetAsync(requestUri);
     }
 
     public async Task<HttpResponseMessage> GetImagesByPageAsync(DateTime startDate, DateTime endDate, int pageIndex, int pageSize, string? siteName, int? siteNumber, int? cameraPosition)
     {
         var httpClient = CreateForwardClient();
-        return await httpClient.GetAsync($"api/images/paginated?filter={startDate},{endDate},{pageIndex},{pageSize},{siteName},{siteNumber},{cameraPosition}");
+        var requestUri = $"api/images/paginated?filter={startDate},{endDate},{pageIndex},{pageSize},{siteName},{siteNumber},{cameraPosition}";
+        _logger.LogInformation("GetImagesByPageAsync Request URI: {RequestUri}", requestUri);
+        return await httpClient.GetAsync(requestUri);
     }
 
     public async Task<HttpResponseMessage> GetImagesByPageAsync(ImageQuery imageQuery, int pageIndex, int pageSize)
     {
         var httpClient = CreateForwardClient();
-        return await httpClient.GetAsync($"api/images/paginated?filter={imageQuery.StartDateTime},{imageQuery.EndDateTime},{pageIndex},{pageSize},{imageQuery.SiteName},{imageQuery.SiteNumber},{imageQuery.CameraPositionNumber}");
+        var requestUri = $"api/images/paginated?filter={imageQuery.StartDateTime},{imageQuery.EndDateTime},{pageIndex},{pageSize},{imageQuery.SiteName},{imageQuery.SiteNumber},{imageQuery.CameraPositionNumber}";
+        _logger.LogInformation("GetImagesByPageAsync Request URI: {RequestUri}", requestUri);
+        return await httpClient.GetAsync(requestUri);
     }
 
     public async Task<HttpResponseMessage> GetImagesAllAsync()
     {
         var httpClient = CreateForwardClient();
-        return await httpClient.GetAsync("api/images/all");
+        var requestUri = "api/images/all";
+        _logger.LogInformation("GetImagesAllAsync Request URI: {RequestUri}", requestUri);
+        return await httpClient.GetAsync(requestUri);
     }
 
     public async Task<HttpResponseMessage> GetArchiveStatusAsync(Guid jobId)
     {
         var httpClient = CreateForwardClient();
-        return await httpClient.GetAsync($"api/archive/status/{jobId}");
+        var requestUri = $"api/archive/status/{jobId}";
+        _logger.LogInformation("GetArchiveStatusAsync Request URI: {RequestUri}", requestUri);
+        return await httpClient.GetAsync(requestUri);
     }
 
     public async Task<HttpResponseMessage> GetArchiveDownloadAsync(Guid jobId)
     {
         var httpClient = CreateForwardClient();
-        return await httpClient.GetAsync($"api/archive/download/{jobId}", HttpCompletionOption.ResponseHeadersRead);
+        var requestUri = $"api/archive/download/{jobId}";
+        _logger.LogInformation("GetArchiveDownloadAsync Request URI: {RequestUri}", requestUri);
+        return await httpClient.GetAsync(requestUri, HttpCompletionOption.ResponseHeadersRead);
     }
 
     public async Task<HttpResponseMessage> PostArchiveRequestAsync(ArchiveRequest request)
     {
         var httpClient = CreateForwardClient();
-        return await httpClient.PostAsJsonAsync("api/archive/request", request);
+        var requestUri = "api/archive/request";
+        _logger.LogInformation("PostArchiveRequestAsync Request URI: {RequestUri}", requestUri);
+        return await httpClient.PostAsJsonAsync(requestUri, request);
     }
 
     public async Task<HttpResponseMessage> PostFileAsync(FileUploadItem item)
@@ -181,7 +197,9 @@ public class HttpService
             content.Add(new StringContent(item.CameraPositionName), "CameraPositionName");
         }
 
-        return await httpClient.PostAsync("api/upload", content);
+        var requestUri = "api/upload";
+        _logger.LogInformation("PostFileAsync Request URI: {RequestUri}", requestUri);
+        return await httpClient.PostAsync(requestUri, content);
     }
 
     public async Task<HttpResponseMessage> UploadFilesAsync(List<FileUploadItem> fileItems)
@@ -199,14 +217,19 @@ public class HttpService
             fileContent.Headers.ContentType = new MediaTypeHeaderValue(item.File.ContentType);
 
             content.Add(fileContent, "files", item.File.Name);
-
-            //content.Add(new StringContent(item.DateTime.Value.ToString("o")), $"FileItems[{i}].DateTime");
-            //content.Add(new StringContent(item.SiteName), $"FileItems[{i}].SiteName");
-            //content.Add(new StringContent(item.SiteNumber.ToString()), $"FileItems[{i}].SiteNumber");
-            //content.Add(new StringContent(item.CameraPositionNumber.ToString()), $"FileItems[{i}].CameraPositionNumber");
-            //content.Add(new StringContent(item.CameraPositionName), $"FileItems[{i}].CameraPositionName");
         }
 
-        return await httpClient.PostAsync("/api/upload", content);
+        var requestUri = "/api/upload";
+        _logger.LogInformation("UploadFilesAsync Request URI: {RequestUri}", requestUri);
+        return await httpClient.PostAsync(requestUri, content);
+    }
+
+    // Add the GetQueryHistoryAsync method
+    public async Task<HttpResponseMessage> GetQueryHistoryAsync()
+    {
+        var httpClient = CreateForwardClient();
+        var requestUri = "api/queryhistory";
+        _logger.LogInformation("GetQueryHistoryAsync Request URI: {RequestUri}", requestUri);
+        return await httpClient.GetAsync(requestUri);
     }
 }

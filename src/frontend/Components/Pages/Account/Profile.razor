@@ -1,16 +1,17 @@
 ﻿@page "/Account/Profile"
 @inject TokenProvider tokenProvider
 
-@inject HttpClient Http
-@using System.Text.Json  // For JsonSerializer
-@using System.Net.Http.Headers  // For AuthenticationHeaderValue
+@inject HttpService HttpService;
+@using System.Text.Json  
+@using System.Net.Http.Headers  
+@using frontend.Models;
 
 @attribute [Authorize]
 
 <PageTitle>Image Archive | Profile</PageTitle>
 
 <div class="row">
-    @if(state.User.Identity.IsAuthenticated)
+    @if (state.User.Identity.IsAuthenticated == true)
     {
         <div class="col">
             <img src="@Picture" alt="Profile Picture" class="img-rounded img-responsive" />
@@ -73,12 +74,32 @@
     private string Picture = string.Empty;
     private string IdToken = string.Empty;
     private AuthenticationState? state;
+    private bool isInitialized = false;
 
 
     // New additions for query history
     private bool showHistory = false;
     private List<QueryHistoryItem> queryHistory = new();
     private string? errorMessage;
+
+
+    protected override async Task OnInitializedAsync()
+{
+    state = await AuthenticationStateTask;
+
+    if (state.User.Identity == null || !state.User.Identity.IsAuthenticated)
+    {
+        throw new InvalidOperationException("User.Identity is null or user is not authenticated.");
+    }
+
+    Username = state.User.Identity.Name!;
+    EmailAddress = state.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Email)?.Value ?? string.Empty;
+    Picture = state.User.Claims.FirstOrDefault(c => c.Type == "picture")?.Value ?? string.Empty;
+
+    IdToken = tokenProvider.IdToken;
+
+    await base.OnInitializedAsync();
+}
 
     private async Task ToggleHistory()
     {
@@ -93,10 +114,8 @@
     {
         try
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, "/api/query-history");
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", IdToken);
-
-            var response = await Http.SendAsync(request);
+           
+            var response = await HttpService.GetQueryHistoryAsync();
 
             if (response.IsSuccessStatusCode)
             {
@@ -132,27 +151,6 @@
         public DateTime timestamp { get; set; }
         public string parameters { get; set; } = string.Empty;
     }
-
-//=============================================================================================================================
-    protected override async Task OnInitializedAsync()
-    {
-        state = await AuthenticationStateTask;
-
-        Username = state.User.Identity.Name ?? string.Empty;
-        EmailAddress = state.User.Claims
-            .Where(c => c.Type.Equals(System.Security.Claims.ClaimTypes.Email))
-            .Select(c => c.Value)
-            .FirstOrDefault() ?? string.Empty;
-
-        Picture = state.User.Claims
-            .Where(c => c.Type.Equals("picture"))
-            .Select(c => c.Value)
-            .FirstOrDefault() ?? string.Empty;
-
-
-        IdToken = tokenProvider.IdToken;
-
-        await base.OnInitializedAsync();
-    }
+   
 }
 
