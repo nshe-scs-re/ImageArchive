@@ -2,84 +2,89 @@
 @inject ThemeService ThemeService
 
 <div class="row">
-<div class="col">
-<nav class="navbar navbar-expand-md rounded">
-  <div class="container-fluid">
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavBar">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="navbar-collapse collapse row" id="mainNavBar">
-      <ul class="col navbar-nav mx-auto justify-content-md-start"></ul>
-      <ul class="col navbar-nav mx-auto justify-content-md-center">
-        <AuthorizeView Roles="Administrator">
-          <Authorized>
-            <li class="nav-item"><a class="btn rounded custom-btn-fixed-size-md" href="/search" Match="NavLinkMatch.All">Search</a></li>
-            <li class="nav-item"><a class="btn rounded custom-btn-fixed-size-md" href="http://localhost:8080/swagger">Swagger</a></li>
-            <li class="nav-item"><a class="btn rounded custom-btn-fixed-size-md" href="upload">Upload</a></li>
-          </Authorized>
-          <NotAuthorized>
-          </NotAuthorized>
-        </AuthorizeView>
-      </ul>
-      <ul class="col navbar-nav mx-auto justify-content-md-end">
-        <AuthorizeView>
-          <Authorized>
-            <li>
-              @if (ThemeService.State)
-              {
-                <div class="nav-item">
-                  <button id="dark-mode-button" type="button" class="btn rounded custom-btn-fixed-size-md" @onclick=ToggleTheme>
-                    <i class="bi bi-moon-stars-fill"></i>
-                    <span class="ms-1">Dark Mode</span>
-                  </button>
+    <div class="col">
+        <nav class="navbar navbar-expand-md rounded">
+            <div class="container-fluid">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavBar">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse row" id="mainNavBar">
+                    <ul class="col navbar-nav mx-auto justify-content-md-start"></ul>
+                    <ul class="col navbar-nav mx-auto justify-content-md-center">
+                    <AuthorizeView>
+                        <Authorized>
+                            <AuthorizeView Context="role_context" Roles="Administrator">
+                                <Authorized>
+                                    <li class="nav-item"><a class="btn rounded custom-btn-fixed-size-md" href="/search" Match="NavLinkMatch.All">Search</a></li>
+                                    <li class="nav-item"><a class="btn rounded custom-btn-fixed-size-md" href="http://localhost:8080/swagger">Swagger</a></li>
+                                    <li class="nav-item"><a class="btn rounded custom-btn-fixed-size-md" href="upload">Upload</a></li>
+                                </Authorized>
+                                <NotAuthorized>
+                                    <li class="nav-item"><a class="btn rounded custom-btn-fixed-size-md" href="/search" Match="NavLinkMatch.All">Search</a></li>
+                                </NotAuthorized>
+                            </AuthorizeView>
+                        </Authorized>
+                    </AuthorizeView>
+                    </ul>
+                    <ul class="col navbar-nav mx-auto justify-content-md-end">
+                    <AuthorizeView>
+                        <Authorized>
+                        <li>
+                            @if (ThemeService.State)
+                            {
+                            <div class="nav-item">
+                                <button id="dark-mode-button" type="button" class="btn rounded custom-btn-fixed-size-md" @onclick=ToggleTheme>
+                                    <i class="bi bi-moon-stars-fill"></i>
+                                    <span class="ms-1">Dark Mode</span>
+                                </button>
+                            </div>
+                            }
+                            else
+                            {
+                            <div class="nav-item">
+                                <button id="dark-mode-button" type="button" class="btn rounded custom-btn-fixed-size-md" @onclick=ToggleTheme>
+                                    <i class="bi bi-brightness-high-fill"></i>
+                                    <span class="ms-1">Light Mode</span>
+                                </button>
+                            </div>
+                            }
+                        </li>
+                        <li class="nav-item dropdown"><a class="nav-link dropdown-toggle rounded" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">@userName</a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item custom-btn-fixed-size-md w-100" href="/Account/Profile" Match="NavLinkMatch.All">View Profile</a></li>
+                                <li><a class="dropdown-item custom-btn-fixed-size-md w-100" href="/Account/Logout">Logout</a></li>
+                            </ul>
+                        </li>
+                        </Authorized>
+                        <NotAuthorized>
+                        <li>
+                            @if (ThemeService.State)
+                            {
+                            <div class="nav-item">
+                                <button id="dark-mode-button" type="button" class="btn rounded custom-btn-fixed-size-md" @onclick=ToggleTheme>
+                                    <i class="bi bi-moon-stars-fill"></i>
+                                    <span class="ms-1">Dark Mode</span>
+                                </button>
+                            </div>
+                            }
+                            else
+                            {
+                            <div class="nav-item">
+                                <button id="dark-mode-button" type="button" class="btn rounded custom-btn-fixed-size-md" @onclick=ToggleTheme>
+                                    <i class="bi bi-brightness-high-fill"></i>
+                                    <span class="ms-1">Light Mode</span>
+                                </button>
+                            </div>
+                            }
+                        </li>
+                        <li class="nav-item"><a class="btn rounded custom-btn-fixed-size-md" href="/Account/Login">Login</a></li>
+                        </NotAuthorized>
+                    </AuthorizeView>
+                    </ul>
                 </div>
-              }
-              else
-              {
-                <div class="nav-item">
-                  <button id="dark-mode-button" type="button" class="btn rounded custom-btn-fixed-size-md" @onclick=ToggleTheme>
-                    <i class="bi bi-brightness-high-fill"></i>
-                    <span class="ms-1">Light Mode</span>
-                  </button>
-                </div>
-              }
-            </li>
-            <li class="nav-item dropdown"><a class="nav-link dropdown-toggle rounded" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">@userName</a>
-              <ul class="dropdown-menu">
-                <li><a class="dropdown-item custom-btn-fixed-size-md" href="/Account/Profile" Match="NavLinkMatch.All">View Profile</a></li>
-                <li><a class="dropdown-item custom-btn-fixed-size-md" href="/Account/Logout">Logout</a></li>
-              </ul>
-            </li>
-          </Authorized>
-          <NotAuthorized>
-            <li>
-              @if (ThemeService.State)
-              {
-                <div class="nav-item">
-                  <button id="dark-mode-button" type="button" class="btn rounded custom-btn-fixed-size-md" @onclick=ToggleTheme>
-                    <i class="bi bi-moon-stars-fill"></i>
-                    <span class="ms-1">Dark Mode</span>
-                  </button>
-                </div>
-              }
-              else
-              {
-                <div class="nav-item">
-                  <button id="dark-mode-button" type="button" class="btn rounded custom-btn-fixed-size-md" @onclick=ToggleTheme>
-                    <i class="bi bi-brightness-high-fill"></i>
-                    <span class="ms-1">Light Mode</span>
-                  </button>
-                </div>
-              }
-            </li>
-            <li class="nav-item"><a class="btn rounded custom-btn-fixed-size-md" href="/Account/Login">Login</a></li>
-          </NotAuthorized>
-        </AuthorizeView>
-      </ul>
+            </div>
+        </nav>
     </div>
-  </div>
-</nav>
-</div>
 </div>
 
 @code {
@@ -90,7 +95,7 @@
 
     protected override void OnInitialized()
     {
-      ThemeService.StateChanged += OnThemeChanged;
+        ThemeService.StateChanged += OnThemeChanged;
     }
 
     protected override async Task OnInitializedAsync()
