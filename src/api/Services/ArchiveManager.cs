@@ -74,6 +74,10 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
 
             request.TotalImages = images.Count;
 
+            string archiveDirectory = Path.Combine(Directory.GetCurrentDirectory(), "archives");
+
+            Directory.CreateDirectory(archiveDirectory);
+
             request.FilePath = Path.Combine(Directory.GetCurrentDirectory(), "archives", $"{request.Id}.zip");
 
             ConcurrentBag<Exception> exceptions = new ConcurrentBag<Exception>();
