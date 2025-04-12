@@ -4,6 +4,7 @@
 @inject HttpService HttpService;
 @using System.Text.Json  
 @using System.Net.Http.Headers  
+@using System.Security.Claims
 @using frontend.Models;
 
 @attribute [Authorize]
@@ -15,6 +16,7 @@
     {
         <div class="col text-center">
             <h1 class="h1">Hi, @Username</h1>
+            <h1>user id: @auth0UserId</h1>
             <div>
                 <button class="btn btn-small" @onclick="HandlePostQueryLog">Add sample row to query table</button>
             </div>
@@ -70,100 +72,102 @@
             }
         </div>
 
-        @code {
-
-            [CascadingParameter]
-            public Task<AuthenticationState> AuthenticationStateTask { get; set; }
+@code {
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthenticationStateTask { get; set; }
     private string Username = string.Empty;
-        private string EmailAddress = string.Empty;
-        private string Picture = string.Empty;
-        private string IdToken = string.Empty;
-        private AuthenticationState? state;
-        private bool isInitialized = false;
-        private bool showHistory = false;
-        private List<QueryHistoryItem> queryHistory = new();
-        private string? errorMessage;
-        private List<UserQuery> userQueryList = new();
+    private string EmailAddress = string.Empty;
+    private string Picture = string.Empty;
+    private string IdToken = string.Empty;
+    private AuthenticationState? state;
+    private bool isInitialized = false;
+    private bool showHistory = false;
+    private List<QueryHistoryItem> queryHistory = new();
+    private string? errorMessage;
+    private List<UserQuery> userQueryList = new();
+    private string auth0UserId = string.Empty;
 
+    protected override async Task OnInitializedAsync()
+    {
+        state = await AuthenticationStateTask;
 
-        protected override async Task OnInitializedAsync()
+        if (state.User.Identity == null || !state.User.Identity.IsAuthenticated)
         {
-            state = await AuthenticationStateTask;
-
-            if (state.User.Identity == null || !state.User.Identity.IsAuthenticated)
-            {
-                throw new InvalidOperationException("User.Identity is null or user is not authenticated.");
-            }
-
-            Username = state.User.Identity.Name!;
-
-            //EmailAddress = state.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Email)?.Value ?? string.Empty;
-
-            //Picture = state.User.Claims.FirstOrDefault(c => c.Type == "picture")?.Value ?? string.Empty;
-
-            IdToken = tokenProvider.IdToken;
-
-            isInitialized = true;
-
-            await base.OnInitializedAsync();
+            throw new InvalidOperationException("User.Identity is null or user is not authenticated.");
         }
 
-        private async Task ToggleHistory()
+        foreach (var claim in state.User.Claims)
         {
-            showHistory = !showHistory;
-            if (showHistory && !queryHistory.Any())
-            {
-                await GetQueryHistoryAsync();
-            }
+            Console.WriteLine($"Claim Type: {claim.Type}, Value: {claim.Value}");
         }
 
-        private async Task GetQueryHistoryAsync()
-        {
-            try
-            {
-                var response = await HttpService.GetQueryHistoryAsync();
+        Username = state.User.Identity.Name!;
 
-                if (response.IsSuccessStatusCode)
-                {
-                    //queryHistory = await response.Content.ReadFromJsonAsync<List<QueryHistoryItem>>();
-                }
-                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    errorMessage = "No query history found.";
-                }
-                else
-                {
-                    errorMessage = $"Error loading history: {response.ReasonPhrase}";
-                }
-            }
-            catch (Exception ex)
+        auth0UserId = state.User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "user id claim unsuccessful";
+
+        IdToken = tokenProvider.IdToken; // TODO: Necessary?
+
+        isInitialized = true;
+
+        await base.OnInitializedAsync();
+    }
+
+    private async Task ToggleHistory()
+    {
+        showHistory = !showHistory;
+        if (showHistory && !queryHistory.Any())
+        {
+            await GetQueryHistoryAsync();
+        }
+    }
+
+    private async Task GetQueryHistoryAsync()
+    {
+        try
+        {
+            var response = await HttpService.GetQueryHistoryAsync();
+
+            if (response.IsSuccessStatusCode)
             {
-                errorMessage = $"Failed to load query history: {ex.Message}";
+                //queryHistory = await response.Content.ReadFromJsonAsync<List<QueryHistoryItem>>();
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                errorMessage = "No query history found.";
+            }
+            else
+            {
+                errorMessage = $"Error loading history: {response.ReasonPhrase}";
             }
         }
-
-        private string GetFormattedParameters(string parametersJson)
+        catch (Exception ex)
         {
-            try
-            {
-                var parameters = JsonSerializer.Deserialize<Dictionary<string, object>>(parametersJson);
-                return string.Join(", ", parameters.Select(kvp => $"{kvp.Key}: {kvp.Value}"));
-            }
-            catch
-            {
-                return parametersJson;
-            }
+            errorMessage = $"Failed to load query history: {ex.Message}";
         }
+    }
 
-        public class QueryHistoryItem
+    private string GetFormattedParameters(string parametersJson)
+    {
+        try
         {
-            public DateTime timestamp { get; set; }
-            public string parameters { get; set; } = string.Empty;
+            var parameters = JsonSerializer.Deserialize<Dictionary<string, object>>(parametersJson);
+            return string.Join(", ", parameters.Select(kvp => $"{kvp.Key}: {kvp.Value}"));
         }
-
-        public async Task HandlePostQueryLog()
+        catch
         {
-            var m_queryParameters = new QueryParameters
+            return parametersJson;
+        }
+    }
+
+    public class QueryHistoryItem
+    {
+        public DateTime timestamp { get; set; }
+        public string parameters { get; set; } = string.Empty;
+    }
+
+    public async Task HandlePostQueryLog()
+    {
+        var m_queryParameters = new QueryParameters
         {
             StartDate = new DateTime(2010, 1, 1),
             EndDate = new DateTime(2020, 1, 1),
@@ -174,24 +178,24 @@
             PageSize = 9
         };
 
-            var m_query = new UserQuery
+        var m_query = new UserQuery
         {
-            UserId = "myUserId",
+            UserId = auth0UserId,
             Parameters = JsonSerializer.Serialize(m_queryParameters),
             Timestamp = DateTime.Now
         };
 
-            var response = await HttpService.PostQueryHistoryAsync(m_query);
+        var response = await HttpService.PostQueryHistoryLogAsync(m_query);
 
-            Console.WriteLine($"[DEBUG] [Profile] [HandlePostQueryLog]: Response code: {response.StatusCode}");
-        }
+        Console.WriteLine($"[DEBUG] [Profile] [HandlePostQueryLog]: Response code: {response.StatusCode}");
+    }
 
-        public async Task HandleFetchQueryLogList()
-        {
-            var response = await HttpService.GetQueryHistoryAsync();
+    public async Task HandleFetchQueryLogList()
+    {
+        var response = await HttpService.GetQueryHistoryAsync();
 
-            userQueryList = await response.Content.ReadFromJsonAsync<List<UserQuery>>();
-        }
+        userQueryList = await response.Content.ReadFromJsonAsync<List<UserQuery>>();
+    }
    
 }
 
