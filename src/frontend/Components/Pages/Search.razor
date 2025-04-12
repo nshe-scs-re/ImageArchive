@@ -80,7 +80,7 @@
                                 </div>
                             </div>
                             <div class="text-end py-2">
-                                <button type="submit" class="btn rounded custom-btn-fixed-size-sm" @onclick="CaptureTimestamp">Search</button>
+                                <button type="submit" class="btn rounded custom-btn-fixed-size-sm" data-bs-toggle="collapse" data-bs-target="#QueryFormContainer" @onclick="OnAccordionToggled">Search</button>
                             </div>
                         </EditForm>
                     </div>
@@ -288,15 +288,6 @@
     private bool timerIsRunning = false;
     private SearchState searchState;
     private bool userClickedCancel = false;
-
-    //dummy vars
-    private DateTime dummy_timestamp;
-
-    private void CaptureTimestamp()
-    {
-        dummy_timestamp = DateTime.Now;
-        Console.WriteLine($"Timestamp captured: {dummy_timestamp}");
-    }
 
     public string SiteName
     {
@@ -655,7 +646,7 @@
         return $"width: {progressPercentValue}%";
     }
 
-    public async void PostQueryHistoryLogAsync()
+    public async Task PostQueryHistoryLogAsync()
     {
         var userQuery = new UserQuery
         {
