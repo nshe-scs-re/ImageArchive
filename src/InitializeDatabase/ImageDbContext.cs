@@ -8,5 +8,5 @@ public class ImageDbContext : DbContext
     public ImageDbContext(DbContextOptions<ImageDbContext> options) : base(options){}
 
     public DbSet<Image> Images { get; set; }
-    //public DbSet<UserQuery> UserQueries { get; set; }
+    public DbSet<UserQuery> UserQueries { get; set; }
 }
