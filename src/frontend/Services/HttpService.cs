@@ -220,7 +220,7 @@ public class HttpService
         var httpClient = CreateForwardClient();
         return await httpClient.GetAsync("api/query-history");
     }
-    public async Task<HttpResponseMessage> PostQueryHistoryAsync(UserQuery query)
+    public async Task<HttpResponseMessage> PostQueryHistoryLogAsync(UserQuery query)
     {
         var httpClient = CreateForwardClient();
         return await httpClient.PostAsJsonAsync("api/log-query", query);
