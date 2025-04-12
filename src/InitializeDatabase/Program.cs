@@ -1,45 +1,125 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
 
 namespace InitializeDatabase;
 internal class Program
 {
+    static bool _verboseLoggingEnabled = false;
     static void Main(string[] args)
     {
-        var configuration = LoadConfiguration();
+        _verboseLoggingEnabled = args.Contains("-v") || args.Contains("--verbose");
 
+        LogToConsole("Loading configuration...");
+        var configuration = LoadConfiguration();
+        LogToConsole("Success!");
+
+        LogToConsole("Loading services...");
         using var serviceProvider = LoadServices(configuration);
+        LogToConsole("Success!");
 
         using(var scope = serviceProvider.CreateScope())
         {
             using var context = scope.ServiceProvider.GetRequiredService<ImageDbContext>();
+
+            LogToConsole("Applying database migrations...");
             context.Database.Migrate();
+            LogToConsole("Success!");
         }
 
+        LogToConsole("Getting image directory base path...");
         var imageDirectoryBasePath = GetImageDirectoryBasePath();
+        LogToConsole("Success!");
 
+        LogToConsole("Getting image file paths...");
         var imageFilePaths = GetImageFilePaths(imageDirectoryBasePath);
+        LogToConsole("Success!");
 
-        InsertIntoDatabase(imageFilePaths, ParseHeaders(imageFilePaths), serviceProvider);
+        LogToConsole("Parsing headers...");
+        var parsedHeaders = ParseHeaders(imageFilePaths);
+        LogToConsole("Success!");
+
+        LogToConsole("Inserting into database...");
+        InsertIntoDatabase(imageFilePaths, parsedHeaders, serviceProvider);
+        LogToConsole("Success!");
+
+        LogToConsole("Script complete.");
+    }
+
+    static void LogToConsole(string message, LogLevel logLevel = LogLevel.Information, [CallerMemberName] string? caller = null)
+    {
+        if (!_verboseLoggingEnabled && (logLevel == LogLevel.Debug || logLevel == LogLevel.Trace))
+        {
+            return;
+        }
+
+        string levelTag = logLevel.ToString().ToUpper();
+        ConsoleColor originalColor = Console.ForegroundColor;
+        ConsoleColor logLevelColor = Console.ForegroundColor;
+
+        switch (logLevel)
+        {
+            case LogLevel.Debug:
+            case LogLevel.Trace:
+                logLevelColor = ConsoleColor.Cyan;
+                break;
+            case LogLevel.Information:
+                logLevelColor = ConsoleColor.Green;
+                break;
+            case LogLevel.Warning:
+                logLevelColor = ConsoleColor.Yellow;
+                break;
+            case LogLevel.Error:
+            case LogLevel.Critical:
+                logLevelColor = ConsoleColor.Red;
+                break;
+            default:
+                logLevelColor = ConsoleColor.White;
+                break;
+        }
+
+        Console.ForegroundColor = logLevelColor;
+
+        Console.Write($"[{levelTag}] ");
+
+        Console.ForegroundColor = originalColor;
+
+        string timestamp = $"{DateTime.Now:HH:mm:ss}";
+
+        if(message is "Success!")
+        {
+            Console.Write($"[{caller}] [{timestamp}]: ");
+
+            Console.ForegroundColor = ConsoleColor.Green;
+
+            Console.WriteLine(message);
+
+            Console.ForegroundColor = originalColor;
+        }
+        else
+        {
+            Console.WriteLine($"[{caller}] [{timestamp}]: {message}");
+        }
     }
 
     static Dictionary<string, int> ParseHeaders(List<string> filePaths)
     {
         var byteMapping = new ConcurrentDictionary<string, int>();
-
-        Parallel.ForEach(filePaths, filePath =>
+        var options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount };
+        Parallel.ForEach(filePaths, options, filePath =>
         {
             if(!Path.IsPathFullyQualified(filePath))
             {
-                Console.WriteLine("[WARNING] [Program.cs] [ParseHeaders]: Invalid file path. Skipping file.");
+                LogToConsole("Invalid file path. Skipping file.", logLevel: LogLevel.Debug);
                 return;
             }
 
             if(!File.Exists(filePath))
             {
-                Console.WriteLine("[WARNING] [Program.cs] [ParseHeaders]: Invalid file path. Skipping file.");
+                LogToConsole("Invalid file path. Skipping file.", logLevel: LogLevel.Debug);
                 return;
             }
 
@@ -48,7 +128,7 @@ internal class Program
 
             if(fileStream.Length < 2)
             {
-                Console.WriteLine($"[WARNING] [Program.cs] [ParseHeaders]: File too small to be a valid JPEG file. Skipping file at path '{filePath}'");
+                LogToConsole($"File too small to be a valid JPEG file. Skipping file at: {filePath}", logLevel: LogLevel.Debug);
                 return;
             }
 
@@ -56,7 +136,7 @@ internal class Program
 
             if(firstHeader != 0xFFD8) // JPEG SOI marker (0xFFD8)
             {
-                Console.WriteLine($"[WARNING] [Program.cs] [ParseHeaders]: Unexpected SOI marker: 0x{firstHeader:X4}. Skipping file at path '{filePath}'");
+                LogToConsole($"Unexpected SOI marker: 0x{firstHeader:X4}. Skipping file: {filePath}", logLevel: LogLevel.Debug);
                 return;
             }
 
@@ -66,7 +146,7 @@ internal class Program
 
             if(segmentMarker != 0xFFD9) // JPEG EOI marker (0xFFD9)
             {
-                Console.WriteLine($"[WARNING] [Program.cs] [ParseHeaders]: Unexpected EOI marker: 0x{segmentMarker:X4}. Skipping file at path '{filePath}'");
+                LogToConsole($"Unexpected EOI marker: 0x{segmentMarker:X4}. Skipping file: {filePath}", logLevel: LogLevel.Debug);
                 return;
             }
 
@@ -76,7 +156,7 @@ internal class Program
             {
                 if(fileStream.Length - fileStream.Position < 4)
                 {
-                    Console.WriteLine($"[WARNING] [Program.cs] [ParseHeaders]: File stream length must be > 4 bytes. Skipping file at path '{filePath}'");
+                    LogToConsole($"File stream length must be > 4 bytes. Skipping file: {filePath}", logLevel: LogLevel.Debug);
                     break; // Length must be at least 4 bytes
                 }
 
@@ -90,7 +170,7 @@ internal class Program
 
                 if(fileStream.Length - fileStream.Position < segmentLength - 2)
                 {
-                    Console.WriteLine($"[WARNING] [Program.cs] [ParseHeaders]: File stream length too short. Skipping file at path '{filePath}'");
+                    LogToConsole($"File stream length too short. Skipping file: {filePath}", logLevel: LogLevel.Debug);
                     break; // Avoid reading passed EOF
                 }
 
@@ -105,7 +185,7 @@ internal class Program
 
                 if(app0_header.Length < 29)
                 {
-                    Console.WriteLine($"[WARNING] [Program.cs] [ParseHeaders]: APP0 header is too short. Skipping file at path '{filePath}'");
+                    LogToConsole($"APP0 header is too short. Skipping file: {filePath}", logLevel: LogLevel.Debug);
                     break;
                 }
 
@@ -114,14 +194,14 @@ internal class Program
 
                 if(byte_27 != byte_29)
                 {
-                    Console.WriteLine($"[WARNING] [Program.cs] [ParseHeaders]: Byte 27 and Byte 29 do not match. Skipping file at path '{filePath}'");
+                    LogToConsole($"Byte 27 and Byte 29 do not match. Skipping file: {filePath}", logLevel: LogLevel.Debug);
                     break;
                 }
 
                 // implicit conversion of byte_27 from byte to int
                 if(!byteMapping.TryAdd(filePath, byte_27))
                 {
-                    Console.WriteLine($"[WARNING] [Program.cs] [ParseHeaders]: Could not add image with path '{filePath}' to byte mapping.");
+                    LogToConsole($"Could not add image with path to byte mapping: {filePath}", logLevel: LogLevel.Debug);
                 }
 
                 break; // Move to next file after reading APP0 header
@@ -174,13 +254,13 @@ internal class Program
 
             if(fileName.Length <= 2)
             {
-                Console.WriteLine($"[INFO] [InitializeDatabase] [InsertImagePathsIntoDatabase]: Name is too short. Skipping file at path '{filePath}'");
+                LogToConsole($"Name is too short. Skipping file: {filePath}", logLevel: LogLevel.Debug);
                 return (IsValid: false, Image: null as Image);
             }
 
             if(!long.TryParse(fileName[..^2], out long unixTime))
             {
-                Console.WriteLine($"[INFO] [InitializeDatabase] [InsertImagePathsIntoDatabase]: Invalid Unix time. Skipping file at path '{filePath}'");
+                LogToConsole($"Invalid Unix time. Skipping file: {filePath}", logLevel: LogLevel.Debug);
                 return (IsValid: false, Image: null as Image);
             }
 
@@ -194,7 +274,7 @@ internal class Program
 
             if(siteNumber == -1)
             {
-                Console.WriteLine($"[WARNING] [Program.cs] [InsertIntoDatabase]: Variable '{nameof(siteNumber)}' has been assigned an error value as '{nameof(siteNumberString)}' is null.");
+                LogToConsole($"Variable '{nameof(siteNumber)}' has been assigned an error value as '{nameof(siteNumberString)}' is null. File: {filePath}", logLevel: LogLevel.Debug);
             }
 
             if(!byteMap.TryGetValue(filePath, out int cameraPositionNumber))
@@ -206,7 +286,7 @@ internal class Program
 
             var image = new Image
             {
-                FilePath = ConvertSingleWindowsPathToLinuxPath(basePath, filePath),
+                FilePath = ConfigureFilePath(basePath, filePath),
                 UnixTime = unixTime,
                 DateTime = dateTime,
                 SiteName = siteName,
@@ -224,7 +304,7 @@ internal class Program
 
         if(imageFiles.Count == 0)
         {
-            Console.WriteLine("[INFO] [InitializeDatabase] [InsertImagePathsIntoDatabase]: No images available. Exiting application...");
+            LogToConsole("No images available. Exiting application...", logLevel: LogLevel.Information);
             return;
         }
 
@@ -232,10 +312,11 @@ internal class Program
         {
             context.Images.AddRange(imageFiles!);
             int count = context.SaveChanges();
-            Console.WriteLine($"[INFO] [InitializeDatabase] [InsertImagePathsIntoDatabase]: Database insertion complete. {count} database entries.");
+            LogToConsole($"Database insertion successful. {count} database entries.", logLevel: LogLevel.Information);
         }
-        catch(Exception)
+        catch(Exception e)
         {
+            LogToConsole($"Exception message: {e.Message}", logLevel: LogLevel.Error);
             throw;
         }
     }
@@ -265,20 +346,18 @@ internal class Program
     {
         return Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development"
             ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "source", "images")
-            : "/app/images";
+            : "/mnt/nvme0n1/images";
     }
 
-    static string ConvertSingleWindowsPathToLinuxPath(string basePath, string filePath)
+    static string ConfigureFilePath(string basePath, string filePath)
     {
-        string linuxBasePath = "/app/images";
+        string targetBasePath = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Production"
+            ? "/mnt/nvme0n1/images"
+            : "/app/images";
 
-        if(basePath == linuxBasePath)
-        {
-            return filePath;
-        }
-
-        return filePath.Replace(basePath, linuxBasePath).Replace('\\', '/');
+        return filePath.Replace(basePath, targetBasePath).Replace('\\', '/');
     }
+
 
     static List<string> GetImageFilePaths(string basePath)
     {
