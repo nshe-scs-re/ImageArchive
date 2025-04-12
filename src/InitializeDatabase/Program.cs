@@ -300,6 +300,7 @@ internal class Program
         })
         .Where(result => result.IsValid)
         .Select(result => result.Image)
+        .OrderBy(image => image!.DateTime)
         .ToList();
 
         if(imageFiles.Count == 0)
