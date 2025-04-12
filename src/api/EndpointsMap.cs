@@ -148,7 +148,7 @@ public static class EndpointsMap
 
                 FileStream fileStream = new FileStream(request.FilePath, FileMode.Open, FileAccess.Read);
 
-                return Results.Stream(fileStream, "application/zip", $"{request.SiteName}_{request.SiteNumber}_archive_{DateTime.Now}");
+                return Results.Stream(fileStream, "application/zip", $"{request.SiteName}_{request.SiteNumber}_archive_{DateTime.Now}.zip");
             }
             catch(Exception exception)
             {
