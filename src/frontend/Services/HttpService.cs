@@ -168,6 +168,12 @@ public class HttpService
         return await httpClient.PostAsJsonAsync(requestUri, request);
     }
 
+    public async Task<HttpResponseMessage> PostArchiveCancellationAsync(ArchiveRequest request)
+    {
+        var httpClient = CreateForwardClient();
+        return await httpClient.PostAsJsonAsync($"api/archive/cancel/{request.Id}", request);
+    }
+
     public async Task<HttpResponseMessage> PostFileAsync(FileUploadItem item)
     {
         var httpClient = CreateForwardClient();
