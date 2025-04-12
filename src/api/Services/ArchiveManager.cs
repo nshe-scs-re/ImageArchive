@@ -88,7 +88,12 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
                 {
                     object archiveLock = new object();
 
-                    Parallel.ForEach(images, (image, state) =>
+                    var parallelOptions = new ParallelOptions
+                    {
+                        MaxDegreeOfParallelism = 2
+                    };
+
+                    Parallel.ForEach(images, parallelOptions, (image, state) =>
                     {
                         if(request.Status == ArchiveStatus.Canceled)
                         {
