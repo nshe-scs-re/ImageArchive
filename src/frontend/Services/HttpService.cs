@@ -236,8 +236,11 @@ public class HttpService
     public async Task<HttpResponseMessage> GetQueryHistoryAsync()
     {
         var httpClient = CreateForwardClient();
-        var requestUri = "api/query-history";
-        _logger.LogInformation("GetQueryHistoryAsync Request URI: {RequestUri}", requestUri);
-        return await httpClient.GetAsync(requestUri);
+        return await httpClient.GetAsync("api/query-history");
+    }
+    public async Task<HttpResponseMessage> PostQueryHistoryAsync(UserQuery query)
+    {
+        var httpClient = CreateForwardClient();
+        return await httpClient.PostAsJsonAsync("api/log-query", query);
     }
 }
