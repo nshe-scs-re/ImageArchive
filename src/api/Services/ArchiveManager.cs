@@ -119,7 +119,8 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
                         }
 
                         int year = image.DateTime.Value.Year;
-                        string month = $"{image.DateTime:MMM}";
+                        string month_1 = $"{image.DateTime:MM}-{image.DateTime:MMM}";
+                        string month_2 = $"{image.DateTime:MMM}";
                         string day = $"{image.DateTime:dd}";
 
                         try
@@ -128,7 +129,7 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
                             {
                                 lock(archiveLock)
                                 {
-                                    ZipArchiveEntry entry = archive.CreateEntry($"{year}/{month}/{day}/{day}_{month}_{year}_{image.DateTime:hh.mmtt}{Path.GetExtension(image.FilePath)}");
+                                    ZipArchiveEntry entry = archive.CreateEntry($"{year}/{month_1}/{day}/{day}_{month_2}_{year}_{image.SiteName}_{image.SiteNumber}_{image.CameraPositionName}_{image.DateTime:hh.mmtt}{Path.GetExtension(image.FilePath)}");
 
                                     using(FileStream fileStream = new FileStream(image.FilePath, FileMode.Open, FileAccess.Read))
                                     {
