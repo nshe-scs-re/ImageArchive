@@ -1,4 +1,4 @@
-﻿namespace frontend.Models;
+﻿namespace InitializeDatabase;
 public class Site
 {
     public required string Name { get; init; }
