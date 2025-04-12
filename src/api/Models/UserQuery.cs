@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace InitializeDatabase.Models
+namespace api.Models
 {
     public class UserQuery
     {
