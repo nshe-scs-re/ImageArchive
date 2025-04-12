@@ -92,28 +92,24 @@ public static class EndpointsMap
         {
             Console.WriteLine("GET /api/query-history hit");
 
-            return Results.Ok();
+            try
+            {
+                var history = await dbContext.UserQueries
+                    .OrderByDescending(q => q.Timestamp)
+                    .ToListAsync();
 
-            //try
-            //{
-            //    //var history = await dbContext.UserQueries
-            //    //    .Where(q => q.UserId == userId)
-            //    //    .OrderByDescending(q => q.Timestamp)
-            //    //    .ToListAsync();
+                if(!history.Any())
+                {
+                    return Results.NotFound();
+                }
 
-
-            //    //if(!history.Any())
-            //    //{
-            //    //    return Results.NotFound();
-            //    //}
-
-            //    //return Results.Ok(history);
-            //}
-            //catch(Exception ex)
-            //{
-            //    Console.WriteLine($"Error fetching query history: {ex.Message}");
-            //    return Results.Problem();
-            //}
+                return Results.Ok(history);
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine($"Error fetching query history: {ex.Message}");
+                return Results.Problem();
+            }
         })
         .WithSummary("Retrieves the authenticated user's query history")
         .Produces<List<UserQuery>>(200)
@@ -207,7 +203,7 @@ public static class EndpointsMap
 
                 FileStream fileStream = new FileStream(request.FilePath, FileMode.Open, FileAccess.Read);
 
-                return Results.Stream(fileStream, "application/zip", $"{jobId}.zip");
+                return Results.Stream(fileStream, "application/zip", $"{request.SiteName}_{request.SiteNumber}_archive_{DateTime.Now}");
             }
             catch(Exception exception)
             {
@@ -318,6 +314,21 @@ public static class EndpointsMap
         })
         .WithSummary("Retrieves a single image based on a given id value.")
         .Produces<FileResult>(200, "image/jpeg");
+
+        builder.MapPost("/api/archive/cancel/{jobId}", async (ArchiveManager manager, HttpContext context) =>
+        {
+            ArchiveRequest? request = await context.Request.ReadFromJsonAsync<ArchiveRequest>();
+
+            if(request is null)
+            {
+                return Results.NotFound();
+            }
+
+            // TODO: More case coverage
+            request = manager.CancelArchiveRequest(request);
+
+            return Results.Ok(request);
+        });
 
         return builder;
     }

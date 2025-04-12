@@ -31,6 +31,17 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
         return request;
     }
 
+    public ArchiveRequest CancelArchiveRequest(ArchiveRequest request)
+    {
+        if(request.Id is not null)
+        {
+            request = GetJob((Guid)request.Id);
+            request.Status = ArchiveStatus.Canceled;
+        }
+
+        return request;
+    }
+
     public ArchiveRequest GetJob(Guid jobId)
     {
         return Jobs.TryGetValue(jobId, out ArchiveRequest? request)
@@ -50,10 +61,18 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
         {
             ImageDbContext dbContext = DbScope.ServiceProvider.GetRequiredService<ImageDbContext>();
 
-            //TODO: Extend LINQ query to include other search parameters
             List<Image> images = await dbContext.Images
-                .Where(i => i.DateTime >= request.StartDateTime && i.DateTime <= request.EndDateTime)
+                .Where
+                (
+                    i => i.DateTime >= request.StartDateTime
+                    && i.DateTime <= request.EndDateTime
+                    && i.SiteName == request.SiteName
+                    && i.SiteNumber == request.SiteNumber
+                    && i.CameraPositionNumber == request.CameraPositionNumber
+                )
                 .ToListAsync();
+
+            request.TotalImages = images.Count;
 
             request.FilePath = Path.Combine(Directory.GetCurrentDirectory(), "archives", $"{request.Id}.zip");
 
@@ -65,8 +84,31 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
                 {
                     object archiveLock = new object();
 
-                    Parallel.ForEach(images, (image) =>
+                    Parallel.ForEach(images, (image, state) =>
                     {
+                        if(request.Status == ArchiveStatus.Canceled)
+                        {
+                            Console.WriteLine($"[INFO] [ArchiveManager] [CreateArchiveAsync]: Archive status of {request.Id} is {request.Status}. Breaking loop state.");
+                            state.Break();
+                            return;
+                        }
+
+                        request.IncrementProcessedImages();
+
+                        if(request.ProcessedImages % 10 == 0 && request.TotalImages > 0)
+                        {
+                            double processingProgress = (double)request.ProcessedImages / request.TotalImages;
+                            if(processingProgress > 0.01)
+                            {
+                                TimeSpan elapsedTime = stopwatch.Elapsed;
+                                TimeSpan estimatedTotalTime = TimeSpan.FromTicks((long)(elapsedTime.Ticks / processingProgress));
+                                TimeSpan estimatedTimeRemaining = estimatedTotalTime - elapsedTime;
+
+                                request.ElapsedTime = elapsedTime;
+                                request.EstimatedTimeRemaining = estimatedTimeRemaining;
+                            }
+                        }
+
                         int year = image.DateTime.Value.Year;
                         string month = $"{image.DateTime:MMM}";
                         string day = $"{image.DateTime:dd}";
@@ -114,9 +156,15 @@ public class ArchiveManager(IServiceScopeFactory DbScopeFactory)
 
             stopwatch.Stop();
 
-            request.Status = ArchiveStatus.Completed;
-
-            Console.WriteLine($"[INFO] [ArchiveManager] [CreateArchiveAsync]: Archiving process completed for id {request.Id}. Elapsed Time: {stopwatch.Elapsed}");
+            if(request.Status == ArchiveStatus.Processing)
+            {
+                request.Status = ArchiveStatus.Completed;
+                Console.WriteLine($"[INFO] [ArchiveManager] [CreateArchiveAsync]: Archiving process completed for id {request.Id}. Elapsed Time: {stopwatch.Elapsed}");
+            }
+            else
+            {
+                Console.WriteLine($"[INFO] [ArchiveManager] [CreateArchiveAsync]: Archiving status for id {request.Id}: {request.Status}. Elapsed Time: {stopwatch.Elapsed}");
+            }
         }
     }
 }
