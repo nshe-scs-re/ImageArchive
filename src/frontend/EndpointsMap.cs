@@ -3,8 +3,6 @@ using frontend.Services;
 using frontend.Models;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Antiforgery;
 
 namespace frontend;
 
@@ -40,14 +38,35 @@ public static class EndpointsMap
             {
                 var response = await HttpService.GetArchiveDownloadAsync(jobId);
 
+                if(response is null)
+                {
+                    return Results.Problem();
+                }
+
                 if(!response.IsSuccessStatusCode)
                 {
                     return Results.NotFound();
                 }
 
-                var stream = await response.Content.ReadAsStreamAsync();
+                var content = response.Content;
 
-                return Results.Stream(stream, "application/zip", $"{jobId}.zip");
+                if(content is null)
+                {
+                    return Results.Problem();
+                }
+
+                var fileName = $"{jobId}.zip";
+
+                var contentDispositionFileName = response.Content?.Headers?.ContentDisposition?.FileName;
+
+                if(!string.IsNullOrEmpty(contentDispositionFileName))
+                {
+                    fileName = contentDispositionFileName;
+                }
+
+                var stream = await content.ReadAsStreamAsync();
+
+                return Results.Stream(stream, "application/zip", fileName);
             }
             catch(Exception exception)
             {
