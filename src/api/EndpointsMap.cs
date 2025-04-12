@@ -207,7 +207,7 @@ public static class EndpointsMap
                         i.SiteName == siteName &&
                         i.SiteNumber == siteNumber &&
                         i.CameraPositionNumber == cameraPosition)
-                    .OrderBy(i => i.Id);
+                    .OrderBy(i => i.DateTime);
 
                 int totalCount = await query.CountAsync();
 
