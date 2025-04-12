@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Antiforgery;
 using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
-using Microsoft.Extensions.Logging;
 
 namespace frontend.Services;
 
@@ -13,15 +12,7 @@ public class HttpService
     private readonly IAntiforgery _antiforgery;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly CookieContainer _cookieContainer;
-    private readonly ILogger<HttpService> _logger;
-    //private readonly HttpClient _httpClient;
 
-    ////public HttpService(HttpClient httpClient)
-    ////{
-    ////    _httpClient = httpClient;
-    ////}
-
-   
 
     public HttpService(IHttpClientFactory httpClientFactory, IAntiforgery antiforgery, IHttpContextAccessor httpContextAccessor, CookieContainer cookieContainer, ILogger<HttpService> logger)
     {
@@ -29,7 +20,6 @@ public class HttpService
         _antiforgery = antiforgery;
         _httpContextAccessor = httpContextAccessor;
         _cookieContainer = cookieContainer;
-        _logger = logger;
     }
 
     public HttpClient CreateForwardClient(Uri? baseAddress = null)
@@ -45,7 +35,7 @@ public class HttpService
             client.BaseAddress = new Uri("http://localhost/"); // Set a default base address
         }
 
-        _logger.LogInformation("ForwardClient BaseAddress: {BaseAddress}", client.BaseAddress);
+
 
         return client;
     }
@@ -58,15 +48,11 @@ public class HttpService
         {
             client.BaseAddress = baseAddress;
         }
-        else if(client.BaseAddress == null)
-        {
-            client.BaseAddress = new Uri("http://localhost/"); // Set a default base address
-        }
 
         AddAntiForgeryCookie(client);
         AddAntiForgeryToken(client);
 
-        _logger.LogInformation("ProxyClient BaseAddress: {BaseAddress}", client.BaseAddress);
+
 
         return client;
     }
@@ -77,7 +63,7 @@ public class HttpService
 
         if(httpContext == null)
         {
-            _logger.LogError("[HttpService] [AddAntiForgeryCookie]: {HttpContext} is null.", nameof(httpContext));
+
             return;
         }
 
@@ -87,7 +73,7 @@ public class HttpService
         if(!string.IsNullOrEmpty(antiCookie.Value) && client.BaseAddress != null)
         {
             _cookieContainer.Add(client.BaseAddress, new Cookie(antiCookie.Key, antiCookie.Value));
-            _logger.LogInformation("[HttpService] [AddAntiForgeryCookie]: Added antiforgery cookie: {AntiCookieKey}", antiCookie.Key);
+  
         }
     }
 
@@ -97,26 +83,23 @@ public class HttpService
 
         if(httpContext == null)
         {
-            _logger.LogError("[HttpService] [AddAntiForgeryToken]: {HttpContext} is null.", nameof(httpContext));
+   
             return;
         }
 
         var tokens = _antiforgery.GetAndStoreTokens(httpContext);
 
-        if(tokens.RequestToken is null || tokens.HeaderName is null)
-        {
-            _logger.LogError("[HttpService] [AddAntiForgeryToken]: Antiforgery token fields null.");
-        }
+        //if(tokens.RequestToken is null || tokens.HeaderName is null)
+        //{
+        //    _logger.LogError("[HttpService] [AddAntiForgeryToken]: Antiforgery token fields null.");
+        //}
 
         client.DefaultRequestHeaders.Add(tokens.HeaderName!, tokens.RequestToken);
-        _logger.LogInformation("[HttpService] [AddAntiForgeryToken]: {HeaderName}: {RequestToken}", tokens.HeaderName, tokens.RequestToken);
     }
-
     public async Task<HttpResponseMessage> GetImagesByIdAsync(long id)
     {
         var httpClient = CreateForwardClient();
         var requestUri = $"api/images/{id}";
-        _logger.LogInformation("GetImagesByIdAsync Request URI: {RequestUri}", requestUri);
         return await httpClient.GetAsync(requestUri);
     }
 
@@ -124,7 +107,6 @@ public class HttpService
     {
         var httpClient = CreateForwardClient();
         var requestUri = $"api/images/paginated?filter={startDate},{endDate},{pageIndex},{pageSize},{siteName},{siteNumber},{cameraPosition}";
-        _logger.LogInformation("GetImagesByPageAsync Request URI: {RequestUri}", requestUri);
         return await httpClient.GetAsync(requestUri);
     }
 
@@ -132,7 +114,7 @@ public class HttpService
     {
         var httpClient = CreateForwardClient();
         var requestUri = $"api/images/paginated?filter={imageQuery.StartDateTime},{imageQuery.EndDateTime},{pageIndex},{pageSize},{imageQuery.SiteName},{imageQuery.SiteNumber},{imageQuery.CameraPositionNumber}";
-        _logger.LogInformation("GetImagesByPageAsync Request URI: {RequestUri}", requestUri);
+
         return await httpClient.GetAsync(requestUri);
     }
 
@@ -140,7 +122,6 @@ public class HttpService
     {
         var httpClient = CreateForwardClient();
         var requestUri = "api/images/all";
-        _logger.LogInformation("GetImagesAllAsync Request URI: {RequestUri}", requestUri);
         return await httpClient.GetAsync(requestUri);
     }
 
@@ -148,7 +129,6 @@ public class HttpService
     {
         var httpClient = CreateForwardClient();
         var requestUri = $"api/archive/status/{jobId}";
-        _logger.LogInformation("GetArchiveStatusAsync Request URI: {RequestUri}", requestUri);
         return await httpClient.GetAsync(requestUri);
     }
 
@@ -156,7 +136,6 @@ public class HttpService
     {
         var httpClient = CreateForwardClient();
         var requestUri = $"api/archive/download/{jobId}";
-        _logger.LogInformation("GetArchiveDownloadAsync Request URI: {RequestUri}", requestUri);
         return await httpClient.GetAsync(requestUri, HttpCompletionOption.ResponseHeadersRead);
     }
 
@@ -164,7 +143,6 @@ public class HttpService
     {
         var httpClient = CreateForwardClient();
         var requestUri = "api/archive/request";
-        _logger.LogInformation("PostArchiveRequestAsync Request URI: {RequestUri}", requestUri);
         return await httpClient.PostAsJsonAsync(requestUri, request);
     }
 
@@ -206,7 +184,6 @@ public class HttpService
         }
 
         var requestUri = "api/upload";
-        _logger.LogInformation("PostFileAsync Request URI: {RequestUri}", requestUri);
         return await httpClient.PostAsync(requestUri, content);
     }
 
@@ -228,7 +205,6 @@ public class HttpService
         }
 
         var requestUri = "/api/upload";
-        _logger.LogInformation("UploadFilesAsync Request URI: {RequestUri}", requestUri);
         return await httpClient.PostAsync(requestUri, content);
     }
 
@@ -237,7 +213,6 @@ public class HttpService
     {
         var httpClient = CreateForwardClient();
         var requestUri = "api/query-history";
-        _logger.LogInformation("GetQueryHistoryAsync Request URI: {RequestUri}", requestUri);
         return await httpClient.GetAsync(requestUri);
     }
 }
