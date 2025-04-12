@@ -1,5 +1,7 @@
 @page "/search"
 @attribute [Authorize]
+@using System.Text.Json  
+@using System.Security.Claims
 @inject HttpService HttpService
 @inject ThemeService ThemeService
 @inject IJSRuntime JSRuntime
@@ -256,6 +258,10 @@
 
 @code
 {
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthenticationStateTask { get; set; }
+    private AuthenticationState? state;
+    private string auth0UserId = string.Empty;
     private bool accordionIsCollapsed = false;
     private bool showExtendedImageInformation = false;
     private List<Image>? images = new();
@@ -323,6 +329,13 @@
         SiteName = siteNames.First();
     }
 
+    protected override async Task OnInitializedAsync()
+    {
+        state = await AuthenticationStateTask;
+        auth0UserId = state.User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "user id claim unsuccessful";
+        await base.OnInitializedAsync();
+    }
+
     private void OnThemeChanged()
     {
         InvokeAsync(StateHasChanged);
@@ -356,6 +369,7 @@
         pageIndex = 1;
 
         await GetImagesByPageAsync();
+        await PostQueryHistoryLogAsync();
     }
 
     private async Task GetImagesByPageAsync()
@@ -630,5 +644,17 @@
     private string GetProgressBarWidth()
     {
         return $"width: {progressPercentValue}%";
+    }
+
+    public async void PostQueryHistoryLogAsync()
+    {
+        var userQuery = new UserQuery
+        {
+            UserId = auth0UserId,
+            Parameters = JsonSerializer.Serialize(imageQuery),
+            Timestamp = DateTime.Now
+        };
+
+        var response = await HttpService.PostQueryHistoryLogAsync(userQuery);
     }
 }
