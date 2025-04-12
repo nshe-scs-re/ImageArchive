@@ -253,8 +253,7 @@ public static class EndpointsMap
             catch(Exception exception)
             {
                 Console.WriteLine($"ERROR [Program.cs] [/api/images/id]: Exception message: {exception.Message}");
-                //return Results.Problem(exception.Message);
-                return Results.Problem("not found");
+                return Results.Problem();
             }
         })
         .WithSummary("Retrieves a single image based on a given id value.")
