@@ -13,17 +13,12 @@
 <div class="row">
     @if (state.User.Identity.IsAuthenticated == true)
     {
-        <div class="col">
-            <img src="@Picture" alt="Profile Picture" class="img-rounded img-responsive" />
-        </div>
         <div class="col text-center">
             <h1 class="h1">Hi, @Username</h1>
-            @if(!string.IsNullOrEmpty(EmailAddress))
-            {
-                <p>@EmailAddress</p>
-            }
-            <!-- Add Query History Section Here -->
-            <div class="position-relative">
+            <div>
+                <button class="btn btn-small" @onclick="HandlePostQueryLog">Add sample row to query table</button>
+            </div>
+            <div>
                 <button class="btn btn-primary mt-2" @onclick="ToggleHistory">
                     Query History @(showHistory ? "▲" : "▼")
                 </button>
@@ -75,6 +70,7 @@
     private string IdToken = string.Empty;
     private AuthenticationState? state;
     private bool isInitialized = false;
+    private int counter = 1;
 
 
     // New additions for query history
@@ -93,12 +89,16 @@
         }
 
         Username = state.User.Identity.Name!;
-        EmailAddress = state.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Email)?.Value ?? string.Empty;
-        Picture = state.User.Claims.FirstOrDefault(c => c.Type == "picture")?.Value ?? string.Empty;
+
+        //EmailAddress = state.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Email)?.Value ?? string.Empty;
+
+        //Picture = state.User.Claims.FirstOrDefault(c => c.Type == "picture")?.Value ?? string.Empty;
 
         IdToken = tokenProvider.IdToken;
+
         isInitialized = true;
-        //await base.OnInitializedAsync();
+
+        await base.OnInitializedAsync();
     }
 
     private async Task ToggleHistory()
@@ -118,8 +118,7 @@
 
             if (response.IsSuccessStatusCode)
             {
-                queryHistory = await response.Content.ReadFromJsonAsync<List<QueryHistoryItem>>();
-                errorMessage = null;
+                //queryHistory = await response.Content.ReadFromJsonAsync<List<QueryHistoryItem>>();
             }
             else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
@@ -153,6 +152,31 @@
     {
         public DateTime timestamp { get; set; }
         public string parameters { get; set; } = string.Empty;
+    }
+
+    public async Task HandlePostQueryLog()
+    {
+        var m_queryParameters = new QueryParameters
+        {
+            StartDate = new DateTime(2010, 1, 1),
+            EndDate = new DateTime(2020, 1, 1),
+            SiteName = "Sheep",
+            SiteNumber = 1,
+            CameraPosition = 1,
+            PageIndex = 1,
+            PageSize = 9
+        };
+
+        var m_query = new UserQuery
+        {
+            UserId = "myUserId",
+            Parameters = JsonSerializer.Serialize(m_queryParameters),
+            Timestamp = DateTime.Now
+        };
+
+        var response = await HttpService.PostQueryHistoryAsync(m_query);
+
+        Console.WriteLine($"[DEBUG] [Profile] [HandlePostQueryLog]: Response code: {response.StatusCode}");
     }
    
 }
