@@ -13,6 +13,10 @@ ARG BUILD_CONFIGURATION=Release
 
 WORKDIR /src
 
+COPY ./src/api/appsettings.json ./api/
+
+COPY ./src/api/appsettings.Production.json ./api/
+
 COPY ./src/api/api.csproj ./api/
 
 COPY ./Directory.Packages.props .
