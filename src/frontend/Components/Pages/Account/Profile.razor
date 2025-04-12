@@ -19,144 +19,151 @@
                 <button class="btn btn-small" @onclick="HandlePostQueryLog">Add sample row to query table</button>
             </div>
             <div>
-                <button class="btn btn-primary mt-2" @onclick="ToggleHistory">
-                    Query History @(showHistory ? "▲" : "▼")
-                </button>
-                @if (showHistory)
+                <button class="btn btn-small" @onclick="HandleFetchQueryLogList">Fetch query history table</button>
+            </div>
+            <div>
+                @foreach (var item in userQueryList)
                 {
-                    <div class="dropdown-menu show d-block mt-2 p-3 border rounded">
-                        @if (queryHistory?.Any() == true)
-                        {
-                            <div class="query-history-container">
-                                @foreach (var query in queryHistory)
-                                {
-                                    <div class="query-item mb-2">
-                                        <div class="small text-muted">
-                                            @query.timestamp.ToLocalTime().ToString("g")
-                                        </div>
-                                        <div class="text-break">
-                                            @GetFormattedParameters(query.parameters)
-                                        </div>
-                                    </div>
-                                }
-                            </div>
-                        }
-                        else if (errorMessage != null)
-                        {
-                            <div class="text-danger">@errorMessage</div>
-                        }
-                        else
-                        {
-                            <div>No query history found</div>
-                        }
-                    </div>
+                    <p>@item.QueryId @item.UserId @item.Timestamp</p>
                 }
             </div>
-        </div>
-    }
-    else
-    {
-        <p>Please sign in to view your profile.</p>
-    }
-</div>
-
-@code {
-
-    [CascadingParameter]
-    public Task<AuthenticationState> AuthenticationStateTask { get; set; }
-    private string Username = string.Empty;
-    private string EmailAddress = string.Empty;
-    private string Picture = string.Empty;
-    private string IdToken = string.Empty;
-    private AuthenticationState? state;
-    private bool isInitialized = false;
-    private int counter = 1;
-
-
-    // New additions for query history
-    private bool showHistory = false;
-    private List<QueryHistoryItem> queryHistory = new();
-    private string? errorMessage;
-
-
-    protected override async Task OnInitializedAsync()
-    {
-        state = await AuthenticationStateTask;
-
-        if (state.User.Identity == null || !state.User.Identity.IsAuthenticated)
-        {
-            throw new InvalidOperationException("User.Identity is null or user is not authenticated.");
-        }
-
-        Username = state.User.Identity.Name!;
-
-        //EmailAddress = state.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Email)?.Value ?? string.Empty;
-
-        //Picture = state.User.Claims.FirstOrDefault(c => c.Type == "picture")?.Value ?? string.Empty;
-
-        IdToken = tokenProvider.IdToken;
-
-        isInitialized = true;
-
-        await base.OnInitializedAsync();
-    }
-
-    private async Task ToggleHistory()
-    {
-        showHistory = !showHistory;
-        if (showHistory && !queryHistory.Any())
-        {
-            await GetQueryHistoryAsync();
-        }
-    }
-
-    private async Task GetQueryHistoryAsync()
-    {
-        try
-        {
-            var response = await HttpService.GetQueryHistoryAsync();
-
-            if (response.IsSuccessStatusCode)
-            {
-                //queryHistory = await response.Content.ReadFromJsonAsync<List<QueryHistoryItem>>();
-            }
-            else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-            {
-                errorMessage = "No query history found.";
+                
+                <div>
+                    <button class="btn btn-primary mt-2" @onclick="ToggleHistory">
+                        Query History @(showHistory ? "▲" : "▼")
+                    </button>
+                    @if (showHistory)
+                    {
+                        <div class="dropdown-menu show d-block mt-2 p-3 border rounded">
+                            @if (queryHistory?.Any() == true)
+                            {
+                                <div class="query-history-container">
+                                    @foreach (var query in queryHistory)
+                                    {
+                                        <div class="query-item mb-2">
+                                            <div class="small text-muted">
+                                                @query.timestamp.ToLocalTime().ToString("g")
+                                            </div>
+                                            <div class="text-break">
+                                                @GetFormattedParameters(query.parameters)
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else if (errorMessage != null)
+                            {
+                                <div class="text-danger">@errorMessage</div>
+                            }
+                            else
+                            {
+                                <div>No query history found</div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
             }
             else
             {
-                errorMessage = $"Error loading history: {response.ReasonPhrase}";
+            <p>Please sign in to view your profile.</p>
+            }
+        </div>
+
+        @code {
+
+            [CascadingParameter]
+            public Task<AuthenticationState> AuthenticationStateTask { get; set; }
+    private string Username = string.Empty;
+        private string EmailAddress = string.Empty;
+        private string Picture = string.Empty;
+        private string IdToken = string.Empty;
+        private AuthenticationState? state;
+        private bool isInitialized = false;
+        private bool showHistory = false;
+        private List<QueryHistoryItem> queryHistory = new();
+        private string? errorMessage;
+        private List<UserQuery> userQueryList = new();
+
+
+        protected override async Task OnInitializedAsync()
+        {
+            state = await AuthenticationStateTask;
+
+            if (state.User.Identity == null || !state.User.Identity.IsAuthenticated)
+            {
+                throw new InvalidOperationException("User.Identity is null or user is not authenticated.");
+            }
+
+            Username = state.User.Identity.Name!;
+
+            //EmailAddress = state.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Email)?.Value ?? string.Empty;
+
+            //Picture = state.User.Claims.FirstOrDefault(c => c.Type == "picture")?.Value ?? string.Empty;
+
+            IdToken = tokenProvider.IdToken;
+
+            isInitialized = true;
+
+            await base.OnInitializedAsync();
+        }
+
+        private async Task ToggleHistory()
+        {
+            showHistory = !showHistory;
+            if (showHistory && !queryHistory.Any())
+            {
+                await GetQueryHistoryAsync();
             }
         }
-        catch (Exception ex)
-        {
-            errorMessage = $"Failed to load query history: {ex.Message}";
-        }
-    }
 
-    private string GetFormattedParameters(string parametersJson)
-    {
-        try
+        private async Task GetQueryHistoryAsync()
         {
-            var parameters = JsonSerializer.Deserialize<Dictionary<string, object>>(parametersJson);
-            return string.Join(", ", parameters.Select(kvp => $"{kvp.Key}: {kvp.Value}"));
+            try
+            {
+                var response = await HttpService.GetQueryHistoryAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    //queryHistory = await response.Content.ReadFromJsonAsync<List<QueryHistoryItem>>();
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    errorMessage = "No query history found.";
+                }
+                else
+                {
+                    errorMessage = $"Error loading history: {response.ReasonPhrase}";
+                }
+            }
+            catch (Exception ex)
+            {
+                errorMessage = $"Failed to load query history: {ex.Message}";
+            }
         }
-        catch
+
+        private string GetFormattedParameters(string parametersJson)
         {
-            return parametersJson;
+            try
+            {
+                var parameters = JsonSerializer.Deserialize<Dictionary<string, object>>(parametersJson);
+                return string.Join(", ", parameters.Select(kvp => $"{kvp.Key}: {kvp.Value}"));
+            }
+            catch
+            {
+                return parametersJson;
+            }
         }
-    }
 
-    public class QueryHistoryItem
-    {
-        public DateTime timestamp { get; set; }
-        public string parameters { get; set; } = string.Empty;
-    }
+        public class QueryHistoryItem
+        {
+            public DateTime timestamp { get; set; }
+            public string parameters { get; set; } = string.Empty;
+        }
 
-    public async Task HandlePostQueryLog()
-    {
-        var m_queryParameters = new QueryParameters
+        public async Task HandlePostQueryLog()
+        {
+            var m_queryParameters = new QueryParameters
         {
             StartDate = new DateTime(2010, 1, 1),
             EndDate = new DateTime(2020, 1, 1),
@@ -167,17 +174,24 @@
             PageSize = 9
         };
 
-        var m_query = new UserQuery
+            var m_query = new UserQuery
         {
             UserId = "myUserId",
             Parameters = JsonSerializer.Serialize(m_queryParameters),
             Timestamp = DateTime.Now
         };
 
-        var response = await HttpService.PostQueryHistoryAsync(m_query);
+            var response = await HttpService.PostQueryHistoryAsync(m_query);
 
-        Console.WriteLine($"[DEBUG] [Profile] [HandlePostQueryLog]: Response code: {response.StatusCode}");
-    }
+            Console.WriteLine($"[DEBUG] [Profile] [HandlePostQueryLog]: Response code: {response.StatusCode}");
+        }
+
+        public async Task HandleFetchQueryLogList()
+        {
+            var response = await HttpService.GetQueryHistoryAsync();
+
+            userQueryList = await response.Content.ReadFromJsonAsync<List<UserQuery>>();
+        }
    
 }
 

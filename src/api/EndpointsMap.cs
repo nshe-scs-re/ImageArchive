@@ -92,28 +92,24 @@ public static class EndpointsMap
         {
             Console.WriteLine("GET /api/query-history hit");
 
-            return Results.Ok();
+            try
+            {
+                var history = await dbContext.UserQueries
+                    .OrderByDescending(q => q.Timestamp)
+                    .ToListAsync();
 
-            //try
-            //{
-            //    //var history = await dbContext.UserQueries
-            //    //    .Where(q => q.UserId == userId)
-            //    //    .OrderByDescending(q => q.Timestamp)
-            //    //    .ToListAsync();
+                if(!history.Any())
+                {
+                    return Results.NotFound();
+                }
 
-
-            //    //if(!history.Any())
-            //    //{
-            //    //    return Results.NotFound();
-            //    //}
-
-            //    //return Results.Ok(history);
-            //}
-            //catch(Exception ex)
-            //{
-            //    Console.WriteLine($"Error fetching query history: {ex.Message}");
-            //    return Results.Problem();
-            //}
+                return Results.Ok(history);
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine($"Error fetching query history: {ex.Message}");
+                return Results.Problem();
+            }
         })
         .WithSummary("Retrieves the authenticated user's query history")
         .Produces<List<UserQuery>>(200)
