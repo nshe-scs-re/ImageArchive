@@ -26,7 +26,7 @@ builder.Services.AddHttpClient("ForwardingClient", httpClient =>
     }
     else
     {
-        httpClient.BaseAddress = new Uri("https://10.176.244.112/");
+        httpClient.BaseAddress = new Uri("http://10.176.244.112/");
     }
 });
 
