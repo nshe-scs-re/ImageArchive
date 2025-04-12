@@ -93,6 +93,7 @@ public static class EndpointsMap
 
                 var userQuery = new UserQuery
                 {
+                    //QueryId = Guid.NewGuid(),  // Assuming you want to generate a new ID
                     UserId = userId,
                     Parameters = serializedParams,
                     Timestamp = DateTime.UtcNow
@@ -112,8 +113,8 @@ public static class EndpointsMap
 
                 return Results.Ok(userQuery);  // Return 200 instead of 201 for simplicity
             })
-     .WithSummary("Logs user search queries")
-     .Produces<UserQuery>(200);
+             .WithSummary("Logs user search queries")
+             .Produces<UserQuery>(200);
 
 
         builder.MapGet("/api/query-history", [Authorize] async (

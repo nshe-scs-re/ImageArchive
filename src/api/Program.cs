@@ -8,7 +8,13 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 //======================
 
+
 var builder = WebApplication.CreateBuilder(args);
+
+//// Add services to the container.
+//builder.Services.AddDbContext<ImageDbContext>(options =>
+//    options.UseSqlServer(builder.Configuration.GetConnectionString("ImageDb")));
+
 
 builder.Configuration.AddEnvironmentVariables();
 

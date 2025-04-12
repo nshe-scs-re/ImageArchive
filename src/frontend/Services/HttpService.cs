@@ -14,6 +14,14 @@ public class HttpService
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly CookieContainer _cookieContainer;
     private readonly ILogger<HttpService> _logger;
+    //private readonly HttpClient _httpClient;
+
+    ////public HttpService(HttpClient httpClient)
+    ////{
+    ////    _httpClient = httpClient;
+    ////}
+
+   
 
     public HttpService(IHttpClientFactory httpClientFactory, IAntiforgery antiforgery, IHttpContextAccessor httpContextAccessor, CookieContainer cookieContainer, ILogger<HttpService> logger)
     {
@@ -228,7 +236,7 @@ public class HttpService
     public async Task<HttpResponseMessage> GetQueryHistoryAsync()
     {
         var httpClient = CreateForwardClient();
-        var requestUri = "api/queryhistory";
+        var requestUri = "api/query-history";
         _logger.LogInformation("GetQueryHistoryAsync Request URI: {RequestUri}", requestUri);
         return await httpClient.GetAsync(requestUri);
     }

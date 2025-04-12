@@ -1,21 +1,22 @@
-﻿namespace api.Models;
+﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-
-
-public class UserQuery
+namespace InitializeDatabase.Models
 {
-    [Key]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public long QueryId { get; set; }
+    public class UserQuery
+    {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public long QueryId { get; set; }
 
-    [Required]
-    public string UserId { get; set; } = string.Empty;
+        [Required]
+        public string UserId { get; set; } = string.Empty;
 
-    [Required]
-    public string Parameters { get; set; } = string.Empty;
+        [Required]
+        public string Parameters { get; set; } = string.Empty;
 
-    [Required]
-    public DateTime Timestamp { get; set; }
+        [Required]
+        public DateTime Timestamp { get; set; }
+    }
 }

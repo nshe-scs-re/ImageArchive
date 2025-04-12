@@ -84,22 +84,22 @@
 
 
     protected override async Task OnInitializedAsync()
-{
-    state = await AuthenticationStateTask;
-
-    if (state.User.Identity == null || !state.User.Identity.IsAuthenticated)
     {
-        throw new InvalidOperationException("User.Identity is null or user is not authenticated.");
+        state = await AuthenticationStateTask;
+
+        if (state.User.Identity == null || !state.User.Identity.IsAuthenticated)
+        {
+            throw new InvalidOperationException("User.Identity is null or user is not authenticated.");
+        }
+
+        Username = state.User.Identity.Name!;
+        EmailAddress = state.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Email)?.Value ?? string.Empty;
+        Picture = state.User.Claims.FirstOrDefault(c => c.Type == "picture")?.Value ?? string.Empty;
+
+        IdToken = tokenProvider.IdToken;
+        isInitialized = true;
+        //await base.OnInitializedAsync();
     }
-
-    Username = state.User.Identity.Name!;
-    EmailAddress = state.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Email)?.Value ?? string.Empty;
-    Picture = state.User.Claims.FirstOrDefault(c => c.Type == "picture")?.Value ?? string.Empty;
-
-    IdToken = tokenProvider.IdToken;
-
-    await base.OnInitializedAsync();
-}
 
     private async Task ToggleHistory()
     {
@@ -114,13 +114,16 @@
     {
         try
         {
-           
             var response = await HttpService.GetQueryHistoryAsync();
 
             if (response.IsSuccessStatusCode)
             {
                 queryHistory = await response.Content.ReadFromJsonAsync<List<QueryHistoryItem>>();
                 errorMessage = null;
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                errorMessage = "No query history found.";
             }
             else
             {
