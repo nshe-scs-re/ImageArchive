@@ -11,7 +11,7 @@
 
 <PageTitle>Image Archive | Profile</PageTitle>
 
-<div class="row">
+<div class="row justify-content-center">
     @if (state.User.Identity.IsAuthenticated == true)
     {
         <div class="col text-center">
@@ -24,53 +24,46 @@
                 <button class="btn btn-small" @onclick="HandleFetchQueryLogList">Fetch query history table</button>
             </div>
             <div>
-                @foreach (var item in userQueryList)
+                <button class="btn btn-primary mt-2" @onclick="ToggleHistory">
+                    Query History @(showHistory ? "▲" : "▼")
+                </button>
+                @if (showHistory)
                 {
-                    <p>@item.QueryId @item.UserId @item.Timestamp</p>
+                    <div class="dropdown-menu show d-block mt-2 p-3 border rounded text-center">
+                        @if (queryHistory?.Any() == true)
+                        {
+                            <div class="query-history-container">
+                                @foreach (var query in queryHistory)
+                                {
+                                    <div class="query-item mb-2">
+                                        <div class="small text-muted">
+                                            @query.timestamp.ToLocalTime().ToString("g")
+                                        </div>
+                                        <div class="text-break">
+                                            @GetFormattedParameters(query.parameters)
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else if (errorMessage != null)
+                        {
+                            <div class="text-danger">@errorMessage</div>
+                        }
+                        else
+                        {
+                            <div>No query history found</div>
+                        }
+                    </div>
                 }
             </div>
-                
-                <div>
-                    <button class="btn btn-primary mt-2" @onclick="ToggleHistory">
-                        Query History @(showHistory ? "▲" : "▼")
-                    </button>
-                    @if (showHistory)
-                    {
-                        <div class="dropdown-menu show d-block mt-2 p-3 border rounded">
-                            @if (queryHistory?.Any() == true)
-                            {
-                                <div class="query-history-container">
-                                    @foreach (var query in queryHistory)
-                                    {
-                                        <div class="query-item mb-2">
-                                            <div class="small text-muted">
-                                                @query.timestamp.ToLocalTime().ToString("g")
-                                            </div>
-                                            <div class="text-break">
-                                                @GetFormattedParameters(query.parameters)
-                                            </div>
-                                        </div>
-                                    }
-                                </div>
-                            }
-                            else if (errorMessage != null)
-                            {
-                                <div class="text-danger">@errorMessage</div>
-                            }
-                            else
-                            {
-                                <div>No query history found</div>
-                            }
-                        </div>
-                    }
-                </div>
-            </div>
-            }
-            else
-            {
-            <p>Please sign in to view your profile.</p>
-            }
         </div>
+    }
+    else
+    {
+        <p>Please sign in to view your profile.</p>
+    }
+</div>
 
 @code {
     [CascadingParameter]
@@ -129,7 +122,7 @@
 
             if (response.IsSuccessStatusCode)
             {
-                //queryHistory = await response.Content.ReadFromJsonAsync<List<QueryHistoryItem>>();
+                queryHistory = await response.Content.ReadFromJsonAsync<List<QueryHistoryItem>>();
             }
             else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
