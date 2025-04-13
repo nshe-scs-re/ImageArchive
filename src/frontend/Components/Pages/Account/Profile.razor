@@ -40,6 +40,8 @@
                                             @query.timestamp.ToLocalTime().ToString("g")
                                         </div>
                                         <div class="text-break">
+                                            <strong>UserId:</strong> @query.UserId <br />
+                                            <strong>QueryId:</strong> @query.QueryId <br />
                                             @GetFormattedParameters(query.parameters)
                                         </div>
                                     </div>
@@ -154,6 +156,8 @@
 
     public class QueryHistoryItem
     {
+        public string UserId { get; set; } = string.Empty;
+        public long QueryId { get; set; }
         public DateTime timestamp { get; set; }
         public string parameters { get; set; } = string.Empty;
     }
