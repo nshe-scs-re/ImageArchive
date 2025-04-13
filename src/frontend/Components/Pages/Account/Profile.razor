@@ -37,7 +37,7 @@
                                 {
                                     <div class="query-item mb-2">
                                         <div class="small text-muted">
-                                            @query.timestamp.ToLocalTime().ToString("g")
+                                            @ConvertToPst(query.timestamp).ToString("g")
                                         </div>
                                         <div class="text-break">
                                             <strong>UserId:</strong> @query.UserId <br />
@@ -105,6 +105,12 @@
         isInitialized = true;
 
         await base.OnInitializedAsync();
+    }
+
+    private DateTime ConvertToPst(DateTime utcDateTime)
+    {
+        var pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+        return TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, pstZone);
     }
 
     private async Task ToggleHistory()
