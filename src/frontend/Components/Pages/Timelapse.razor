@@ -1,5 +1,71 @@
-﻿<h3>Timelapse</h3>
+﻿@page "/timelapse"
+@inject HttpService HttpService
+
+<h2 class="justify-content-center">Timelapse Viewer</h2>
+
+@if (imageUrls.Count > 0)
+{
+    <img src="@imageUrls[currentIndex]" class="img-fluid" />
+
+    <div class="mt-2">
+        <button class="btn btn-success" @onclick="StartSlideshow">Play</button>
+        <button class="btn btn-danger" @onclick="StopSlideshow">Pause</button>
+    </div>
+}
+else if (loading)
+{
+    <p>Loading images...</p>
+}
+else if (errorMessage != null)
+{
+    <p class="text-danger">@errorMessage</p>
+}
+else
+{
+    <button class="btn btn-primary" @onclick="LoadImages">Load All Images</button>
+}
 
 @code {
+    private List<string> imageUrls = new();
+    private int currentIndex = 0;
+    private Timer? timer;
+    private bool loading = false;
+    private string? errorMessage;
 
+    private async Task LoadImages()
+    {
+        loading = true;
+        try
+        {
+            var images = await HttpService.GetAllImagesAsync();
+            imageUrls = images
+                .Where(i => i.Id > 0)
+                .Select(i => $"/api/images/{i.Id}")
+                .ToList();
+
+            currentIndex = 0;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to load images: {ex.Message}";
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private void StartSlideshow()
+    {
+        timer = new Timer(_ =>
+        {
+            currentIndex = (currentIndex + 1) % imageUrls.Count;
+            InvokeAsync(StateHasChanged);
+        }, null, 0, 1000);
+    }
+
+    private void StopSlideshow()
+    {
+        timer?.Dispose();
+    }
 }
