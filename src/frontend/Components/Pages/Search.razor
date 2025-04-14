@@ -1,5 +1,5 @@
 @page "/search"
-@attribute [Authorize(Roles = "Administrator, User")]
+@attribute [Authorize]
 @inject HttpService HttpService
 @inject ThemeService ThemeService
 @inject IJSRuntime JSRuntime
@@ -15,14 +15,7 @@
                         <div class="accordion-header py-3">
                             <button class="accordion-button accordion-item rounded" type="button" data-bs-toggle="collapse" data-bs-target="#QueryFormContainer" @onclick="OnAccordionToggled">
                             <h1 class="h1 w-100 text-center">Image Repository Search</h1>
-                            @if (!accordionCollapsed)
-                            {
-                                <span class="p-2">Collapse</span>
-                            }
-                            else
-                            {
-                                <span class="p-2">Expand</span>
-                            }
+                            <span class="p-2">@(accordionIsCollapsed ? "Expand" : "Collapse")</span>
                             </button>
                         </div>
                     </div>
@@ -30,7 +23,7 @@
                 <div id="QueryFormContainer" class="accordion-collapse collapse show row row-cols-1 row-cols-md-2 row-cols-lg-3 py-2">
                     <div class="accordion-body col mx-auto border">
                         <p class="lead text-center fw-normal">Execute a query against the image repository by filling the form below.</p>
-                        <EditForm Model="@imageQuery" OnValidSubmit="GetImagesByPageAsync" FormName="ImageQueryForm" class="form">
+                        <EditForm Model="@imageQuery" OnValidSubmit="HandleSubmit" FormName="ImageQueryForm" class="form">
                             <div class="row py-2">
                                 <label for="StartDateTime" class="col col-form-label">Start date:</label>
                                 <div class="col">
@@ -80,7 +73,7 @@
                                 <label class="col-8 col-form-label">Show extended information:</label>
                                 <div class="col-4 d-flex justify-content-end">
                                     <div class="form-check form-switch">
-                                        <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault" @bind="showExtendedInformation">
+                                        <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault" @bind="showExtendedImageInformation">
                                     </div>
                                 </div>
                             </div>
@@ -93,7 +86,7 @@
             </div>
         </div>
 
-        @if (querySubmitted && loading)
+        @if (searchState is SearchState.Loading)
         {
             <div class="my-3 py-3 album rounded">
                 <div class="container">
@@ -104,7 +97,7 @@
                                 <div class="card shadow-sm">
                                     <figure class="custom-card-placeholder"></figure>
                                     <div class="card-body">
-                                        @if (showExtendedInformation)
+                                        @if (showExtendedImageInformation)
                                         {
                                             <p class="card-text">Time: </p>
                                             <p class="card-text">Site Name: </p>
@@ -115,8 +108,8 @@
                                         }
                                         <div class="d-flex justify-content-between align-items-center">
                                             <div class="btn-group">
-                                                <button type="button" class="disabled btn btn-sm">View</button>
-                                                <button type="button" class="disabled btn btn-sm">Download</button>
+                                                <button type="button" class="disabled btn btn-sm" disabled>View</button>
+                                                <button type="button" class="disabled btn btn-sm" disabled>Download</button>
                                             </div>
                                         </div>
                                     </div>
@@ -127,7 +120,7 @@
                 </div>
             </div>
         }
-        else if (querySubmitted && !loading)
+        else if (searchState is SearchState.Loaded)
         {
             <div class="my-3 py-3 album rounded">
                 <div class="container">
@@ -138,7 +131,7 @@
                                 <div class="card shadow-sm">
                                     <img src="/proxy/images/@image.Id" class="card-img-top" />
                                     <div class="card-body">
-                                        @if (showExtendedInformation)
+                                        @if (showExtendedImageInformation)
                                         {
                                             <p class="card-text">Time: @image.DateTime</p>
                                             <p class="card-text">Site Name: @image.SiteName</p>
@@ -148,7 +141,7 @@
                                         }
                                         <div class="d-flex justify-content-between align-items-center">
                                             <div class="btn-group">
-                                                <button type="button" class="btn btn-sm" @onclick="() => UpdateImageSrc(image.Id)" data-bs-toggle="modal" data-bs-target="#view-image-modal">View</button>
+                                                <button type="button" class="btn btn-sm" @onclick="() => UpdateModalImageSrc(image.Id)" data-bs-toggle="modal" data-bs-target="#view-image-modal">View</button>
                                                 <button type="button" class="btn btn-sm" @onclick="() => DownloadImage(image)">Download</button>
                                             </div>
                                         </div>
@@ -188,11 +181,59 @@
                 </ul>
             </div>
 
-            <div class="text-center m-3">
-                <button type="button" class="btn btn-md" @onclick="DownloadAllImages">
-                    <i class="bi bi-download mx-1"></i> Download All Images
-                </button>
-            </div>
+        }
+    </div>
+</div>
+<div class="row">
+    <div class="col">
+        @if(searchState is not SearchState.NotSubmitted)
+        {
+            @switch (archiveRequest.Status)
+            {
+                case ArchiveStatus.None:
+                    <div class="text-center m-3">
+                        <button type="button" class="btn btn-md" @onclick="DownloadSearchResultsAsArchive">
+                            <i class="bi bi-download mx-1"></i> Download Search Results
+                        </button>
+                    </div>
+                    break;
+
+                case ArchiveStatus.Pending:
+                    <div class="d-flex justify-content-center m-3">
+                        <span class="spinner-grow"></span>
+                    </div>
+                    break;
+
+                case ArchiveStatus.Processing:
+                    <div class="text-center">
+                        <p>Your query results are being archived and will be ready for download shortly. Please don't navigate away.</p>
+                    </div>
+                    <div class="progress m-3">
+                        <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style=@GetProgressBarWidth()></div>
+                    </div>
+                    <div class="text-center">
+                        <p>Elapsed Archiving Time: @elapsedTimeDisplay</p>
+                        <p>Estimated Archiving Time Remaining: @estimatedTimeRemainingDisplay</p>
+                    </div>
+                    if(!userClickedCancel)
+                    {
+                        <div class="text-center m-3">
+                            <button class="btn btn-sm" @onclick="HandleCancel">Cancel</button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex justify-content-center m-3">
+                            <span class="spinner-grow"></span>
+                        </div>
+                    }
+                    break;
+
+                case ArchiveStatus.Completed:
+                case ArchiveStatus.Canceled:
+                case ArchiveStatus.Failed:
+                    break;
+            }
         }
     </div>
 </div>
@@ -204,7 +245,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body text-center">
-                <img src="@imageSrc" />
+                <img src="@modalImageSrc" />
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn" data-bs-dismiss="modal">Close</button>
@@ -215,16 +256,14 @@
 
 @code
 {
-    private bool accordionCollapsed = false;
-    private bool showExtendedInformation = false;
-    private bool loading = false;
-    private bool querySubmitted = false;
+    private bool accordionIsCollapsed = false;
+    private bool showExtendedImageInformation = false;
     private List<Image>? images = new();
     private int pageIndex = 1;
     private int pageSize = 9;
     private int totalImages = 0;
     private int totalPages = 0;
-    private string imageSrc = string.Empty;
+    private string modalImageSrc = string.Empty;
     private ArchiveRequest archiveRequest = new();
     private ImageQuery imageQuery = new ImageQuery {
         StartDateTime = new DateTime(2010, 1, 1),
@@ -233,38 +272,45 @@
     private List<string> siteNames = new();
     private List<int> siteNumbers = new();
     private List<int> cameraPositionNumbers = new();
+    private int progressPercentValue = 0;
+    private string elapsedTimeDisplay = string.Empty;
+    private string estimatedTimeRemainingDisplay = string.Empty;
+    private System.Timers.Timer? archiveProcessTimer;
+    private DateTime lastPollTimestamp;
+    private TimeSpan lastPolledElapsedTime;
+    private TimeSpan lastPolledEstimatedTimeRemaining;
+    private bool timerIsRunning = false;
+    private SearchState searchState;
+    private bool userClickedCancel = false;
 
-    public string? SiteName
+    public string SiteName
     {
-        get => imageQuery.SiteName;
+        get => imageQuery.SiteName ?? siteNames.First();
         set
         {
             imageQuery.SiteName = value;
-            archiveRequest.SiteName = value;
             StateHasChanged();
             UpdateSiteNumbers();
         }
     }
 
-    public int? SiteNumber
+    public int SiteNumber
     {
         get => imageQuery.SiteNumber;
         set
         {
             imageQuery.SiteNumber = value;
-            archiveRequest.SiteNumber = value;
             StateHasChanged();
             UpdateCameraPositions();
         }
     }
 
-    public int? CameraPositionNumber
+    public int CameraPositionNumber
     {
         get => imageQuery.CameraPositionNumber;
         set
         {
             imageQuery.CameraPositionNumber = value;
-            archiveRequest.CameraPositionNumber = value;
             StateHasChanged();
         }
     }
@@ -284,7 +330,7 @@
 
     private void OnAccordionToggled()
     {
-        accordionCollapsed = !accordionCollapsed;
+        accordionIsCollapsed = !accordionIsCollapsed;
     }
 
     private void UpdateSiteNumbers()
@@ -304,30 +350,43 @@
         return CameraPositionMap.GetCameraPositionName(siteName, siteNumber, cameraPositionNumber)!;
     }
 
+    private async Task HandleSubmit()
+    {
+        searchState = SearchState.Loading;
+        pageIndex = 1;
+
+        await GetImagesByPageAsync();
+    }
 
     private async Task GetImagesByPageAsync()
     {
-        querySubmitted = true;
-        loading = true;
+        searchState = SearchState.Loading;
 
-        var response = await HttpService.GetImagesByPageAsync(imageQuery, pageIndex - 1, pageSize);
-
-        if (response is not null)
+        try
         {
-            if (response.IsSuccessStatusCode)
-            {
-                var content = await response.Content.ReadFromJsonAsync<PaginationResponse>();
+            var response = await HttpService.GetImagesByPageAsync(imageQuery, pageIndex - 1, pageSize);
 
-                if (content != null)
+            if (response is not null)
+            {
+                if (response.IsSuccessStatusCode)
                 {
-                    images = content.Images;
-                    totalImages = content.TotalCount;
-                    totalPages = totalImages / pageSize;
+                    var content = await response.Content.ReadFromJsonAsync<PaginationResponse>();
+
+                    if (content is not null)
+                    {
+                        images = content.Images;
+                        totalImages = content.TotalCount;
+                        totalPages = (int)Math.Ceiling((double)totalImages / pageSize);
+                    }
                 }
             }
+
         }
-        loading = false;
-        StateHasChanged();
+        finally
+        {
+            searchState = SearchState.Loaded;
+            StateHasChanged();
+        }
     }
 
     private async Task FirstPage()
@@ -374,78 +433,202 @@
         }
         catch (Exception exception)
         {
-            Console.WriteLine($"[ERROR] [Home.razor] [PaginationChangedAsync]: {exception.Message}");
+            Console.WriteLine($"[ERROR] [Search] [PaginationChangedAsync]: {exception.Message}");
             throw;
         }
     }
 
     private async Task DownloadImage(Image image)
     {
-        await JSRuntime.InvokeVoidAsync("download", $"/proxy/images/{image.Id}", $"{image.UnixTime}.jpg");
+        await JSRuntime.InvokeVoidAsync("download", $"/proxy/images/{image.Id}", $"{image.SiteName}_{image.SiteNumber}_{image.CameraPositionName}_{image.DateTime:hh.mmtt}.jpg");
     }
 
-    private async Task DownloadAllImages()
+    private void InitializeArchiveProcessTimer()
     {
+        lastPollTimestamp = DateTime.Now;
+        timerIsRunning = true;
+
+        archiveProcessTimer = new System.Timers.Timer(1000)
+        {
+            AutoReset = true
+        };
+
+        archiveProcessTimer.Elapsed += OnTimerElapsed;
+
+        archiveProcessTimer.Start();
+    }
+
+    private void OnTimerElapsed(object? sender, System.Timers.ElapsedEventArgs e)
+    {
+        if(!timerIsRunning)
+        {
+            return;
+        }
+
+        var timeSinceLastPoll = DateTime.Now - lastPollTimestamp;
+
+        InvokeAsync(() =>
+        {
+            elapsedTimeDisplay = (lastPolledElapsedTime + timeSinceLastPoll).ToString(@"hh\:mm\:ss");
+
+            var estimatedTimeRemaining = lastPolledEstimatedTimeRemaining - timeSinceLastPoll;
+            estimatedTimeRemainingDisplay = (estimatedTimeRemaining > TimeSpan.Zero ? estimatedTimeRemaining : TimeSpan.Zero).ToString(@"hh\:mm\:ss");
+
+            StateHasChanged();
+        });
+    }
+
+    private void StopAndDisposeTimer()
+    {
+        timerIsRunning = false;
+
+        if(archiveProcessTimer != null)
+        {
+            archiveProcessTimer.Elapsed -= OnTimerElapsed;
+            archiveProcessTimer.Stop();
+            archiveProcessTimer.Dispose();
+            archiveProcessTimer = null;
+        }
+    }
+
+    private async Task DownloadSearchResultsAsArchive()
+    {
+        userClickedCancel = false;
+        progressPercentValue = 0;
+        archiveRequest.StartDateTime = imageQuery.StartDateTime;
+        archiveRequest.EndDateTime = imageQuery.EndDateTime;
+        archiveRequest.SiteName = imageQuery.SiteName;
+        archiveRequest.SiteNumber = imageQuery.SiteNumber;
+        archiveRequest.CameraPositionNumber = imageQuery.CameraPositionNumber;
+        archiveRequest.Status = ArchiveStatus.Pending;
+
+        StateHasChanged();
+
         try
         {
-            archiveRequest.StartDateTime = imageQuery.StartDateTime;
-            archiveRequest.EndDateTime = imageQuery.EndDateTime;
+            if(archiveRequest is null)
+            {
+                Console.WriteLine($"[ERROR] [Search] [DownloadAllImages]: Variable '{nameof(archiveRequest)}' is null.");
+                return;
+            }
+
+
             var response = await HttpService.PostArchiveRequestAsync(archiveRequest);
+
+            if(response is null)
+            {
+                Console.WriteLine("[ERROR] [Search] [DownloadAllImages]: Non-success response status code.");
+                return;
+            }
 
             if (!response.IsSuccessStatusCode)
             {
-                Console.WriteLine("[ERROR] [Home] [DownloadAllImages]: Non-success response status code.");
+                Console.WriteLine("[ERROR] [Search] [DownloadAllImages]: Non-success response status code.");
                 return;
             }
 
-            var content = await response.Content.ReadFromJsonAsync<ArchiveRequest>();
-
-            if (content == null)
+            if(response.Content is not null)
             {
-                Console.WriteLine("[ERROR] [Home] [DownloadAllImages]: Response content is null.");
+                archiveRequest = await response.Content.ReadFromJsonAsync<ArchiveRequest>();
+            }
+
+            if (archiveRequest is null)
+            {
+                Console.WriteLine("[ERROR] [Search] [DownloadAllImages]: Response content is null.");
                 return;
             }
 
-            Console.WriteLine($"[INFO] [Home] [DownloadAllImages]: Archive job started with ID: {content.Id}");
+            Console.WriteLine($"[INFO] [Search] [DownloadAllImages]: Archive job started with ID: {archiveRequest.Id}");
+
+            lastPolledElapsedTime = archiveRequest.ElapsedTime;
+            lastPolledEstimatedTimeRemaining = archiveRequest.EstimatedTimeRemaining;
+
+            InitializeArchiveProcessTimer();
 
             while (true)
             {
-                await Task.Delay(10000);
+                await Task.Delay(3000);
 
-                response = await HttpService.GetArchiveStatusAsync(content.Id);
+                response = await HttpService.GetArchiveStatusAsync(archiveRequest.Id);
 
                 if (response == null)
                 {
-                    Console.WriteLine("[WARNING] [Home] [DownloadAllImages]: Response is null.");
+                    Console.WriteLine("[WARNING] [Search] [DownloadAllImages]: Response is null.");
                     return;
                 }
 
-                content = await response.Content.ReadFromJsonAsync<ArchiveRequest>();
+                archiveRequest = await response.Content.ReadFromJsonAsync<ArchiveRequest>();
 
-                Console.WriteLine($"[INFO] [Home] [DownloadAllImages]: Current Archive Status: {content!.Status}");
-
-                if (content.Status == ArchiveStatus.Completed)
+                if(archiveRequest is null)
                 {
+                    Console.WriteLine($"[ERROR] [Search] [DownloadAllImages]: Variable '{nameof(archiveRequest)}' is null.");
+                    return;
+                }
+
+                if(archiveRequest.TotalImages > 0)
+                {
+                    double percentProcessed = (double)archiveRequest.ProcessedImages / archiveRequest.TotalImages * 100;
+                    progressPercentValue = (int)percentProcessed;
+                }
+
+                lastPolledElapsedTime = archiveRequest.ElapsedTime;
+                lastPolledEstimatedTimeRemaining = archiveRequest.EstimatedTimeRemaining;
+                lastPollTimestamp = DateTime.Now;
+
+                StateHasChanged();
+
+                if(archiveRequest.Status is ArchiveStatus.Completed)
+                {
+                    Console.WriteLine($"[INFO] [Search] [DownloadAllImages]: Archive request completed.");
+                    await JSRuntime.InvokeVoidAsync("download", $"/proxy/archive/download/{archiveRequest.Id}");
                     break;
                 }
-
-                if (content.Status == ArchiveStatus.Failed)
+                else if(archiveRequest.Status is ArchiveStatus.Canceled)
                 {
-                    Console.WriteLine("[WARNING] [Home] [DownloadAllImages]: Archive request failed.");
-                    return;
+                    Console.WriteLine("[WARNING] [Search] [DownloadAllImages]: Archive request canceled.");
+                    break;
+                }
+                else if(archiveRequest.Status is ArchiveStatus.Failed)
+                {
+                    Console.WriteLine("[WARNING] [Search] [DownloadAllImages]: Archive request failed.");
+                    break;
                 }
             }
 
-            await JSRuntime.InvokeVoidAsync("download", $"/proxy/archive/download/{content.Id}", $"{content.Id}.zip");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[ERROR] [Home] [DownloadAllImages]: {ex.Message}, {ex.Source}");
+            Console.WriteLine($"[ERROR] [Search] [DownloadAllImages]: {ex.Message}, {ex.Source}");
+        }
+        finally
+        {
+            archiveRequest = new();
+            progressPercentValue = 0;
+            StopAndDisposeTimer();
+            StateHasChanged();
         }
     }
 
-    private void UpdateImageSrc(long Id)
+    private async void HandleCancel()
     {
-        imageSrc = $"/proxy/images/{Id}";
+        userClickedCancel = true;
+
+        if(archiveRequest is null)
+        {
+            Console.WriteLine($"[ERROR] [Search] [HandleCancel]: Variable '{nameof(archiveRequest)}' is null.");
+            return;
+        }
+
+        var response = await HttpService.PostArchiveCancellationAsync(archiveRequest);
+    }
+
+    private void UpdateModalImageSrc(long Id)
+    {
+        modalImageSrc = $"/proxy/images/{Id}";
+    }
+
+    private string GetProgressBarWidth()
+    {
+        return $"width: {progressPercentValue}%";
     }
 }

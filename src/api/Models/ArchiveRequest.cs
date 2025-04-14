@@ -18,5 +18,18 @@ public class ArchiveRequest
         ExceptionMessages.Add(message);
         Status = ArchiveStatus.Failed;
     }
+    public int TotalImages { get; set; }
+    private int _processedImages;
+    public int ProcessedImages
+    {
+        get => _processedImages;
+        set => _processedImages = value;
+    }
+    public void IncrementProcessedImages()
+    {
+        ProcessedImages = Interlocked.Increment(ref _processedImages);
+    }
+    public TimeSpan ElapsedTime { get; set; }
+    public TimeSpan EstimatedTimeRemaining { get; set; }
 }
 
