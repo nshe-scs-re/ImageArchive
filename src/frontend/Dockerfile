@@ -2,6 +2,12 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 
 USER root
 
+ARG AUTH0_DOMAIN
+ENV Auth0__Domain=$AUTH0_DOMAIN
+
+ARG AUTH0_CLIENTID
+ENV Auth0__ClientId=$AUTH0_CLIENTID
+
 WORKDIR /app
 
 RUN update-ca-certificates
