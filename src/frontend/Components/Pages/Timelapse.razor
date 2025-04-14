@@ -1,60 +1,78 @@
-﻿@page "/slideshow"
+﻿@page "/timelapse"
+@using System.Text.Json;
 @inject HttpService HttpService
-@inject NavigationManager NavManager
 
-<PageTitle>SlideShow Viewer</PageTitle>
+<PageTitle>Timelapse</PageTitle>
 
-<div class="container py-5">
-    <div class="text-center mb-4">
-        <h1 class="display-4">Timelapse Viewer</h1>
-        <p class="lead">Watch environmental changes unfold over time through archived imagery.</p>
+<div class="row">
+    <h1 class="h1 m-3 text-center">Timelapse Viewer</h1>
+    <div class="col">
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 justify-content-center">
+            <EditForm Model="@query" OnValidSubmit="LoadImages" class="form p-4 border">
+                <div class="row">
+                    <label class="col-form-label col">Start Date</label>
+                    <InputDate class="form-control col" @bind-Value="query.StartDateTime" />
+                </div>
+                <div class="row">
+                    <label class="col-form-label col">End Date</label>
+                    <InputDate class="form-control col" @bind-Value="query.EndDateTime" />
+                </div>
+                <div class="row">
+                    <label class="col-form-label col">Site Name</label>
+                    <InputText class="form-control col" @bind-Value="query.SiteName" />
+                </div>
+                <div class="row">
+                    <label class="col-form-label col">Site #</label>
+                    <InputNumber class="form-control col" @bind-Value="query.SiteNumber" />
+                </div>
+                <div class="row">
+                    <label class="col-form-label col">Camera Pos #</label>
+                    <InputNumber class="form-control col" @bind-Value="query.CameraPositionNumber" />
+                </div>
+                <div class="mt-3 text-center">
+                    <button class="btn" type="submit">🔍 Fetch Timelapse</button>
+                </div>
+            </EditForm>
+        </div>
     </div>
 
     @if (loading)
     {
-        <div class="text-center">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-            <p>Loading images...</p>
-        </div>
+        <p class="text-center mt-4">Loading images...</p>
     }
-    else if (!string.IsNullOrEmpty(errorMessage))
+    else if (errorMessage != null)
     {
-        <div class="alert alert-danger" role="alert">
-            @errorMessage
-        </div>
+        <div class="alert alert-danger mt-4">@errorMessage</div>
     }
     else if (imageUrls.Count > 0)
     {
-        <div class="text-center">
-            <img src="@imageUrls[currentIndex]" class="img-fluid rounded shadow mb-3" style="max-height: 70vh; object-fit: contain;" />
-            <div class="mb-3 text-muted">Image @((currentIndex + 1)) of @imageUrls.Count</div>
-            <div class="d-flex justify-content-center gap-3">
-                <button class="btn btn-success" @onclick="StartSlideshow" disabled="@slideshowRunning">▶ Play</button>
-                <button class="btn btn-warning" @onclick="PreviousImage">⏮ Prev</button>
-                <button class="btn btn-info" @onclick="NextImage">⏭ Next</button>
-                <button class="btn btn-danger" @onclick="StopSlideshow" disabled="@(!slideshowRunning)">⏸ Pause</button>
-                <button class="btn btn-secondary" @onclick="ResetViewer">🔄 Reset</button>
-                <a href="@imageUrls[currentIndex]" download class="btn btn-outline-primary">⬇ Download</a>
+        <div class="text-center mt-4">
+            <img src="@imageUrls[currentIndex]" class="img-fluid rounded shadow" width="640" height="480"/>
+            <div class="text-muted my-2">
+                Image @((currentIndex + 1)) of @imageUrls.Count
             </div>
-        </div>
-    }
-    else
-    {
-        <div class="text-center">
-            <button class="btn btn-primary btn-lg" @onclick="LoadImages">📷 Load Timelapse Images</button>
+            <div class="btn-group m-3">
+                <button class="btn" @onclick="StartSlideshow" disabled="@slideshowRunning">▶ Play</button>
+                <button class="btn" @onclick="StopSlideshow" disabled="@(!slideshowRunning)">⏸ Pause</button>
+            </div>
         </div>
     }
 </div>
 
 @code {
+    private ImageQuery query = new ImageQuery
+    {
+        StartDateTime = new DateTime(2010, 1, 1),
+        EndDateTime = new DateTime(2020, 1, 1)
+    };
     private List<string> imageUrls = new();
     private int currentIndex = 0;
     private Timer? timer;
-    private bool loading = false;
     private bool slideshowRunning = false;
+    private bool loading = false;
     private string? errorMessage;
+    private int pageIndex = 0;
+    private int pageSize = 1000;
 
     private async Task LoadImages()
     {
@@ -63,21 +81,34 @@
 
         try
         {
-            var images = await HttpService.GetAllImagesAsync();
-            var baseUrl = "http://localhost:8080"; // replace with your backend origin if different
+            var response = await HttpService.GetImagesByPageAsync(query,pageIndex,pageSize);
 
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonSerializerOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var content = await response.Content.ReadFromJsonAsync<PaginationResponse>(jsonSerializerOptions);
 
-            imageUrls = images
-                .Where(i => i.Id > 0)
-                .OrderBy(i => i.DateTime) // Sort oldest to newest
-                .Select(i => $"{baseUrl}/api/images/{i.Id}")
-                .ToList();
+                using(var client = HttpService.CreateProxyClient())
+                {
+                    var baseUrl = client.BaseAddress;
 
-            currentIndex = 0;
+                    imageUrls = content?.Images!
+                        .Where(i => i.Id > 0)
+                        .OrderBy(i => i.DateTime)
+                        .Select(i => $"{baseUrl}proxy/images/{i.Id}")
+                        .ToList() ?? new List<string>();
+
+                    currentIndex = 0;
+                }
+            }
+            else
+            {
+                errorMessage = $"Error: {response.ReasonPhrase}";
+            }
         }
         catch (Exception ex)
         {
-            errorMessage = $"Failed to load images: {ex.Message}";
+            errorMessage = $"Exception: {ex.Message}";
         }
         finally
         {
@@ -94,7 +125,7 @@
         {
             currentIndex = (currentIndex + 1) % imageUrls.Count;
             InvokeAsync(StateHasChanged);
-        }, null, 0, 5000); // Every 5 seconds
+        }, null, 0, 5000);
     }
 
     private void StopSlideshow()
@@ -103,19 +134,7 @@
         slideshowRunning = false;
     }
 
-    private void NextImage()
-    {
-        currentIndex = (currentIndex + 1) % imageUrls.Count;
-    }
+    private void NextImage() => currentIndex = (currentIndex + 1) % imageUrls.Count;
 
-    private void PreviousImage()
-    {
-        currentIndex = (currentIndex - 1 + imageUrls.Count) % imageUrls.Count;
-    }
-
-    private void ResetViewer()
-    {
-        StopSlideshow();
-        currentIndex = 0;
-    }
+    private void PreviousImage() => currentIndex = (currentIndex - 1 + imageUrls.Count) % imageUrls.Count;
 }
