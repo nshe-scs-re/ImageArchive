@@ -22,8 +22,15 @@ public class ArchiveRequest
     private int _processedImages;
     public int ProcessedImages
     {
-        get => _processedImages;
-        set => _processedImages = value;
+        get
+        {
+            return _processedImages;
+        }
+
+        set
+        {
+            _processedImages = value;
+        }
     }
     public void IncrementProcessedImages()
     {
