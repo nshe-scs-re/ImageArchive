@@ -1,0 +1,86 @@
+name: Deploy Image Archive
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: [self-hosted, project-runner]
+    container:
+      image: alpine:latest
+      options: --user root
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Login to Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.DOCKER_REG_URL }}
+          username: ${{ secrets.DOCKER_REG_USER }}
+          password: ${{ secrets.DOCKER_REG_PASS }}
+
+      - name: Build and Push Frontend Image
+        uses: docker/build-push-action@v6
+        with:
+          file: src/frontend/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_REG_URL }}/image-archive:latest
+          no-cache: true
+          build-args: |
+            AUTH0_DOMAIN=${{ secrets.AUTH0_DOMAIN }}
+            AUTH0_CLIENTID=${{ secrets.AUTH0_CLIENTID }}
+
+
+      - name: Build and Push API Image
+        uses: docker/build-push-action@v6
+        with:
+          file: src/api/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_REG_URL }}/image-archive-api:latest
+          no-cache: true
+          build-args: |
+            DB_CONNECTION_STRING_IMAGEDB=${{ secrets.DB_CONNECTION_STRING_IMAGEDB }}
+
+
+  deploy:
+    needs: build
+    runs-on: [self-hosted, project-runner]
+    container:
+      image: alpine:latest
+      options: --user root
+
+    strategy:
+      matrix:
+        target: [frontend, api]
+
+    steps:
+      - name: Install SSH Client & Bash
+        run: |
+          apk add --no-cache openssh bash
+
+      - name: Deploy ${{ matrix.target }}
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets[format('{0}_HOST', matrix.target | upper)] }}
+          username: ${{ secrets[format('{0}_USER', matrix.target | upper)] }}
+          key: ${{ secrets[format('{0}_SSH_KEY', matrix.target | upper)] }}
+          script: |
+
+            docker login ${{ secrets.DOCKER_REG_URL }} -u ${{ secrets.DOCKER_REG_USER }} -p ${{ secrets.DOCKER_REG_PASS }}
+
+            if [ "${{ matrix.target }}" = "frontend" ]; then
+              docker pull ${{ secrets.DOCKER_REG_URL }}/image-archive:latest
+              docker rm -f image-archive || true
+              docker run --rm -d --privileged --name image-archive --network host -e ASPNETCORE_URLS="http://+" ${{ secrets.DOCKER_REG_URL }}/image-archive:latest
+            fi
+
+            if [ "${{ matrix.target }}" = "api" ]; then
+              sudo mount /dev/vda /mnt/nvme0n1 || true
+              docker pull ${{ secrets.DOCKER_REG_URL }}/image-archive-api:latest
+              docker rm -f image-archive-api || true
+              docker run --rm -d --privileged --name image-archive-api --network host --device /dev/vda:/dev/vda -v /mnt/nvme0n1:/mnt/nvme0n1:ro,z -e ASPNETCORE_URLS="http://+" -e ASPNETCORE_ENVIRONMENT=Production ${{ secrets.DOCKER_REG_URL }}/image-archive-api:latest
+            fi
