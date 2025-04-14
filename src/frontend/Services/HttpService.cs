@@ -19,14 +19,6 @@ public class HttpService
         _httpContextAccessor = httpContextAccessor;
         _cookieContainer = cookieContainer;
     }
-    public async Task<List<Image>> GetAllImagesAsync()
-    {
-        var client = CreateForwardClient();
-        var response = await client.GetAsync("api/images/all");
-        response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<List<Image>>() ?? new List<Image>();
-    }
-
 
     public HttpClient CreateForwardClient(Uri? baseAddress = null)
     {
@@ -198,7 +190,7 @@ public class HttpService
 
         using var content = new MultipartFormDataContent();
 
-        for(int i = 0; i < fileItems.Count; i++)
+        for(var i = 0; i < fileItems.Count; i++)
         {
             var item = fileItems[i];
 
