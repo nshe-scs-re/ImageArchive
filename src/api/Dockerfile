@@ -2,6 +2,9 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 
 USER root
 
+ARG DB_CONNECTION_STRING_IMAGEDB
+ENV ConnectionStrings__ImageDb=$DB_CONNECTION_STRING_IMAGEDB
+
 WORKDIR /app
 
 RUN update-ca-certificates
