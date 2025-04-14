@@ -3,6 +3,7 @@ using frontend;
 using frontend.Components;
 using frontend.Models;
 using frontend.Services;
+using Microsoft.AspNetCore.HttpOverrides;
 using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,7 +27,7 @@ builder.Services.AddHttpClient("ForwardingClient", httpClient =>
     }
     else
     {
-        httpClient.BaseAddress = new Uri("https://10.176.244.112/");
+        httpClient.BaseAddress = new Uri("http://10.176.244.112/");
     }
 });
 
@@ -70,6 +71,15 @@ else
     app.UseHsts(); // TODO: Investigate HSTS
     //app.UseHttpsRedirection(); // HTTPS redirection handled by Nginx
 }
+
+var forwardedHeadersOptions = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedFor
+};
+
+forwardedHeadersOptions.KnownProxies.Add(IPAddress.Parse("10.176.244.110"));
+
+app.UseForwardedHeaders(forwardedHeadersOptions);
 
 app.UseStaticFiles();
 

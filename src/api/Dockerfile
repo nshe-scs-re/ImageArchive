@@ -6,12 +6,16 @@ WORKDIR /app
 
 RUN update-ca-certificates
 
-USER app
+#USER app
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 
 WORKDIR /src
+
+COPY ./src/api/appsettings.json ./api/
+
+COPY ./src/api/appsettings.Production.json ./api/
 
 COPY ./src/api/api.csproj ./api/
 

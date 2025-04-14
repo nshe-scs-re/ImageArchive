@@ -148,7 +148,7 @@ public static class EndpointsMap
 
                 FileStream fileStream = new FileStream(request.FilePath, FileMode.Open, FileAccess.Read);
 
-                return Results.Stream(fileStream, "application/zip", $"{request.SiteName}_{request.SiteNumber}_archive_{DateTime.Now}");
+                return Results.Stream(fileStream, "application/zip", $"{request.SiteName}_{request.SiteNumber}_archive_{DateTime.Now}.zip");
             }
             catch(Exception exception)
             {
@@ -207,7 +207,7 @@ public static class EndpointsMap
                         i.SiteName == siteName &&
                         i.SiteNumber == siteNumber &&
                         i.CameraPositionNumber == cameraPosition)
-                    .OrderBy(i => i.Id);
+                    .OrderBy(i => i.DateTime);
 
                 int totalCount = await query.CountAsync();
 
@@ -253,8 +253,7 @@ public static class EndpointsMap
             catch(Exception exception)
             {
                 Console.WriteLine($"ERROR [Program.cs] [/api/images/id]: Exception message: {exception.Message}");
-                //return Results.Problem(exception.Message);
-                return Results.Problem("not found");
+                return Results.Problem();
             }
         })
         .WithSummary("Retrieves a single image based on a given id value.")

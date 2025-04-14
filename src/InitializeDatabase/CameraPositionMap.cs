@@ -1,5 +1,4 @@
-﻿namespace frontend.Models;
-public class Site
+﻿public class Site
 {
     public required string Name { get; init; }
     public required Dictionary<int, SubSite> SubSites { get; init; }
