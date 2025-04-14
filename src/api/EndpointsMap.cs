@@ -148,7 +148,7 @@ public static class EndpointsMap
 
                 FileStream fileStream = new FileStream(request.FilePath, FileMode.Open, FileAccess.Read);
 
-                return Results.Stream(fileStream, "application/zip", $"{jobId}.zip");
+                return Results.Stream(fileStream, "application/zip", $"{request.SiteName}_{request.SiteNumber}_archive_{DateTime.Now}");
             }
             catch(Exception exception)
             {
@@ -259,6 +259,21 @@ public static class EndpointsMap
         })
         .WithSummary("Retrieves a single image based on a given id value.")
         .Produces<FileResult>(200, "image/jpeg");
+
+        builder.MapPost("/api/archive/cancel/{jobId}", async (ArchiveManager manager, HttpContext context) =>
+        {
+            ArchiveRequest? request = await context.Request.ReadFromJsonAsync<ArchiveRequest>();
+
+            if(request is null)
+            {
+                return Results.NotFound();
+            }
+
+            // TODO: More case coverage
+            request = manager.CancelArchiveRequest(request);
+
+            return Results.Ok(request);
+        });
 
         return builder;
     }

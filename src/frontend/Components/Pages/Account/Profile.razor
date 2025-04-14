@@ -7,15 +7,8 @@
 <div class="row">
     @if(state.User.Identity.IsAuthenticated)
     {
-        <div class="col">
-            <img src="@Picture" alt="Profile Picture" class="img-rounded img-responsive" />
-        </div>
         <div class="col text-center">
             <h1 class="h1">Hi, @Username</h1>
-            @if(!string.IsNullOrEmpty(EmailAddress))
-            {
-                <p>@EmailAddress</p>
-            }
         </div>
     }
     else
