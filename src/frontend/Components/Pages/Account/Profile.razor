@@ -17,29 +17,29 @@
         <div class="col text-center">
             <h1 class="h1">Hi, @Username</h1>
             <h1>user id: @auth0UserId</h1>
-            <div>
-                <button class="btn btn-small" @onclick="HandlePostQueryLog">Add sample row to query table</button>
-            </div>
-            <div>
-                <button class="btn btn-small" @onclick="HandleFetchQueryLogList">Fetch query history table</button>
-            </div>
+            @* <div> *@
+            @*     <button class="btn btn-small" @onclick="HandlePostQueryLog">Add sample row to query table</button> *@
+            @* </div> *@
+            @* <div> *@
+            @*     <button class="btn btn-small" @onclick="HandleFetchQueryLogList">Fetch query history table</button> *@
+            @* </div> *@
             <div>
                 <button class="btn btn-primary mt-2" @onclick="ToggleHistory">
                     Query History @(showHistory ? "▲" : "▼")
                 </button>
                 @if (showHistory)
                 {
-                    <div class="dropdown-menu show d-block mt-2 p-3 border rounded text-center">
+                    <div class="dropdown-menu-center show d-block mt-2 p-3 border rounded text-center">
                         @if (queryHistory?.Any() == true)
                         {
-                            <div class="query-history-container">
+                            <div class="query-history-container justify-content-center">
                                 @foreach (var query in queryHistory)
                                 {
                                     <div class="query-item mb-2">
-                                        <div class="small text-muted">
+                                        <div class="small text-muted justify-content-center">
                                             @ConvertToPst(query.timestamp).ToString("g")
                                         </div>
-                                        <div class="text-break">
+                                        <div class="text-break justify-content-center">
                                             <strong>UserId:</strong> @query.UserId <br />
                                             <strong>QueryId:</strong> @query.QueryId <br />
                                             @GetFormattedParameters(query.parameters)
