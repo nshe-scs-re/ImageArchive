@@ -4,9 +4,6 @@ using api.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.Text.Json.Serialization;
-//======================
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-//======================
 
 
 var builder = WebApplication.CreateBuilder(args);
