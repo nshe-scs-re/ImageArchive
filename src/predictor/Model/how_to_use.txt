@@ -9,10 +9,6 @@ If you haven't already, set up your Python environment.
 Install the required libraries:
     pip install torch torchvision pillow tqdm pymssql
 
-To use a GPU, install a GPU-enabled version of PyTorch.
-See install options at: https://pytorch.org/get-started/locally/
-
-
 2. Update Database Settings
 
 Open the file: db_connect.py
@@ -35,16 +31,22 @@ Update the values for server, user, password, database, and port.
 
 Open the file: ML_initialize.py
 
-Line 28:
+Line 65:
     model_path = "best_model.pth"
 Change this to your actual model file path.
 
-Line 66:
+Line 99:
     base_path = "/home/nmichelotti/Desktop/Image Archives/OneDrive_1_4-3-2025"
 Change this to the folder where your images are stored.
 
 
-4. Run the Script
+4. Ensure Database is Running
+
+Use bash script in respective terminal
+ -docker-compose dev up dev_db
+
+
+5. Run the Script
 
 Run the script with:
     python ML_initialize.py
