@@ -4,8 +4,6 @@
 
 1. Install Required Python Packages
 
-If you haven't already, set up your Python environment.
-
 Install the required libraries:
     pip install torch torchvision pillow tqdm pymssql
 
@@ -17,11 +15,11 @@ Edit the database connection in the connect_to_database() function:
 
 Lines 5–11:
     conn = pymssql.connect(
-        server='127.0.0.1',
-        user='sa',
-        password='X1wdgbqjlTSU',
-        database='ImageDb',
-        port=1433
+        server='',
+        user='',
+        password='',
+        database='',
+        port=
     )
 
 Update the values for server, user, password, database, and port.
@@ -36,20 +34,16 @@ Line 65:
 Change this to your actual model file path.
 
 Line 99:
-    base_path = "/home/nmichelotti/Desktop/Image Archives/OneDrive_1_4-3-2025"
+    base_path = "/"
 Change this to the folder where your images are stored.
 
 
 4. Ensure Database is Running
 
-Use bash script in respective terminal
- -docker-compose dev up dev_db
-
-
 5. Run the Script
 
 Run the script with:
-    python ML_initialize.py
+    python3 ML_initialize.py
 
 The script will:
 - Connect to your database
@@ -57,4 +51,4 @@ The script will:
 - Run predictions on all image paths
 - Save predictions and confidence scores into the database
 
-If no GPU is available, the script will prompt you to continue with the CPU.
+If no GPU is available, the script will continue with the CPU.
