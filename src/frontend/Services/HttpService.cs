@@ -196,7 +196,7 @@ public class HttpService
 
         using var content = new MultipartFormDataContent();
 
-        for(int i = 0; i < fileItems.Count; i++)
+        for(var i = 0; i < fileItems.Count; i++)
         {
             var item = fileItems[i];
 
