@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.Text.Json.Serialization;
 
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration
@@ -44,8 +43,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontend", policy =>
     {
         string[] origins = builder.Environment.IsDevelopment()
-        ? new string[] { "http://127.0.0.1", "http://localhost"}
-        : new string[] { "http://10.176.244.111"};
+        ? new string[] { "http://127.0.0.1", "http://localhost" }
+        : new string[] { "http://10.176.244.111" };
 
         policy.WithOrigins(origins)
               .AllowAnyHeader()
@@ -53,14 +52,6 @@ builder.Services.AddCors(options =>
               .AllowCredentials();
     });
 });
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.Authority = builder.Configuration["Auth0:Authority"];
-        options.Audience = builder.Configuration["Auth0:Audience"];
-    });
-
-builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
