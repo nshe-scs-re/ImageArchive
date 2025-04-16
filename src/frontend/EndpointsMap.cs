@@ -61,7 +61,7 @@ public static class EndpointsMap
 
                 if(!string.IsNullOrEmpty(contentDispositionFileName))
                 {
-                    fileName = contentDispositionFileName;
+                    fileName = contentDispositionFileName.Trim('"', '_', ' ');
                 }
 
                 var stream = await content.ReadAsStreamAsync();
