@@ -4,8 +4,13 @@
 
 1. Install Required Python Packages
 
+If you haven't already, set up your Python environment.
+
 Install the required libraries:
     pip install torch torchvision pillow tqdm pymssql
+
+To use a GPU, install a GPU-enabled version of PyTorch.
+See install options at: https://pytorch.org/get-started/locally/
 
 2. Update Database Settings
 
