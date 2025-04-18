@@ -9,7 +9,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: docker:latest
+      image: docker:24.0.5-cli
       options: --user root
 
     steps:
