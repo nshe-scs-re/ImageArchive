@@ -1,12 +1,8 @@
-﻿using api.Services;
+﻿using api.Data;
 using api.Models;
-using System.Net.NetworkInformation;
+using api.Services;
 using Microsoft.AspNetCore.Mvc;
-using api.Data;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
-using System.Text.Json;
 
 namespace api;
 
@@ -90,8 +86,6 @@ public static class EndpointsMap
 
         builder.MapGet("/api/query-history", async (HttpContext context, ImageDbContext dbContext) =>
         {
-            Console.WriteLine("GET /api/query-history hit");
-
             try
             {
                 var history = await dbContext.UserQueries
@@ -147,7 +141,7 @@ public static class EndpointsMap
         {
             try
             {
-                ArchiveRequest? request = await context.Request.ReadFromJsonAsync<ArchiveRequest>();
+                var request = await context.Request.ReadFromJsonAsync<ArchiveRequest>();
 
                 if(request is null)
                 {
@@ -172,7 +166,7 @@ public static class EndpointsMap
         {
             try
             {
-                ArchiveRequest job = manager.GetJob(jobId);
+                var job = manager.GetJob(jobId);
 
                 return Results.Ok(job);
             }
@@ -201,7 +195,7 @@ public static class EndpointsMap
                     return Results.Conflict(request);
                 }
 
-                FileStream fileStream = new FileStream(request.FilePath, FileMode.Open, FileAccess.Read);
+                var fileStream = new FileStream(request.FilePath, FileMode.Open, FileAccess.Read);
 
                 return Results.Stream(fileStream, "application/zip", $"{request.SiteName}_{request.SiteNumber}_archive_{DateTime.Now}");
             }
@@ -221,7 +215,7 @@ public static class EndpointsMap
         {
             try
             {
-                List<Image> images = await dbContext.Images.ToListAsync();
+                var images = await dbContext.Images.ToListAsync();
 
                 return Results.Ok(images);
             }
@@ -242,18 +236,18 @@ public static class EndpointsMap
 
                 if
                 (
-                    !DateTime.TryParse(parameters[0], out DateTime startDate) ||
-                    !DateTime.TryParse(parameters[1], out DateTime endDate) ||
-                    !int.TryParse(parameters[2], out int pageIndex) ||
-                    !int.TryParse(parameters[3], out int pageSize)
+                    !DateTime.TryParse(parameters[0], out var startDate) ||
+                    !DateTime.TryParse(parameters[1], out var endDate) ||
+                    !int.TryParse(parameters[2], out var pageIndex) ||
+                    !int.TryParse(parameters[3], out var pageSize)
                 )
                 {
                     return Results.BadRequest();
                 }
 
-                string siteName = parameters[4];
-                int.TryParse(parameters[5], out int siteNumber);
-                int.TryParse(parameters[6], out int cameraPosition);
+                var siteName = parameters[4];
+                int.TryParse(parameters[5], out var siteNumber);
+                int.TryParse(parameters[6], out var cameraPosition);
 
                 var query = dbContext.Images
                     .Where(i =>
@@ -264,7 +258,7 @@ public static class EndpointsMap
                         i.CameraPositionNumber == cameraPosition)
                     .OrderBy(i => i.Id);
 
-                int totalCount = await query.CountAsync();
+                var totalCount = await query.CountAsync();
 
                 var images = await query
                     .Skip(pageIndex * pageSize)
@@ -294,8 +288,8 @@ public static class EndpointsMap
                 }
 
                 var fileStream = new FileStream(image.FilePath!, FileMode.Open, FileAccess.Read);
-                string extension = Path.GetExtension(image.FilePath)!.ToLowerInvariant();
-                string mimeType = extension switch
+                var extension = Path.GetExtension(image.FilePath)!.ToLowerInvariant();
+                var mimeType = extension switch
                 {
                     ".jpeg" or ".jpg" => "image/jpeg",
                     ".png" => "image/png",
@@ -317,7 +311,7 @@ public static class EndpointsMap
 
         builder.MapPost("/api/archive/cancel/{jobId}", async (ArchiveManager manager, HttpContext context) =>
         {
-            ArchiveRequest? request = await context.Request.ReadFromJsonAsync<ArchiveRequest>();
+            var request = await context.Request.ReadFromJsonAsync<ArchiveRequest>();
 
             if(request is null)
             {
