@@ -63,8 +63,6 @@ public static class EndpointsMap
 
         builder.MapPost("/api/log-query", async (HttpContext context, ImageDbContext dbContext) =>
         {
-            Console.WriteLine("POST /api/log-query hit");
-
             var userQuery = await context.Request.ReadFromJsonAsync<UserQuery>();
 
             try
