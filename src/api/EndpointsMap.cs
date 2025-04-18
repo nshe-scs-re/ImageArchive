@@ -96,7 +96,7 @@ public static class EndpointsMap
                     .OrderByDescending(q => q.Timestamp)
                     .ToListAsync();
 
-                if(!history.Any())
+                if(history.Count == 0)
                 {
                     return Results.NotFound();
                 }
@@ -111,7 +111,6 @@ public static class EndpointsMap
         })
         .WithSummary("Retrieves the authenticated user's query history")
         .Produces<List<UserQuery>>(200)
-        .Produces(401)
         .Produces(404)
         .Produces(500);
 
