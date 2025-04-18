@@ -65,6 +65,11 @@ public static class EndpointsMap
         {
             var userQuery = await context.Request.ReadFromJsonAsync<UserQuery>();
 
+            if(userQuery is null)
+            {
+                return Results.Problem();
+            }
+
             try
             {
                 dbContext.UserQueries.Add(userQuery);
