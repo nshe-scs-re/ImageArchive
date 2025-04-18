@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Antiforgery;
 using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
+
 namespace frontend.Services;
 
 public class HttpService
@@ -22,7 +23,6 @@ public class HttpService
 
     public HttpClient CreateForwardClient(Uri? baseAddress = null)
     {
-
         var client = _httpClientFactory.CreateClient("ForwardingClient");
 
         if(baseAddress != null)
@@ -39,7 +39,6 @@ public class HttpService
 
     public HttpClient CreateProxyClient(Uri? baseAddress = null)
     {
-
         var client = _httpClientFactory.CreateClient("ProxyClient");
 
         if(baseAddress != null)
@@ -60,7 +59,7 @@ public class HttpService
 
         if(httpContext == null)
         {
-            Console.WriteLine($"[ERROR] [HttpService] [AddAntiForgeryCookie]: {nameof(httpContext)} is null.");
+
             return;
         }
 
@@ -70,13 +69,8 @@ public class HttpService
         if(!string.IsNullOrEmpty(antiCookie.Value) && client.BaseAddress != null)
         {
             _cookieContainer.Add(client.BaseAddress, new Cookie(antiCookie.Key, antiCookie.Value));
-            //Console.WriteLine($"[INFO] [HttpService] [AddAntiForgeryCookie]: Added antiforgery cookie: {antiCookie.Key}");
-        }
 
-        //foreach(var cookie in httpContext.Request.Cookies)
-        //{
-        //    Console.WriteLine($"[INFO] [HttpService] [AddAntiForgeryToken]: Cookie Key: {cookie.Key}");
-        //}
+        }
     }
 
     public void AddAntiForgeryToken(HttpClient client)
@@ -85,21 +79,13 @@ public class HttpService
 
         if(httpContext == null)
         {
-            Console.WriteLine($"[ERROR] [HttpService] [AddAntiForgeryToken]: {nameof(httpContext)} is null.");
+
             return;
         }
 
         var tokens = _antiforgery.GetAndStoreTokens(httpContext);
 
-        if(tokens.RequestToken is null || tokens.HeaderName is null)
-        {
-            Console.WriteLine($"[ERROR] [HttpService] [AddAntiForgeryToken]: Antiforgery token fields null.");
-        }
-
-        client.DefaultRequestHeaders.Add(tokens.HeaderName!, tokens.RequestToken);
-
-        //Console.WriteLine($"[INFO] [HttpService] [AddAntiForgeryToken]: {nameof(tokens.HeaderName)}: {tokens.HeaderName}");
-        //Console.WriteLine($"[INFO] [HttpService] [AddAntiForgeryToken]: {nameof(tokens.RequestToken)}: {tokens.RequestToken}");
+        client.DefaultRequestHeaders.Add(tokens.HeaderName, tokens.RequestToken);
     }
 
     public async Task<HttpResponseMessage> GetImagesByIdAsync(long id)
@@ -190,29 +176,15 @@ public class HttpService
         return await httpClient.PostAsync("api/upload", content);
     }
 
-    public async Task<HttpResponseMessage> UploadFilesAsync(List<FileUploadItem> fileItems)
+    public async Task<HttpResponseMessage> GetQueryHistoryAsync()
     {
         var httpClient = CreateForwardClient();
+        return await httpClient.GetAsync("api/query-history");
+    }
 
-        using var content = new MultipartFormDataContent();
-
-        for(var i = 0; i < fileItems.Count; i++)
-        {
-            var item = fileItems[i];
-
-            var fileContent = new StreamContent(item.File!.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024)); // 10 MB max file size
-
-            fileContent.Headers.ContentType = new MediaTypeHeaderValue(item.File.ContentType);
-
-            content.Add(fileContent, "files", item.File.Name);
-
-            //content.Add(new StringContent(item.DateTime.Value.ToString("o")), $"FileItems[{i}].DateTime");
-            //content.Add(new StringContent(item.SiteName), $"FileItems[{i}].SiteName");
-            //content.Add(new StringContent(item.SiteNumber.ToString()), $"FileItems[{i}].SiteNumber");
-            //content.Add(new StringContent(item.CameraPositionNumber.ToString()), $"FileItems[{i}].CameraPositionNumber");
-            //content.Add(new StringContent(item.CameraPositionName), $"FileItems[{i}].CameraPositionName");
-        }
-
-        return await httpClient.PostAsync("/api/upload", content);
+    public async Task<HttpResponseMessage> PostQueryHistoryLogAsync(UserQuery query)
+    {
+        var httpClient = CreateForwardClient();
+        return await httpClient.PostAsJsonAsync("api/log-query", query);
     }
 }
