@@ -1,5 +1,4 @@
 import sys, os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 import torch
 from torchvision import transforms, models
 from PIL import Image
@@ -122,7 +121,7 @@ print("Starting image prediction run.")
 
 for i, (img_id, file_path) in enumerate(tqdm(rows, desc="Predicting images", file=sys.stdout)):
     try:
-        real_path = os.path.join(base_path, file_path.replace("/app", "").lstrip("/"))
+        real_path = os.path.normpath(os.path.join(base_path, file_path.replace("/app", "").lstrip("/")))
         if not os.path.exists(real_path):
             raise FileNotFoundError(f"Missing image: {real_path}")
 
