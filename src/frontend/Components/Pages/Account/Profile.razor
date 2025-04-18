@@ -1,97 +1,49 @@
 @page "/Account/Profile"
-@inject TokenProvider tokenProvider
-
-@inject HttpService HttpService;
-@using System.Text.Json  
-@using System.Net.Http.Headers  
 @using System.Security.Claims
-@using frontend.Models;
-
+@inject TokenProvider tokenProvider
+@inject HttpService HttpService;
 @attribute [Authorize]
-
 <PageTitle>Image Archive | Profile</PageTitle>
 
-<div class="row justify-content-center">
-    @if (state.User.Identity.IsAuthenticated == true)
-    {
-        <div class="col text-center">
-            <h1 class="h1">Hi, @Username</h1>
-            <h1>user id: @auth0UserId</h1>
-            <div>
-                <button class="btn btn-small" @onclick="HandlePostQueryLog">Add sample row to query table</button>
-            </div>
-            <div>
-                <button class="btn btn-small" @onclick="HandleFetchQueryLogList">Fetch query history table</button>
-            </div>
-            <div>
-                <button class="btn btn-primary mt-2" @onclick="ToggleHistory">
-                    Query History @(showHistory ? "▲" : "▼")
-                </button>
-                @if (showHistory)
-                {
-                    <div class="dropdown-menu show d-block mt-2 p-3 border rounded text-center">
-                        @if (queryHistory?.Any() == true)
-                        {
-                            <div class="query-history-container">
-                                @foreach (var query in queryHistory)
-                                {
-                                    <div class="query-item mb-2">
-                                        <div class="small text-muted">
-                                            @ConvertToPst(query.timestamp).ToString("g")
-                                        </div>
-                                        <div class="text-break">
-                                            <strong>UserId:</strong> @query.UserId <br />
-                                            <strong>QueryId:</strong> @query.QueryId <br />
-                                            @GetFormattedParameters(query.parameters)
-                                        </div>
-                                    </div>
-                                }
-                            </div>
-                        }
-                        else if (errorMessage != null)
-                        {
-                            <div class="text-danger">@errorMessage</div>
-                        }
-                        else
-                        {
-                            <div>No query history found</div>
-                        }
-                    </div>
-                }
-            </div>
-        </div>
-    }
-    else
-    {
-        <p>Please sign in to view your profile.</p>
-    }
+<div class="row">
+    <div class="col text-center justify-content-center">
+        <h1 class="h1">Hi, @Username</h1>
+        <QuickGrid Items="@listOfUserQueries.AsQueryable()" Pagination="@pagination" Class="table table-sm table-bordered table-striped">
+            <PropertyColumn Property="@(q => q.Timestamp)" Title="Date of Search" Format="yyyy-MM-dd HH:mm:ss" IsDefaultSortColumn="true"/>
+            <PropertyColumn Property="@(q => q.DeserializedParameters.StartDateTime)" Title="Start Date/Time" />
+            <PropertyColumn Property="@(q => q.DeserializedParameters.EndDateTime)" Title="End Date/Time" />
+            <PropertyColumn Property="@(q => q.DeserializedParameters.SiteName)" Title="Site Name" />
+            <PropertyColumn Property="@(q => q.DeserializedParameters.SiteNumber)" Title="Site Number" />
+            <PropertyColumn Property="@(q => q.DeserializedParameters.CameraPositionNumber)" Title="Camera Position Number" />
+        </QuickGrid>
+        <Paginator State="@pagination"></Paginator>
+    </div>
 </div>
 
 @code {
     [CascadingParameter]
     public Task<AuthenticationState> AuthenticationStateTask { get; set; }
-    private string Username = string.Empty;
-    private string EmailAddress = string.Empty;
-    private string Picture = string.Empty;
-    private string IdToken = string.Empty;
     private AuthenticationState? state;
-    private bool isInitialized = false;
-    private bool showHistory = false;
-    private List<QueryHistoryItem> queryHistory = new();
-    private string? errorMessage;
-    private List<UserQuery> userQueryList = new();
+    private string Username = string.Empty;
     private string auth0UserId = string.Empty;
+    private List<UserQuery> listOfUserQueries = new();
+    private PaginationState pagination = new PaginationState
+    {
+        ItemsPerPage = 10
+    };
 
     protected override async Task OnInitializedAsync()
     {
         state = await AuthenticationStateTask;
 
-        if (state.User.Identity == null || !state.User.Identity.IsAuthenticated)
+        //TODO: Determine if necessary
+        if(state.User.Identity == null || !state.User.Identity.IsAuthenticated)
         {
             throw new InvalidOperationException("User.Identity is null or user is not authenticated.");
         }
 
-        foreach (var claim in state.User.Claims)
+        //TODO: Remove debug print
+        foreach(var claim in state.User.Claims)
         {
             Console.WriteLine($"Claim Type: {claim.Type}, Value: {claim.Value}");
         }
@@ -100,105 +52,16 @@
 
         auth0UserId = state.User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "user id claim unsuccessful";
 
-        IdToken = tokenProvider.IdToken; // TODO: Necessary?
-
-        isInitialized = true;
+        await GetQueryHistory();
 
         await base.OnInitializedAsync();
     }
 
-    private DateTime ConvertToPst(DateTime utcDateTime)
-    {
-        var pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
-        return TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, pstZone);
-    }
-
-    private async Task ToggleHistory()
-    {
-        showHistory = !showHistory;
-        if (showHistory && !queryHistory.Any())
-        {
-            await GetQueryHistoryAsync();
-        }
-    }
-
-    private async Task GetQueryHistoryAsync()
-    {
-        try
-        {
-            var response = await HttpService.GetQueryHistoryAsync();
-
-            if (response.IsSuccessStatusCode)
-            {
-                queryHistory = await response.Content.ReadFromJsonAsync<List<QueryHistoryItem>>();
-            }
-            else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-            {
-                errorMessage = "No query history found.";
-            }
-            else
-            {
-                errorMessage = $"Error loading history: {response.ReasonPhrase}";
-            }
-        }
-        catch (Exception ex)
-        {
-            errorMessage = $"Failed to load query history: {ex.Message}";
-        }
-    }
-
-    private string GetFormattedParameters(string parametersJson)
-    {
-        try
-        {
-            var parameters = JsonSerializer.Deserialize<Dictionary<string, object>>(parametersJson);
-            return string.Join(", ", parameters.Select(kvp => $"{kvp.Key}: {kvp.Value}"));
-        }
-        catch
-        {
-            return parametersJson;
-        }
-    }
-
-    public class QueryHistoryItem
-    {
-        public string UserId { get; set; } = string.Empty;
-        public long QueryId { get; set; }
-        public DateTime timestamp { get; set; }
-        public string parameters { get; set; } = string.Empty;
-    }
-
-    public async Task HandlePostQueryLog()
-    {
-        var m_queryParameters = new QueryParameters
-        {
-            StartDate = new DateTime(2010, 1, 1),
-            EndDate = new DateTime(2020, 1, 1),
-            SiteName = "Sheep",
-            SiteNumber = 1,
-            CameraPosition = 1,
-            PageIndex = 1,
-            PageSize = 9
-        };
-
-        var m_query = new UserQuery
-        {
-            UserId = auth0UserId,
-            Parameters = JsonSerializer.Serialize(m_queryParameters),
-            Timestamp = DateTime.Now
-        };
-
-        var response = await HttpService.PostQueryHistoryLogAsync(m_query);
-
-        Console.WriteLine($"[DEBUG] [Profile] [HandlePostQueryLog]: Response code: {response.StatusCode}");
-    }
-
-    public async Task HandleFetchQueryLogList()
+    public async Task GetQueryHistory()
     {
         var response = await HttpService.GetQueryHistoryAsync();
 
-        userQueryList = await response.Content.ReadFromJsonAsync<List<UserQuery>>();
+        listOfUserQueries = await response.Content.ReadFromJsonAsync<List<UserQuery>>();
     }
-   
 }
 
