@@ -79,13 +79,14 @@ public static class EndpointsMap
             catch(Exception ex)
             {
                 Console.WriteLine($"Error saving UserQuery: {ex.Message}");
-                return Results.Problem("Failed to log query");
+                return Results.Problem();
             }
 
             return Results.Accepted();
         })
         .WithSummary("Logs user search queries")
-        .Produces<UserQuery>(200);
+        .Produces<UserQuery>(200)
+        .Produces(500);
 
         builder.MapGet("/api/query-history", async (HttpContext context, ImageDbContext dbContext) =>
         {
