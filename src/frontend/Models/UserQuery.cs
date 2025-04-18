@@ -1,4 +1,6 @@
-﻿namespace frontend.Models;
+﻿using System.Text.Json;
+
+namespace frontend.Models;
 
 public class UserQuery
 {
@@ -9,4 +11,19 @@ public class UserQuery
     public required string Parameters { get; set; }
 
     public DateTime Timestamp { get; set; }
+
+    public ImageQuery? DeserializedParameters
+    {
+        get
+        {
+            try
+            {
+                return JsonSerializer.Deserialize<ImageQuery>(Parameters);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+    }
 }
