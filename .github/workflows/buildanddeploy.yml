@@ -11,10 +11,17 @@ jobs:
     container:
       image: docker:24.0.5-cli
       options: --user root
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+
+      - name: Decode and Install Self-Signed Certificate
+        run: |
+          echo "${{ secrets.DOCKER_REGISTRY_CERT }}" | base64 -d > /usr/local/share/ca-certificates/my-reg.crt
+          update-ca-certificates
+          # Docker expects certs here for custom registries
+          mkdir -p /etc/docker/certs.d/${{ secrets.DOCKER_REG_PUBLIC_IP }}
+          cp /usr/local/share/ca-certificates/my-reg.crt /etc/docker/certs.d/${{ secrets.DOCKER_REG_PUBLIC_IP }}/ca.crt
 
       - name: Login to Registry
         uses: docker/login-action@v3
@@ -34,7 +41,6 @@ jobs:
             AUTH0_DOMAIN=${{ secrets.AUTH0_DOMAIN }}
             AUTH0_CLIENTID=${{ secrets.AUTH0_CLIENTID }}
 
-
       - name: Build and Push API Image
         uses: docker/build-push-action@v6
         with:
@@ -44,7 +50,6 @@ jobs:
           no-cache: true
           build-args: |
             DB_CONNECTION_STRING_IMAGEDB=${{ secrets.DB_CONNECTION_STRING_IMAGEDB }}
-
 
   deploy:
     needs: build
