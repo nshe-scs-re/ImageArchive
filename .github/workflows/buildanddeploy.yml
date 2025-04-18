@@ -17,7 +17,7 @@ jobs:
 
       - name: Decode and Install Self-Signed Certificate
         run: |
-          echo "${{ secrets.DOCKER_REGISTRY_CERT }}" | base64 -d > /usr/local/share/ca-certificates/my-reg.crt
+          echo "${{ secrets.DOCKER_REG_CERT }}" | base64 -d > /usr/local/share/ca-certificates/my-reg.crt
           update-ca-certificates
           # Docker expects certs here for custom registries
           mkdir -p /etc/docker/certs.d/${{ secrets.DOCKER_REG_PUBLIC_DOMAIN_NAME }}
