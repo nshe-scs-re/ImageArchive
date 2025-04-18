@@ -13,4 +13,8 @@ public class Image
     public int? SiteNumber { get; set; }
     public int? CameraPositionNumber { get; set; }
     public string? CameraPositionName { get; set; }
+    public string? WeatherPrediction { get; set; }
+    public float? WeatherPredictionPercent { get; set; }
+    public string? SnowPrediction { get; set; }
+    public float? SnowPredictionPercent { get; set;}
 }
