@@ -1,9 +1,9 @@
-@page "/Account/Profile"
+@page "/Account/History"
 @using System.Security.Claims
 @inject TokenProvider tokenProvider
 @inject HttpService HttpService;
 @attribute [Authorize]
-<PageTitle>Image Archive | Profile</PageTitle>
+<PageTitle>Image Archive | History</PageTitle>
 
 <div class="row">
     <div class="col text-center justify-content-center">
@@ -40,12 +40,6 @@
         if(state.User.Identity == null || !state.User.Identity.IsAuthenticated)
         {
             throw new InvalidOperationException("User.Identity is null or user is not authenticated.");
-        }
-
-        //TODO: Remove debug print
-        foreach(var claim in state.User.Claims)
-        {
-            Console.WriteLine($"Claim Type: {claim.Type}, Value: {claim.Value}");
         }
 
         Username = state.User.Identity.Name!;
