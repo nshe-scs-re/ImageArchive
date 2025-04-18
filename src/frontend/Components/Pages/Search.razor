@@ -194,6 +194,9 @@
             {
                 case ArchiveStatus.None:
                     <div class="text-center m-3">
+                        <div>
+                            <p>Images found: @totalImages</p>
+                        </div>
                         <button type="button" class="btn btn-md" @onclick="DownloadSearchResultsAsArchive">
                             <i class="bi bi-download mx-1"></i> Download Search Results
                         </button>
@@ -525,7 +528,6 @@
                 Console.WriteLine($"[ERROR] [Search] [DownloadAllImages]: Variable '{nameof(archiveRequest)}' is null.");
                 return;
             }
-
 
             var response = await HttpService.PostArchiveRequestAsync(archiveRequest);
 
