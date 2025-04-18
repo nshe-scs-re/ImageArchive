@@ -30,6 +30,10 @@ public class HttpService
             client.BaseAddress = baseAddress;
         }
 
+        //AddAntiForgeryCookie(client);
+
+        //AddAntiForgeryToken(client);
+
         return client;
     }
 
@@ -42,9 +46,9 @@ public class HttpService
             client.BaseAddress = baseAddress;
         }
 
-        //AddAntiForgeryCookie(client);
+        AddAntiForgeryCookie(client);
 
-        //AddAntiForgeryToken(client);
+        AddAntiForgeryToken(client);
 
         return client;
     }
