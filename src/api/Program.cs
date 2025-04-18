@@ -43,8 +43,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontend", policy =>
     {
         string[] origins = builder.Environment.IsDevelopment()
-        ? new string[] { "http://127.0.0.1", "http://localhost"}
-        : new string[] { "http://10.176.244.111"};
+        ? new string[] { "http://127.0.0.1", "http://localhost" }
+        : new string[] { "http://10.176.244.111" };
 
         policy.WithOrigins(origins)
               .AllowAnyHeader()

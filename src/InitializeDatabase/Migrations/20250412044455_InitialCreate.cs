@@ -29,6 +29,21 @@ namespace InitializeDatabase.Migrations
                 {
                     table.PrimaryKey("PK_Images", x => x.Id);
                 });
+
+            migrationBuilder.CreateTable(
+                name: "UserQueries",
+                columns: table => new
+                {
+                    QueryId = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Parameters = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Timestamp = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserQueries", x => x.QueryId);
+                });
         }
 
         /// <inheritdoc />
@@ -36,6 +51,9 @@ namespace InitializeDatabase.Migrations
         {
             migrationBuilder.DropTable(
                 name: "Images");
+
+            migrationBuilder.DropTable(
+                name: "UserQueries");
         }
     }
 }
