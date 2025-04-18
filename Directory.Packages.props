@@ -6,7 +6,6 @@
     <PackageVersion Include="Auth0.AspNetCore.Authentication" Version="1.4.1" />
     <PackageVersion Include="bootstrap" Version="5.3.3" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
-    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.QuickGrid" Version="8.0.13" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.13" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="8.0.13" />
