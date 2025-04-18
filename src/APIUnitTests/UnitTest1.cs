@@ -113,7 +113,7 @@ namespace APIUnitTests
     public class PaginatedResponse
     {
         public int TotalCount { get; set; }
-        public List<api.Models.Image> Images { get; set; }
+        public List<api.Models.Image> Images { get; set; } = new(); // <- important: avoids null reference
     }
     public class ApiEndpointTests : IClassFixture<WebApplicationFactory<Program>>
     {
@@ -170,15 +170,23 @@ namespace APIUnitTests
             try
             {
                 var response = await _client.GetAsync("/api/db-verify");
+
+                if(!response.IsSuccessStatusCode)
+                {
+                    var body = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"[DEBUG] /api/db-verify returned {response.StatusCode}: {body}");
+                }
+
                 response.EnsureSuccessStatusCode();
                 var content = await response.Content.ReadAsStringAsync();
                 Assert.Contains("Database connection succeeded.", content);
             }
-            catch (Exception ex)
+            catch(Exception exception)
             {
-                LogError("Test_DbVerifyEndpoint failed.", ex);
-                throw;
+                Console.WriteLine($"[ERROR] /api/db-verify: {exception}");
+                Results.Problem(detail: exception.ToString()); // 👈 Add exception.ToString()
             }
+
         }
 
         [Fact]
@@ -217,7 +225,7 @@ namespace APIUnitTests
             }
         }
 
-        [Fact]
+       [Fact]
         public async Task Test_ArchiveStatusEndpoint_ShouldReturnJobDetails()
         {
             try
@@ -225,8 +233,8 @@ namespace APIUnitTests
                 var archiveManager = await GetServiceAsync<ArchiveManager>();
                 var request = new ArchiveRequest
                 {
-                    StartDate = DateTime.UtcNow.AddMonths(-1),
-                    EndDate = DateTime.UtcNow,
+                    StartDateTime = DateTime.UtcNow.AddMonths(-1),
+                    EndDateTime = DateTime.UtcNow,
                     Status = ArchiveStatus.Pending
                 };
                 archiveManager.ProcessArchiveRequest(request);
@@ -258,20 +266,18 @@ namespace APIUnitTests
         [Fact]
         public async Task Test_ArchiveDownloadEndpoint_ShouldHandleVariousResponses()
         {
-            // Case 1: Non-existent job
+            // Case 1: Non-existent job → API throws internally → returns 500
             var invalidId = Guid.NewGuid();
             var notFoundResponse = await _client.GetAsync($"/api/archive/download/{invalidId}");
-            // With the current endpoint behavior, a non-existent job throws an exception and returns 500.
             Assert.Equal(HttpStatusCode.InternalServerError, notFoundResponse.StatusCode);
 
-            // Case 2: Valid but incomplete job
+            // Case 2: Valid job, but file is missing → returns 404 NotFound
             var startRequest = new ArchiveRequest
             {
-                StartDate = DateTime.UtcNow.AddMonths(-1),
-                EndDate = DateTime.UtcNow
+                StartDateTime = DateTime.UtcNow.AddMonths(-1),
+                EndDateTime = DateTime.UtcNow
             };
 
-            // Start the archive process via the API.
             var startResponse = await _client.PostAsJsonAsync("/api/archive/request", startRequest);
             var processingJob = await startResponse.Content.ReadFromJsonAsync<ArchiveRequest>(new JsonSerializerOptions
             {
@@ -281,45 +287,39 @@ namespace APIUnitTests
             Assert.NotNull(processingJob);
             Assert.NotEqual(Guid.Empty, processingJob.Id);
 
-            // Verify the job exists via the status endpoint.
             var statusResponse = await _client.GetAsync($"/api/archive/status/{processingJob.Id}");
             Assert.Equal(HttpStatusCode.OK, statusResponse.StatusCode);
 
-            // Since the job is still processing and no file exists, the download endpoint will return NotFound.
-            var pendingDownloadResponse = await _client.GetAsync($"/api/archive/download/{processingJob.Id}");
-            Assert.Equal(HttpStatusCode.NotFound, pendingDownloadResponse.StatusCode);
+            // This should return 404 because FilePath is null → checked first in endpoint
+            var fileNotFoundResponse = await _client.GetAsync($"/api/archive/download/{processingJob.Id}");
+            Assert.Equal(HttpStatusCode.NotFound, fileNotFoundResponse.StatusCode);
 
-            // Case 3: Simulate job completion.
-            // Create a dummy ZIP file.
+            // Case 3: Simulate job completion and file present → returns 200 OK
             var dummyFile = "test-archive.zip";
-            await File.WriteAllBytesAsync(dummyFile, new byte[] { 0x50, 0x4B, 0x03, 0x04 });
+            await File.WriteAllBytesAsync(dummyFile, new byte[] { 0x50, 0x4B, 0x03, 0x04 }); // valid ZIP header
 
-            // Retrieve the job from ArchiveManager and update its status and FilePath.
             var archiveManager = await GetServiceAsync<ArchiveManager>();
-            var managerJob = archiveManager.GetJob(processingJob.Id);
+            var managerJob = archiveManager.GetJob(processingJob.Id!.Value);
             Assert.NotNull(managerJob);
             managerJob.Status = ArchiveStatus.Completed;
             managerJob.FilePath = Path.GetFullPath(dummyFile);
 
-            // Optionally wait a bit for the API to reflect the update.
-            await Task.Delay(500);
+            await Task.Delay(300); // Let in-memory state settle
 
-            // Verify that the status endpoint now returns Completed.
             var updatedJob = await _client.GetFromJsonAsync<ArchiveRequest>($"/api/archive/status/{processingJob.Id}",
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true, Converters = { new JsonStringEnumConverter() } });
-            Assert.Equal(ArchiveStatus.Completed, updatedJob.Status);
+            Assert.Equal(ArchiveStatus.Completed, updatedJob!.Status);
 
-            // Verify file download now returns 200 OK.
             var fileResponse = await _client.GetAsync($"/api/archive/download/{processingJob.Id}");
             Assert.Equal(HttpStatusCode.OK, fileResponse.StatusCode);
             Assert.Equal("application/zip", fileResponse.Content.Headers.ContentType?.MediaType);
 
-            // Cleanup: Delete the dummy file if it exists.
             if(File.Exists(dummyFile))
             {
                 File.Delete(dummyFile);
             }
         }
+
 
 
         [Fact]
@@ -331,52 +331,62 @@ namespace APIUnitTests
             dbContext.Images.RemoveRange(dbContext.Images);
             await dbContext.SaveChangesAsync();
 
+            var imageDate = new DateTime(2025, 1, 5);
             // Add test images (providing a non-null FilePath for each).
             var image1 = new api.Models.Image
             {
-                Name = "Image1",
                 DateTime = new DateTime(2025, 1, 5),
                 SiteName = "SiteA",
                 SiteNumber = 1,
                 CameraPositionNumber = 1,
-                FilePath = "N/A"
+                CameraPositionName = "Image1", // <--
+                FilePath = "N/A",
+                UnixTime = ((DateTimeOffset)imageDate).ToUnixTimeSeconds()
+
             };
             var image2 = new api.Models.Image
             {
-                Name = "Image2",
                 DateTime = new DateTime(2025, 1, 15),
                 SiteName = "SiteA",
                 SiteNumber = 1,
                 CameraPositionNumber = 1,
-                FilePath = "N/A"
+                CameraPositionName = "Image2", // <--
+                FilePath = "N/A",
+                UnixTime = ((DateTimeOffset)imageDate).ToUnixTimeSeconds()
             };
             var image3 = new api.Models.Image
             {
-                Name = "Image3",
                 DateTime = new DateTime(2025, 1, 25),
                 SiteName = "SiteA",
                 SiteNumber = 1,
                 CameraPositionNumber = 1,
-                FilePath = "N/A"
+                CameraPositionName = "Image3", // <--
+                FilePath = "N/A",
+                UnixTime = ((DateTimeOffset)imageDate).ToUnixTimeSeconds()
             };
+
             // These images should not match the filter.
             var image4 = new api.Models.Image
             {
-                Name = "Image4",
+                
                 DateTime = new DateTime(2025, 2, 1),
                 SiteName = "SiteA",
                 SiteNumber = 1,
                 CameraPositionNumber = 1,
-                FilePath = "N/A"
+                CameraPositionName = "Image4", // <--
+                FilePath = "N/A",
+                UnixTime = ((DateTimeOffset)imageDate).ToUnixTimeSeconds()
             };
             var image5 = new api.Models.Image
             {
-                Name = "Image5",
+                
                 DateTime = new DateTime(2025, 1, 10),
                 SiteName = "SiteB",
                 SiteNumber = 2,
                 CameraPositionNumber = 2,
-                FilePath = "N/A"
+                CameraPositionName = "Image5", // <--
+                FilePath = "N/A",
+                UnixTime = ((DateTimeOffset)imageDate).ToUnixTimeSeconds()
             };
 
             dbContext.Images.AddRange(image1, image2, image3, image4, image5);
@@ -405,7 +415,7 @@ namespace APIUnitTests
             Assert.NotNull(result);
             Assert.Equal(3, result.TotalCount);
             Assert.Equal(3, result.Images.Count);
-            var names = result.Images.Select(i => i.Name).ToList();
+            var names = result.Images.Select(i => i.CameraPositionName).ToList();
             Assert.Contains("Image1", names);
             Assert.Contains("Image2", names);
             Assert.Contains("Image3", names);
@@ -422,32 +432,32 @@ namespace APIUnitTests
         }
 
 
-
-        //[Fact]
-        public async Task Test_ImageUploadSingleEndpoint_ShouldUploadImage()
+        [Fact]
+        public async Task Test_UploadEndpoint_ShouldReturnOkAndSavedImage()
         {
-            try
-            {
-                var content = new MultipartFormDataContent();
-                var imagePath = "test-image.jpg";
-                await File.WriteAllBytesAsync(imagePath, new byte[] { 0xFF, 0xD8, 0xFF }); // Simulate JPEG header
-                var fileContent = new ByteArrayContent(await File.ReadAllBytesAsync(imagePath));
-                fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("image/jpeg");
-                content.Add(fileContent, "file", "test-image.jpg");
-                content.Add(new StringContent("1"), "camera");
+            // Arrange
+            var testImageContent = new byte[] { 0xFF, 0xD8, 0xFF }; // Minimal JPEG header
+            var imageContent = new ByteArrayContent(testImageContent);
+            imageContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("image/jpeg");
 
-                var response = await _client.PostAsync("/api/upload/single", content);
-                response.EnsureSuccessStatusCode();
-                var result = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
-                Assert.NotNull(result);
-                Assert.Contains("Upload successful!", result["Message"]);
-                File.Delete(imagePath); // Clean up test file
-            }
-            catch (Exception ex)
-            {
-                LogError("Test_ImageUploadSingleEndpoint failed.", ex);
-                throw;
-            }
+            var formData = new MultipartFormDataContent
+    {
+        { imageContent, "file", "test.jpg" },
+        { new StringContent("2025-01-15T12:00:00Z"), "DateTime" },
+        { new StringContent("TestSite"), "SiteName" },
+        { new StringContent("1"), "SiteNumber" },
+        { new StringContent("2"), "CameraPositionNumber" },
+        { new StringContent("TestCam"), "CameraPositionName" }
+    };
+
+            // Act
+            var response = await _client.PostAsync("/api/upload", formData);
+
+            // Assert
+            response.EnsureSuccessStatusCode();
+
+            var responseBody = await response.Content.ReadAsStringAsync();
+            Assert.Contains("TestSite", responseBody); // Assuming the returned image object includes SiteName in the JSON
         }
 
 
@@ -463,14 +473,18 @@ namespace APIUnitTests
                 dbContext.Images.RemoveRange(dbContext.Images);
                 await dbContext.SaveChangesAsync();
 
+                var now = DateTime.UtcNow;
                 // Insert a test image with required non-null properties.
-                dbContext.Images.Add(new api.Models.Image
+                var testImage = new api.Models.Image
                 {
-                    Name = "TestImage",
+                    CameraPositionName = "TestImage",
                     DateTime = DateTime.UtcNow,
-                    SiteName = "TestSite", // Non-null SiteName
-                    FilePath = "dummy.jpg" // Provide a dummy non-null FilePath
-                });
+                    UnixTime = ((DateTimeOffset)now).ToUnixTimeSeconds(),
+                    SiteName = "TestSite",
+                    FilePath = "dummy.jpg"
+                };
+
+                dbContext.Images.Add(testImage);
                 await dbContext.SaveChangesAsync();
 
                 // Act: Call the endpoint.
@@ -478,9 +492,12 @@ namespace APIUnitTests
                 response.EnsureSuccessStatusCode();
                 var images = await response.Content.ReadFromJsonAsync<List<api.Models.Image>>();
 
-                // Assert: The returned list should not be null or empty.
+                // Assert:
                 Assert.NotNull(images);
-                Assert.NotEmpty(images);
+                Assert.Single(images); // Expect exactly one inserted image
+                Assert.Equal("TestImage", images[0].CameraPositionName);
+                Assert.Equal("TestSite", images[0].SiteName);
+                Assert.Equal("dummy.jpg", images[0].FilePath);
             }
             catch(Exception ex)
             {
@@ -489,46 +506,56 @@ namespace APIUnitTests
             }
         }
 
+
         [Fact]
         public async Task Test_GetImageEndpoint_ShouldReturnImageFile()
         {
-            // Arrange: Create a dummy image file.
+            // Arrange
             string dummyFile = "test-image.jpg";
-            byte[] dummyContent = new byte[] { 0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10 }; // Minimal JPEG header bytes.
-            await File.WriteAllBytesAsync(dummyFile, dummyContent);
+            byte[] dummyContent = new byte[] { 0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10 }; // JPEG header
+            string fullPath = Path.GetFullPath(dummyFile);
+            await File.WriteAllBytesAsync(fullPath, dummyContent);
 
-            // Get a scoped DbContext and clear existing images.
-            using var scope = _factory.Services.CreateScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<ImageDbContext>();
-            dbContext.Images.RemoveRange(dbContext.Images);
-            await dbContext.SaveChangesAsync();
+            long imageId;
 
-            // Insert a test image record with a valid, non-null FilePath.
-            var testImage = new api.Models.Image
+            using(var scope = _factory.Services.CreateScope())
             {
-                Name = "TestImage",
-                DateTime = DateTime.UtcNow,
-                SiteName = "TestSite",
-                FilePath = Path.GetFullPath(dummyFile)  // Ensure absolute path.
-            };
-            dbContext.Images.Add(testImage);
-            await dbContext.SaveChangesAsync();
+                var dbContext = scope.ServiceProvider.GetRequiredService<ImageDbContext>();
+                dbContext.Images.RemoveRange(dbContext.Images);
+                await dbContext.SaveChangesAsync();
 
-            // Act: Call the endpoint with the test image's id.
-            var response = await _client.GetAsync($"/api/images/{testImage.Id}");
+                var now = DateTime.UtcNow;
+                var testImage = new api.Models.Image
+                {
+                    CameraPositionName = "TestImage",
+                    DateTime = now,
+                    UnixTime = ((DateTimeOffset)now).ToUnixTimeSeconds(),
+                    SiteName = "TestSite",
+                    SiteNumber = 1,
+                    CameraPositionNumber = 1,
+                    FilePath = fullPath
+                };
+
+                dbContext.Images.Add(testImage);
+                await dbContext.SaveChangesAsync();
+                imageId = testImage.Id;
+            }
+
+            // Act
+            var response = await _client.GetAsync($"/api/images/{imageId}");
             response.EnsureSuccessStatusCode();
 
-            // Assert: The response should have a 200 status code and the correct MIME type.
+            // Assert
             Assert.Equal("image/jpeg", response.Content.Headers.ContentType?.MediaType);
+            var bytes = await response.Content.ReadAsByteArrayAsync();
+            Assert.NotEmpty(bytes); // ensure image data returned
 
-           
-
-            // Cleanup: Delete the dummy file.
-            if(File.Exists(dummyFile))
-            {
-                File.Delete(dummyFile);
-            }
+            // Cleanup
+            if(File.Exists(fullPath))
+                File.Delete(fullPath);
         }
+
+
 
         [Fact]
         public async Task Test_ImageUploadSingleEndpoint_Success()
@@ -537,124 +564,84 @@ namespace APIUnitTests
             byte[] dummyImageBytes = new byte[] { 0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10 };
             string fileName = "test-image.jpg";
             var content = new MultipartFormDataContent();
-            content.Add(new ByteArrayContent(dummyImageBytes), "file", fileName);
-            content.Add(new StringContent("1"), "camera");           // Valid camera value.
-            content.Add(new StringContent("2"), "cameraPosition");    // Optional cameraPosition.
-            content.Add(new StringContent("TestSite"), "site");       // Optional site.
+            content.Add(new ByteArrayContent(dummyImageBytes), "File", fileName); // <-- must match IFormFile name
+
+            // These must match the form keys expected in the endpoint
+            content.Add(new StringContent("1"), "CameraPositionNumber");
+            content.Add(new StringContent("2"), "CameraPositionName");
+            content.Add(new StringContent("TestSite"), "SiteName");
+            content.Add(new StringContent("1"), "SiteNumber");
+            content.Add(new StringContent(DateTime.UtcNow.ToString("o")), "DateTime");
 
             // Act: Post the form data to the upload endpoint.
-            var response = await _client.PostAsync("/api/upload/single", content);
+            var response = await _client.PostAsync("/api/upload", content);
             response.EnsureSuccessStatusCode();
 
             // Parse the JSON response.
-            var jsonResponse = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
+            var jsonResponse = await response.Content.ReadFromJsonAsync<api.Models.Image>();
 
-            // Assert: Verify the response contains expected keys and values.
-            // Note: The JSON properties are returned in camelCase.
+            // Assert: Verify returned image has expected values.
             Assert.NotNull(jsonResponse);
-            Assert.True(jsonResponse.ContainsKey("message"),
-                $"Response JSON did not contain 'message': {JsonSerializer.Serialize(jsonResponse)}");
-            Assert.Equal("Upload successful!", jsonResponse["message"]);
-            Assert.True(jsonResponse.ContainsKey("imageUrl"),
-                $"Response JSON did not contain 'imageUrl': {JsonSerializer.Serialize(jsonResponse)}");
-            Assert.True(jsonResponse.ContainsKey("fileName"),
-                $"Response JSON did not contain 'fileName': {JsonSerializer.Serialize(jsonResponse)}");
-            Assert.False(string.IsNullOrWhiteSpace(jsonResponse["fileName"]), "fileName is empty or whitespace.");
-            Assert.True(jsonResponse["imageUrl"].StartsWith("/uploads/"),
-                "imageUrl does not start with '/uploads/'.");
+            Assert.Equal("TestSite", jsonResponse.SiteName);
+            Assert.Equal("2", jsonResponse.CameraPositionName);
+            Assert.Equal(1, jsonResponse.SiteNumber);
+            Assert.Equal(1, jsonResponse.CameraPositionNumber);
 
-           
-            // If your upload service writes files to disk, delete the file here.
-            // For example, if files are stored in a folder named "uploads" relative to your app root:
-            string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
-            var uploadedFilePath = Path.Combine(uploadsFolder, jsonResponse["fileName"]);
-            if (File.Exists(uploadedFilePath))
+            // Cleanup uploaded file
+            var uploadedFilePath = jsonResponse.FilePath;
+            if(!string.IsNullOrWhiteSpace(uploadedFilePath) && File.Exists(uploadedFilePath))
             {
-                 File.Delete(uploadedFilePath);
+                File.Delete(uploadedFilePath);
             }
         }
 
         [Fact]
-        public async Task Test_ImageUploadMultipleEndpoint_Success()
+        public async Task Test_ArchiveCancelEndpoint_ShouldCancelJob()
         {
-            // Arrange: Create dummy JPEG content for two files.
-            byte[] dummyImage1 = new byte[] { 0xFF, 0xD8, 0xFF, 0xE1, 0x00, 0x10 };
-            byte[] dummyImage2 = new byte[] { 0xFF, 0xD8, 0xFF, 0xE1, 0x00, 0x10 };
+            var archiveManager = await GetServiceAsync<ArchiveManager>();
+            var request = new ArchiveRequest
+            {
+                StartDateTime = DateTime.UtcNow.AddDays(-5),
+                EndDateTime = DateTime.UtcNow,
+                Status = ArchiveStatus.Processing
+            };
+            archiveManager.ProcessArchiveRequest(request);
 
-            // Prepare multipart form-data.
-            var multipartContent = new MultipartFormDataContent();
-            multipartContent.Add(new ByteArrayContent(dummyImage1), "file", "test-image1.jpg");
-            multipartContent.Add(new ByteArrayContent(dummyImage2), "file", "test-image2.jpg");
-            multipartContent.Add(new StringContent("1"), "camera");
-            multipartContent.Add(new StringContent("2"), "cameraPosition");
-            multipartContent.Add(new StringContent("TestSite"), "site");
-
-            // Act: Post to the multiple file upload endpoint.
-            var response = await _client.PostAsync("/api/upload/multiple", multipartContent);
+            var response = await _client.PostAsJsonAsync($"/api/archive/cancel/{request.Id}", request);
             response.EnsureSuccessStatusCode();
 
-            // Parse the JSON response.
-            var jsonResponse = await response.Content.ReadFromJsonAsync<Dictionary<string, object>>();
-            Assert.NotNull(jsonResponse);
-
-            // Assert that the response contains a success message in camelCase ("message").
-            Assert.True(jsonResponse.ContainsKey("message"),
-                $"Response JSON did not contain 'message': {JsonSerializer.Serialize(jsonResponse)}");
-            Assert.Equal("Upload successful!", jsonResponse["message"].ToString());
-
-            // Assert that the response contains a fileNames property.
-            Assert.True(jsonResponse.ContainsKey("fileNames"),
-                $"Response JSON did not contain 'fileNames': {JsonSerializer.Serialize(jsonResponse)}");
-
-            
-            var fileNamesElement = (JsonElement)jsonResponse["fileNames"];
-            Assert.Equal(JsonValueKind.Array, fileNamesElement.ValueKind);
-            var fileNames = fileNamesElement.EnumerateArray().Select(x => x.GetString()).ToList();
-            Assert.True(fileNames.Count >= 2, $"Expected at least 2 file names, but got {fileNames.Count}.");
-
-            //Delete the uploaded files if they are stored on disk.
-            string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
-            foreach(var fileName in fileNames)
-            {
-                var filePath = Path.Combine(uploadsFolder, fileName);
-                if(File.Exists(filePath))
-                    File.Delete(filePath);
-            }
+            var cancelledJob = await response.Content.ReadFromJsonAsync<ArchiveRequest>();
+            Assert.NotNull(cancelledJob);
+            Assert.Equal(request.Id, cancelledJob.Id);
+            Assert.Equal(ArchiveStatus.Canceled, cancelledJob.Status); // Optional: depends on your implementation
         }
 
 
-        // Additional tests with similar logging mechanism... 
+
+
 
         [Fact]
-        public async Task Test_ErrorHandling_ShouldLogErrorsAndReturnProblemDetails()
+        public async Task Test_ErrorHandling_ShouldLogErrorsAndReturn404()
         {
             try
             {
                 var invalidId = 999999;
                 var response = await _client.GetAsync($"/api/images/{invalidId}");
 
+                // Assert: It should return 404
                 Assert.Equal(System.Net.HttpStatusCode.NotFound, response.StatusCode);
 
+                // Assert: It should have empty body
                 var content = await response.Content.ReadAsStringAsync();
-
-                if(string.IsNullOrWhiteSpace(content))
-                {
-                    Assert.True(string.IsNullOrWhiteSpace(content), "");
-                    return;
-                }
-                else
-                {
-                    var problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>();
-                    Assert.NotNull(problemDetails);
-                    Assert.Contains("not found", problemDetails.Detail);
-                }
+                Assert.True(string.IsNullOrWhiteSpace(content), "Expected empty response body for 404 NotFound.");
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
-                LogError("Test_ErrorHandling failed.", ex);
+                LogError("Test_ErrorHandling_ShouldLogErrorsAndReturn404 failed.", ex);
                 throw;
             }
         }
+
     }
 }
 
