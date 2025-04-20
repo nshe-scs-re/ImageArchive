@@ -74,7 +74,6 @@ public static class EndpointsMap
             {
                 dbContext.UserQueries.Add(userQuery);
                 await dbContext.SaveChangesAsync();
-                Console.WriteLine("UserQuery successfully saved to database.");
             }
             catch(Exception ex)
             {
@@ -231,50 +230,73 @@ public static class EndpointsMap
         .WithSummary("Retrieves a list of all images stored in the database.")
         .Produces<List<Image>>(200, "application/json");
 
-        builder.MapGet("/api/images/paginated", async (ImageDbContext dbContext, string filter) =>
+        builder.MapGet("/api/images/paginated", async (ImageDbContext dbContext, [AsParameters] ImageQuery imageQuery, int pageIndex = 0, int pageSize = 9) =>
         {
-            try
+            var query = dbContext.Images.AsQueryable();
+
+            if(imageQuery.StartDateTime is not null)
             {
-                var parameters = filter.Split(',');
-
-                if
-                (
-                    !DateTime.TryParse(parameters[0], out var startDate) ||
-                    !DateTime.TryParse(parameters[1], out var endDate) ||
-                    !int.TryParse(parameters[2], out var pageIndex) ||
-                    !int.TryParse(parameters[3], out var pageSize)
-                )
-                {
-                    return Results.BadRequest();
-                }
-
-                var siteName = parameters[4];
-                int.TryParse(parameters[5], out var siteNumber);
-                int.TryParse(parameters[6], out var cameraPosition);
-
-                var query = dbContext.Images
-                    .Where(i =>
-                        i.DateTime >= startDate &&
-                        i.DateTime <= endDate &&
-                        i.SiteName == siteName &&
-                        i.SiteNumber == siteNumber &&
-                        i.CameraPositionNumber == cameraPosition)
-                    .OrderBy(i => i.DateTime);
-
-                var totalCount = await query.CountAsync();
-
-                var images = await query
-                    .Skip(pageIndex * pageSize)
-                    .Take(pageSize)
-                    .ToListAsync();
-
-                return Results.Ok(new { TotalCount = totalCount, Images = images });
+                query = query.Where(i => i.DateTime >= imageQuery.StartDateTime);
             }
-            catch(Exception exception)
+
+            if(imageQuery.EndDateTime is not null)
             {
-                Console.WriteLine($"ERROR [Program.cs] [/api/images/paginated]: Exception message: {exception.Message}");
-                return Results.Problem(exception.Message);
+                query = query.Where(i => i.DateTime <= imageQuery.EndDateTime);
             }
+
+            if(imageQuery.SiteName is not null)
+            {
+                query = query.Where(i => i.SiteName == imageQuery.SiteName);
+            }
+
+            if(imageQuery.SiteNumber is not null)
+            {
+                query = query.Where(i => i.SiteNumber == imageQuery.SiteNumber);
+            }
+
+            if(imageQuery.CameraPositionNumber is not null)
+            {
+                query = query.Where(i => i.CameraPositionNumber == imageQuery.CameraPositionNumber);
+            }
+
+            if(!string.IsNullOrWhiteSpace(imageQuery.WeatherPrediction))
+            {
+                query = query.Where(i => i.WeatherPrediction == imageQuery.WeatherPrediction);
+            }
+
+            if(imageQuery.WeatherPredictionPercent is not null)
+            {
+                query = query.Where(i => i.WeatherPredictionPercent == imageQuery.WeatherPredictionPercent);
+            }
+            else
+            {
+                query = query.Where(i => (i.WeatherPredictionPercent ?? 0) >= 80);
+            }
+
+            if(!string.IsNullOrWhiteSpace(imageQuery.SnowPrediction))
+            {
+                query = query.Where(i => i.SnowPrediction == imageQuery.SnowPrediction);
+            }
+
+            if(imageQuery.SnowPredictionPercent is not null)
+            {
+                query = query.Where(i => i.SnowPredictionPercent == imageQuery.SnowPredictionPercent);
+            }
+            else
+            {
+                query = query.Where(i => (i.SnowPredictionPercent ?? 0) >= 80);
+            }
+
+            var totalCount = await query.CountAsync();
+
+            var images = await query
+                .OrderBy(i => i.DateTime)
+                .Skip(pageIndex * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return Results.Ok(new { TotalCount = totalCount, Images = images });
+
         })
         .WithSummary("Retrieves a small list of images to be later retrieved in paginated results.")
         .Produces<List<Image>>(200, "application/json");
