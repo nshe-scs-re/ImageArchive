@@ -1,5 +1,6 @@
 ﻿using frontend.Models;
 using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.WebUtilities;
 using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
@@ -102,8 +103,26 @@ public class HttpService
 
     public async Task<HttpResponseMessage> GetImagesByPageAsync(ImageQuery imageQuery, int pageIndex, int pageSize)
     {
-        var httpClient = CreateForwardClient();
-        return await httpClient.GetAsync($"api/images/paginated?filter={imageQuery.StartDateTime},{imageQuery.EndDateTime},{pageIndex},{pageSize},{imageQuery.SiteName},{imageQuery.SiteNumber},{imageQuery.CameraPositionNumber}");
+        var http = CreateForwardClient();
+
+        var query = new Dictionary<string, string?>()
+        {
+            ["StartDateTime"] = imageQuery.StartDateTime?.ToString("o", CultureInfo.InvariantCulture),
+            ["EndDateTime"] = imageQuery.EndDateTime?.ToString("o", CultureInfo.InvariantCulture),
+            ["SiteName"] = imageQuery.SiteName,
+            ["SiteNumber"] = imageQuery.SiteNumber?.ToString(CultureInfo.InvariantCulture),
+            ["CameraPositionNumber"] = imageQuery.CameraPositionNumber?.ToString(CultureInfo.InvariantCulture),
+            ["WeatherPrediction"] = imageQuery.WeatherPrediction,
+            ["WeatherPredictionPercent"] = imageQuery.WeatherPredictionPercent?.ToString(CultureInfo.InvariantCulture),
+            ["SnowPrediction"] = imageQuery.SnowPrediction,
+            ["SnowPredictionPercent"] = imageQuery.SnowPredictionPercent?.ToString(CultureInfo.InvariantCulture),
+            ["pageIndex"] = pageIndex.ToString(CultureInfo.InvariantCulture),
+            ["pageSize"] = pageSize.ToString(CultureInfo.InvariantCulture)
+        };
+
+        var uri = QueryHelpers.AddQueryString("/api/images/paginated", query.Where(kv => !string.IsNullOrEmpty(kv.Value)));
+
+        return await http.GetAsync(uri);
     }
 
     public async Task<HttpResponseMessage> GetImagesAllAsync()
