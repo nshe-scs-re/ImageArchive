@@ -1,8 +1,7 @@
-﻿using api.Services;
+﻿using api.Data;
 using api.Models;
-using System.Net.NetworkInformation;
+using api.Services;
 using Microsoft.AspNetCore.Mvc;
-using api.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace api;
@@ -62,6 +61,58 @@ public static class EndpointsMap
             return Results.Ok(image);
         });
 
+        builder.MapPost("/api/log-query", async (HttpContext context, ImageDbContext dbContext) =>
+        {
+            var userQuery = await context.Request.ReadFromJsonAsync<UserQuery>();
+
+            if(userQuery is null)
+            {
+                return Results.Problem();
+            }
+
+            try
+            {
+                dbContext.UserQueries.Add(userQuery);
+                await dbContext.SaveChangesAsync();
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine($"Error saving UserQuery: {ex.Message}");
+                return Results.Problem();
+            }
+
+            return Results.Accepted();
+        })
+        .WithSummary("Logs user search queries")
+        .Produces<UserQuery>(200)
+        .Produces(500);
+
+        builder.MapGet("/api/query-history", async (HttpContext context, ImageDbContext dbContext) =>
+        {
+            try
+            {
+                var history = await dbContext.UserQueries
+                    .OrderByDescending(q => q.Timestamp)
+                    .ToListAsync();
+
+                if(history.Count == 0)
+                {
+                    return Results.NotFound();
+                }
+
+                return Results.Ok(history);
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine($"Error fetching query history: {ex.Message}");
+                return Results.Problem();
+            }
+        })
+        .WithSummary("Retrieves the authenticated user's query history")
+        .Produces<List<UserQuery>>(200)
+        .Produces(404)
+        .Produces(500);
+
         builder.MapGet("/api/db-verify", async (ImageDbContext dbContext) =>
         {
             try
@@ -92,7 +143,7 @@ public static class EndpointsMap
         {
             try
             {
-                ArchiveRequest? request = await context.Request.ReadFromJsonAsync<ArchiveRequest>();
+                var request = await context.Request.ReadFromJsonAsync<ArchiveRequest>();
 
                 if(request is null)
                 {
@@ -117,7 +168,7 @@ public static class EndpointsMap
         {
             try
             {
-                ArchiveRequest job = manager.GetJob(jobId);
+                var job = manager.GetJob(jobId);
 
                 return Results.Ok(job);
             }
@@ -146,7 +197,7 @@ public static class EndpointsMap
                     return Results.Conflict(request);
                 }
 
-                FileStream fileStream = new FileStream(request.FilePath, FileMode.Open, FileAccess.Read);
+                var fileStream = new FileStream(request.FilePath, FileMode.Open, FileAccess.Read);
 
                 return Results.Stream(fileStream, "application/zip", $"{request.SiteName}_{request.SiteNumber}_archive_{DateTime.Now}.zip");
             }
@@ -166,7 +217,7 @@ public static class EndpointsMap
         {
             try
             {
-                List<Image> images = await dbContext.Images.ToListAsync();
+                var images = await dbContext.Images.ToListAsync();
 
                 return Results.Ok(images);
             }
@@ -179,50 +230,73 @@ public static class EndpointsMap
         .WithSummary("Retrieves a list of all images stored in the database.")
         .Produces<List<Image>>(200, "application/json");
 
-        builder.MapGet("/api/images/paginated", async (ImageDbContext dbContext, string filter) =>
+        builder.MapGet("/api/images/paginated", async (ImageDbContext dbContext, [AsParameters] ImageQuery imageQuery, int pageIndex = 0, int pageSize = 9) =>
         {
-            try
+            var query = dbContext.Images.AsQueryable();
+
+            if(imageQuery.StartDateTime is not null)
             {
-                var parameters = filter.Split(',');
-
-                if
-                (
-                    !DateTime.TryParse(parameters[0], out DateTime startDate) ||
-                    !DateTime.TryParse(parameters[1], out DateTime endDate) ||
-                    !int.TryParse(parameters[2], out int pageIndex) ||
-                    !int.TryParse(parameters[3], out int pageSize)
-                )
-                {
-                    return Results.BadRequest();
-                }
-
-                string siteName = parameters[4];
-                int.TryParse(parameters[5], out int siteNumber);
-                int.TryParse(parameters[6], out int cameraPosition);
-
-                var query = dbContext.Images
-                    .Where(i =>
-                        i.DateTime >= startDate &&
-                        i.DateTime <= endDate &&
-                        i.SiteName == siteName &&
-                        i.SiteNumber == siteNumber &&
-                        i.CameraPositionNumber == cameraPosition)
-                    .OrderBy(i => i.DateTime);
-
-                int totalCount = await query.CountAsync();
-
-                var images = await query
-                    .Skip(pageIndex * pageSize)
-                    .Take(pageSize)
-                    .ToListAsync();
-
-                return Results.Ok(new { TotalCount = totalCount, Images = images });
+                query = query.Where(i => i.DateTime >= imageQuery.StartDateTime);
             }
-            catch(Exception exception)
+
+            if(imageQuery.EndDateTime is not null)
             {
-                Console.WriteLine($"ERROR [Program.cs] [/api/images/paginated]: Exception message: {exception.Message}");
-                return Results.Problem(exception.Message);
+                query = query.Where(i => i.DateTime <= imageQuery.EndDateTime);
             }
+
+            if(imageQuery.SiteName is not null)
+            {
+                query = query.Where(i => i.SiteName == imageQuery.SiteName);
+            }
+
+            if(imageQuery.SiteNumber is not null)
+            {
+                query = query.Where(i => i.SiteNumber == imageQuery.SiteNumber);
+            }
+
+            if(imageQuery.CameraPositionNumber is not null)
+            {
+                query = query.Where(i => i.CameraPositionNumber == imageQuery.CameraPositionNumber);
+            }
+
+            if(!string.IsNullOrWhiteSpace(imageQuery.WeatherPrediction))
+            {
+                query = query.Where(i => i.WeatherPrediction == imageQuery.WeatherPrediction);
+            }
+
+            if(imageQuery.WeatherPredictionPercent is not null)
+            {
+                query = query.Where(i => i.WeatherPredictionPercent == imageQuery.WeatherPredictionPercent);
+            }
+            else
+            {
+                query = query.Where(i => (i.WeatherPredictionPercent ?? 0) >= 80);
+            }
+
+            if(!string.IsNullOrWhiteSpace(imageQuery.SnowPrediction))
+            {
+                query = query.Where(i => i.SnowPrediction == imageQuery.SnowPrediction);
+            }
+
+            if(imageQuery.SnowPredictionPercent is not null)
+            {
+                query = query.Where(i => i.SnowPredictionPercent == imageQuery.SnowPredictionPercent);
+            }
+            else
+            {
+                query = query.Where(i => (i.SnowPredictionPercent ?? 0) >= 80);
+            }
+
+            var totalCount = await query.CountAsync();
+
+            var images = await query
+                .OrderBy(i => i.DateTime)
+                .Skip(pageIndex * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return Results.Ok(new { TotalCount = totalCount, Images = images });
+
         })
         .WithSummary("Retrieves a small list of images to be later retrieved in paginated results.")
         .Produces<List<Image>>(200, "application/json");
@@ -239,8 +313,8 @@ public static class EndpointsMap
                 }
 
                 var fileStream = new FileStream(image.FilePath!, FileMode.Open, FileAccess.Read);
-                string extension = Path.GetExtension(image.FilePath)!.ToLowerInvariant();
-                string mimeType = extension switch
+                var extension = Path.GetExtension(image.FilePath)!.ToLowerInvariant();
+                var mimeType = extension switch
                 {
                     ".jpeg" or ".jpg" => "image/jpeg",
                     ".png" => "image/png",
@@ -261,7 +335,7 @@ public static class EndpointsMap
 
         builder.MapPost("/api/archive/cancel/{jobId}", async (ArchiveManager manager, HttpContext context) =>
         {
-            ArchiveRequest? request = await context.Request.ReadFromJsonAsync<ArchiveRequest>();
+            var request = await context.Request.ReadFromJsonAsync<ArchiveRequest>();
 
             if(request is null)
             {
