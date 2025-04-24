@@ -1,24 +1,31 @@
 import sys, os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
+
 import torch
 from torchvision import transforms, models
 from PIL import Image
 from tqdm import tqdm
+import numpy as np
 from db_connect import connect_to_database
+
+# --- Darkness Detection ---
+def is_too_dark_avg_rgb(image_path, threshold=40):
+    img = Image.open(image_path).convert("RGB")
+    pixels = np.array(img)
+    luminance = 0.299 * pixels[:, :, 0] + 0.587 * pixels[:, :, 1] + 0.114 * pixels[:, :, 2]
+    avg_brightness = luminance.mean()
+    return avg_brightness < threshold
 
 # --- Model Definition ---
 class MultiTaskResNet(torch.nn.Module):
     def __init__(self):
         super(MultiTaskResNet, self).__init__()
         self.base_model = models.resnet34(pretrained=False)
-
         for param in self.base_model.parameters():
             param.requires_grad = False
         for param in self.base_model.layer4.parameters():
             param.requires_grad = True
-
         self.features = torch.nn.Sequential(*list(self.base_model.children())[:-1])
-
         self.weather_classifier = torch.nn.Sequential(
             torch.nn.Dropout(0.5),
             torch.nn.Linear(512, 256),
@@ -26,7 +33,6 @@ class MultiTaskResNet(torch.nn.Module):
             torch.nn.Dropout(0.3),
             torch.nn.Linear(256, 2)
         )
-
         self.snow_classifier = torch.nn.Sequential(
             torch.nn.Dropout(0.5),
             torch.nn.Linear(512, 256),
@@ -81,6 +87,7 @@ transform = transforms.Compose([
 conn = connect_to_database()
 cursor = conn.cursor()
 
+# Ensure columns exist
 cursor.execute("""
 IF COL_LENGTH('Images', 'WeatherPrediction') IS NULL
     ALTER TABLE Images ADD WeatherPrediction NVARCHAR(50);
@@ -104,22 +111,30 @@ for img_id, file_path in tqdm(rows, desc="Predicting images"):
         if not os.path.exists(real_path):
             raise FileNotFoundError(f"Missing image: {real_path}")
 
-        image = Image.open(real_path).convert("RGB")
-        image_tensor = transform(image).unsqueeze(0).to(device)
+        too_dark = is_too_dark_avg_rgb(real_path)
 
-        with torch.no_grad():
-            weather_out, snow_out = model(image_tensor)
-            weather_probs = torch.softmax(weather_out, dim=1)[0]
-            snow_probs = torch.softmax(snow_out, dim=1)[0]
+        if too_dark:
+            weather_label = "Too Dark"
+            snow_label = "Too Dark"
+            weather_conf = 0.0
+            snow_conf = 0.0
+        else:
+            image = Image.open(real_path).convert("RGB")
+            image_tensor = transform(image).unsqueeze(0).to(device)
 
-            weather_idx = torch.argmax(weather_probs).item()
-            snow_idx = torch.argmax(snow_probs).item()
+            with torch.no_grad():
+                weather_out, snow_out = model(image_tensor)
+                weather_probs = torch.softmax(weather_out, dim=1)[0]
+                snow_probs = torch.softmax(snow_out, dim=1)[0]
 
-            weather_label = ['Sunny', 'Cloudy'][weather_idx]
-            snow_label = ['No Snow', 'Snow'][snow_idx]
+                weather_idx = torch.argmax(weather_probs).item()
+                snow_idx = torch.argmax(snow_probs).item()
 
-            weather_conf = weather_probs[weather_idx].item() * 100
-            snow_conf = snow_probs[snow_idx].item() * 100
+                weather_label = ['Sunny', 'Cloudy'][weather_idx]
+                snow_label = ['No Snow', 'Snow'][snow_idx]
+
+                weather_conf = weather_probs[weather_idx].item() * 100
+                snow_conf = snow_probs[snow_idx].item() * 100
 
         cursor.execute("""
             UPDATE Images
@@ -128,7 +143,13 @@ for img_id, file_path in tqdm(rows, desc="Predicting images"):
                 SnowPrediction = %s,
                 SnowPredictionPercent = %s
             WHERE Id = %s
-        """, (weather_label, weather_conf, snow_label, snow_conf, img_id))
+        """, (
+            weather_label,
+            weather_conf,
+            snow_label,
+            snow_conf,
+            img_id
+        ))
 
     except Exception as e:
         print(f"[!] Failed on {file_path}: {e}")
