@@ -351,3 +351,10 @@ input[type=number] {
 #landing-page-text-box {
     max-width: 280px;
 }
+
+#meta-data-table,
+#query-history-table{
+    --bs-table-bg: unset;
+    --bs-table-color: unset;
+    --bs-table-striped-color: unset;
+}
