@@ -62,9 +62,10 @@ services:
     secrets:
       - source: image_archive_ca_cert
         target: /usr/local/share/ca-certificates/image-archive-ca.crt
+    env_file: ${USERPROFILE}/source/secrets/dev_frontend.env
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_HTTP_PORTS=80
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_HTTP_PORTS: 80
     ports:
       - "127.0.0.1:80:80"
     volumes:
