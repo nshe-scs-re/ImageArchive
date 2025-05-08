@@ -1,5 +1,4 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace api.Models
@@ -10,13 +9,10 @@ namespace api.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long QueryId { get; set; }
 
-        [Required]
-        public string UserId { get; set; } = string.Empty;
+        public string UserId { get; set; }
 
-        [Required]
-        public string Parameters { get; set; } = string.Empty;
+        public string Parameters { get; set; }
 
-        [Required]
         public DateTime Timestamp { get; set; }
     }
 }
