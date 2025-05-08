@@ -2,16 +2,23 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 
 USER root
 
+ARG DB_CONNECTION_STRING_IMAGEDB
+ENV ConnectionStrings__ImageDb=$DB_CONNECTION_STRING_IMAGEDB
+
 WORKDIR /app
 
 RUN update-ca-certificates
 
-USER app
+#USER app
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 
 WORKDIR /src
+
+#COPY ./src/api/appsettings.json ./api/
+
+#COPY ./src/api/appsettings.Production.json ./api/
 
 COPY ./src/api/api.csproj ./api/
 

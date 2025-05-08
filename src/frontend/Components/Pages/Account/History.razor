@@ -1,0 +1,70 @@
+@page "/Account/History"
+@using System.Security.Claims
+@inject TokenProvider tokenProvider
+@inject HttpService HttpService;
+@attribute [Authorize]
+<PageTitle>Image Archive | History</PageTitle>
+
+@if(loading)
+{
+    <div class="row m-3">
+        <div class="col text-center justify-content-center">
+            <h1 class="h1">Loading...</h1>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row m-3">
+        <div class="col text-center justify-content-center">
+            <h1 class="h1 pb-3">Hi, @auth0_username</h1>
+            <p class="lead fw-normal pb-3">Your query history:</p>
+            <QuickGrid Items="@listOfUserQueries.AsQueryable()" Pagination="@pagination" Class="table table-sm table-bordered table-striped">
+                <PropertyColumn Property="@(q => q.Timestamp)" Title="Date of Search" Format="yyyy-MM-dd HH:mm:ss" IsDefaultSortColumn="true"/>
+                <PropertyColumn Property="@(q => q.DeserializedParameters.StartDateTime)" Title="Start Date/Time" />
+                <PropertyColumn Property="@(q => q.DeserializedParameters.EndDateTime)" Title="End Date/Time" />
+                <PropertyColumn Property="@(q => q.DeserializedParameters.SiteName)" Title="Site Name" />
+                <PropertyColumn Property="@(q => q.DeserializedParameters.SiteNumber)" Title="Site Number" />
+                <PropertyColumn Property="@(q => q.DeserializedParameters.CameraPositionNumber)" Title="Camera Position Number" />
+            </QuickGrid>
+            <Paginator State="@pagination"></Paginator>
+        </div>
+    </div>
+}
+
+@code {
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthenticationStateTask { get; set; }
+    private AuthenticationState? state;
+    private string auth0_username = string.Empty;
+    private string auth0_userId = string.Empty;
+    private List<UserQuery> listOfUserQueries = new();
+    private PaginationState pagination = new PaginationState
+    {
+        ItemsPerPage = 15
+    };
+    private bool loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        state = await AuthenticationStateTask;
+
+        auth0_username = state.User.Identity.Name;
+
+        auth0_userId = state.User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "user id claim unsuccessful";
+
+        await GetQueryHistory();
+
+        await base.OnInitializedAsync();
+
+        loading = false;
+    }
+
+    public async Task GetQueryHistory()
+    {
+        var response = await HttpService.GetQueryHistoryAsync();
+
+        listOfUserQueries = await response.Content.ReadFromJsonAsync<List<UserQuery>>();
+    }
+}
+

@@ -7,7 +7,11 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Configuration.AddEnvironmentVariables();
+builder.Configuration
+    .SetBasePath(Directory.GetCurrentDirectory())
+    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
+    .AddEnvironmentVariables();
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -39,8 +43,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontend", policy =>
     {
         string[] origins = builder.Environment.IsDevelopment()
-        ? new string[] { "http://127.0.0.1", "http://localhost"}
-        : new string[] { "http://10.176.244.111"};
+        ? new string[] { "http://127.0.0.1", "http://localhost" }
+        : new string[] { "http://10.176.244.111" };
 
         policy.WithOrigins(origins)
               .AllowAnyHeader()

@@ -1,9 +1,7 @@
-﻿namespace api.Services;
-using System;
-using System.IO;
-using System.Threading.Tasks;
-using api.Models;
+﻿using api.Models;
 using api.Data;
+
+namespace api.Services;
 
 public class ImageUploadService
 {

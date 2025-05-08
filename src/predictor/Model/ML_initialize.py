@@ -1,12 +1,34 @@
 import sys, os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
-
 import torch
 from torchvision import transforms, models
 from PIL import Image
 from tqdm import tqdm
 import numpy as np
 from db_connect import connect_to_database
+import datetime
+
+class Tee:
+    def __init__(self, *files):
+        self.files = files
+
+    def write(self, obj):
+        timestamped = self._add_timestamp(obj)
+        for f in self.files:
+            f.write(obj)
+            f.flush()
+
+    def flush(self):
+        for f in self.files:
+            f.flush()
+
+    def _add_timestamp(self, text):
+        lines = text.splitlines(keepends=True)
+        now = datetime.datetime.now().strftime("[%Y-%m-%d %H:%M:%S] ")
+        return ''.join((now + line if line.strip() else line) for line in lines)
+
+log_file = open("initialize.log", "w")
+sys.stdout = Tee(log_file)
+sys.stderr = Tee(log_file)
 
 # --- Darkness Detection ---
 def is_too_dark_avg_rgb(image_path, threshold=40):
@@ -58,11 +80,7 @@ def get_best_device():
         print("Using ROCm-compatible AMD GPU")
         return torch.device("cuda:0")
     else:
-        user_input = input("No GPU available. Proceed using CPU? (y/n): ").strip().lower()
-        if user_input != 'y':
-            print("Aborting.")
-            sys.exit(1)
-        print("Using CPU")
+        print("No GPU available. Falling back to CPU.")
         return torch.device("cpu")
 
 device = get_best_device()
@@ -103,11 +121,13 @@ conn.commit()
 # --- Prediction & DB Update ---
 cursor.execute("SELECT Id, FilePath FROM Images")
 rows = cursor.fetchall()
-base_path = "/home/nmichelotti/Desktop/Image Archives/OneDrive_1_4-3-2025"
+base_path = "/"
 
-for img_id, file_path in tqdm(rows, desc="Predicting images"):
+print("Starting image prediction run.")
+
+for i, (img_id, file_path) in enumerate(tqdm(rows, desc="Predicting images", file=sys.stdout)):
     try:
-        real_path = os.path.join(base_path, file_path.replace("/app", "").lstrip("/"))
+        real_path = os.path.normpath(os.path.join(base_path, file_path.replace("/app", "").lstrip("/")))
         if not os.path.exists(real_path):
             raise FileNotFoundError(f"Missing image: {real_path}")
 
@@ -151,8 +171,11 @@ for img_id, file_path in tqdm(rows, desc="Predicting images"):
             img_id
         ))
 
+        if i % 10000 == 0:
+            tqdm.write(f"[INFO] Processed {i}/{len(rows)} images...", file=sys.stdout)
+
     except Exception as e:
-        print(f"[!] Failed on {file_path}: {e}")
+        tqdm.write(f"[ERROR] Failed on {file_path}: {e}", file=sys.stdout)
 
 conn.commit()
 cursor.close()
