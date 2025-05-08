@@ -132,12 +132,46 @@
                                     <div class="card-body">
                                         @if (showExtendedImageInformation)
                                         {
-                                            <p class="card-text">Time: </p>
-                                            <p class="card-text">Site Name: </p>
-                                            <p class="card-text">Site Number: </p>
-                                            <p class="card-text">Camera Number: </p>
-                                            <p class="card-text">Camera Position Number: </p>
-                                            <p class="card-text">Camera Position Name: </p>
+                                            <table class="table mb-3" id="meta-data-table">
+                                                <tbody>
+                                                    <tr>
+                                                        <th class="fw-normal" scope="row">Time</th>
+                                                        <td class="text-end"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th class="fw-normal" scope="row">Site Name</th>
+                                                        <td class="text-end"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th class="fw-normal" scope="row">Site Number</th>
+                                                        <td class="text-end"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th class="fw-normal" scope="row">Camera Position Number</th>
+                                                        <td class="text-end"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th class="fw-normal" scope="row">Camera Position Name</th>
+                                                        <td class="text-end"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th class="fw-normal" scope="row">Weather Prediction</th>
+                                                        <td class="text-end"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th class="fw-normal" scope="row">Prediction Confidence</th>
+                                                        <td class="text-end"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th class="fw-normal" scope="row">Snow Prediction</th>
+                                                        <td class="text-end"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th class="fw-normal" scope="row">Prediction Confidence</th>
+                                                        <td class="text-end"></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
                                         }
                                         <div class="d-flex justify-content-between align-items-center">
                                             <div class="btn-group">
@@ -166,11 +200,46 @@
                                     <div class="card-body">
                                         @if (showExtendedImageInformation)
                                         {
-                                            <p class="card-text">Time: @image.DateTime</p>
-                                            <p class="card-text">Site Name: @image.SiteName</p>
-                                            <p class="card-text">Site Number: @image.SiteNumber</p>
-                                            <p class="card-text">Camera Position Number: @image.CameraPositionNumber</p>
-                                            <p class="card-text">Camera Position Name: @image.CameraPositionName</p>
+                                            <table class="table table-sm mb-3" id="meta-data-table">
+                                                <tbody>
+                                                    <tr>
+                                                        <th class="fw-normal" scope="row">Time</th>
+                                                        <td class="text-end">@image.DateTime</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th class="fw-normal" scope="row">Site Name</th>
+                                                        <td class="text-end">@image.SiteName</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th class="fw-normal" scope="row">Site Number</th>
+                                                        <td class="text-end">@image.SiteNumber</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th class="fw-normal" scope="row">Camera Position Number</th>
+                                                        <td class="text-end">@image.CameraPositionNumber</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th class="fw-normal" scope="row">Camera Position Name</th>
+                                                        <td class="text-end">@(image.CameraPositionName ?? "Undefined")</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th class="fw-normal" scope="row">Weather Prediction</th>
+                                                        <td class="text-end">@(image.WeatherPrediction ?? "Undefined")</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th class="fw-normal" scope="row">Prediction Confidence</th>
+                                                        <td class="text-end">@(image.WeatherPredictionPercent.HasValue ? image.WeatherPredictionPercent.Value.ToString("F0") + "%" : "Undefined")</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th class="fw-normal" scope="row">Snow Prediction</th>
+                                                        <td class="text-end">@(image.SnowPrediction ?? "Undefined")</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th class="fw-normal" scope="row">Prediction Confidence</th>
+                                                        <td class="text-end">@(image.SnowPredictionPercent.HasValue ? image.SnowPredictionPercent.Value.ToString("F0") + "%" : "Undefined")</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
                                         }
                                         <div class="d-flex justify-content-between align-items-center">
                                             <div class="btn-group">
@@ -189,25 +258,25 @@
             <div>
                 <ul class="pagination justify-content-center">
                     <li class="page-item @(pageIndex==1 ? "disabled" : "")">
-                        <button type="button" class="page-link" @onclick="FirstPage">
+                        <button type="button" class="page-link" @onclick="FirstPage" disabled="@(pageIndex == 1)">
                             <i class="bi bi-chevron-bar-left"></i>
                         </button>
                     </li>
-                    <li class="page-item">
-                        <button type="button" class="page-link" @onclick="PreviousPage">
+                    <li class="page-item @(pageIndex == 1 ? "disabled" : "")">
+                        <button type="button" class="page-link" @onclick="PreviousPage" disabled="@(pageIndex == 1)">
                             <i class="bi bi-chevron-left"></i>
                         </button>
                     </li>
                     <li class="page-item">
                         <input type="number" min="0" max="@totalPages" class="page-link text-center" value="@pageIndex" @onchange="UpdatePaginationAsync" />
                     </li>
-                    <li class="page-item">
-                        <button type="button" class="page-link" @onclick="NextPage">
+                    <li class="page-item @(pageIndex == totalPages ? "disabled" : "")">
+                        <button type="button" class="page-link" @onclick="NextPage" disabled="@(pageIndex == totalPages)">
                             <i class="bi bi-chevron-right"></i>
                         </button>
                     </li>
                     <li class="page-item @(pageIndex==totalPages ? "disabled" : "")">
-                        <button type="button" class="page-link" @onclick="LastPage">
+                        <button type="button" class="page-link" @onclick="LastPage" disabled="@(pageIndex == totalPages)">
                             <i class="bi bi-chevron-bar-right"></i>
                         </button>
                     </li>
@@ -446,8 +515,11 @@
 
     private async Task NextPage()
     {
-        pageIndex++;
-        await GetImagesByPageAsync();
+        if(pageIndex < totalPages)
+        {
+            pageIndex++;
+            await GetImagesByPageAsync();
+        }
     }
 
     private async Task PreviousPage()

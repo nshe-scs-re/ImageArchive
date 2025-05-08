@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace api.Models;
+﻿namespace api.Models;
 
 public class FileUploadItem
 {

@@ -81,13 +81,13 @@ forwardedHeadersOptions.KnownProxies.Add(IPAddress.Parse("10.176.244.110"));
 
 app.UseForwardedHeaders(forwardedHeadersOptions);
 
-app.UseStaticFiles();
-
-app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
-
 app.UseAuthentication();
 
 app.UseAuthorization();
+
+app.UseStaticFiles();
+
+app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 
 app.UseAntiforgery();
 

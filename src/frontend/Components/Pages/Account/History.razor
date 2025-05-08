@@ -19,7 +19,7 @@ else
         <div class="col text-center justify-content-center">
             <h1 class="h1 pb-3">Hi, @auth0_username</h1>
             <p class="lead fw-normal pb-3">Your query history:</p>
-            <QuickGrid Items="@listOfUserQueries.AsQueryable()" Pagination="@pagination" Class="table table-sm table-bordered table-striped">
+            <QuickGrid Items="@listOfUserQueries.AsQueryable()" Pagination="@pagination" Class="table table-sm table-bordered table-striped" id="query-history-table">
                 <PropertyColumn Property="@(q => q.Timestamp)" Title="Date of Search" Format="yyyy-MM-dd HH:mm:ss" IsDefaultSortColumn="true"/>
                 <PropertyColumn Property="@(q => q.DeserializedParameters.StartDateTime)" Title="Start Date/Time" />
                 <PropertyColumn Property="@(q => q.DeserializedParameters.EndDateTime)" Title="End Date/Time" />
